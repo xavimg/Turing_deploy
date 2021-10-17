@@ -147,12 +147,7 @@ const app = new PIXI.Application({
 
 document.body.appendChild(app.view);
 
-class Star {
-    constructor() {
-        this.texture = PIXI.Texture.from("dat/star.png");
-        this.sprite = new PIXI.Sprite(this.texture);
-    }
-
+class Element {
     randomizeposition(w, h) {
         this.sprite.position.x = Math.random() * w;
         this.sprite.position.y = Math.random() * h;
@@ -163,10 +158,27 @@ class Star {
         this.sprite.scale.x = scale;
         this.sprite.scale.y = scale;
     }
+    randomizerotation(max) {
+        const scale = Math.random() * max;
+        this.sprite.rotation = scale;
+    }
+    randomizetint(amount) {
+        this.sprite.tint = Math.random() * amount;
+    }
 }
 
-class Planet {
+
+class Star extends Element {
     constructor() {
+        super();
+        this.texture = PIXI.Texture.from("dat/star.png");
+        this.sprite = new PIXI.Sprite(this.texture);
+    }
+}
+
+class Planet extends Element {
+    constructor() {
+        super();
         this.texture = PIXI.Texture.from("dat/planet1.png");
         this.sprite = new PIXI.Sprite(this.texture);
     }
@@ -177,21 +189,6 @@ class Planet {
         this.sprite = new PIXI.Sprite(this.texture);
     }
 
-    randomizeposition(w, h) {
-        this.sprite.position.x = Math.random() * w;
-        this.sprite.position.y = Math.random() * h;
-    }
-
-    randomizescale(max) {
-        const scale = Math.random() * max;
-        this.sprite.scale.x = scale;
-        this.sprite.scale.y = scale;
-    }
-
-    randomizerotation(max) {
-        const scale = Math.random() * max;
-        this.sprite.rotation = scale;
-    }
 }
 
 class Map {
@@ -208,6 +205,7 @@ class Map {
             let star = new Star();
             star.randomizeposition(this.width, this.height);
             star.randomizescale(0.15);
+            star.randomizetint(0xFFFFFF);
             this.container.addChild(star.sprite);
         }
     }
@@ -219,10 +217,15 @@ class Map {
             planet.randomizeposition(this.width, this.height);
             planet.randomizescale(0.5);
             planet.randomizerotation(360);
+            planet.randomizetint(0x111111);
             this.container.addChild(planet.sprite);
         }
     }
 }
+
+/**
+ * Game idea: randomizetint(0) creates a black void. This black voids could be "black holes" that the player can feel gravitational pull towards but has to dodge.
+ */
 
 class SuperMap {
     
