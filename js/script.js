@@ -140,14 +140,8 @@ que la palla va cara!
 Segueu arran!
 `;
 
-const app = new PIXI.Application({
-    width: window.innerWidth,
-    height: window.innerHeight
-});
+class RandomElement {
 
-document.body.appendChild(app.view);
-
-class Element {
     randomizeposition(w, h) {
         this.sprite.position.x = Math.random() * w;
         this.sprite.position.y = Math.random() * h;
@@ -158,25 +152,32 @@ class Element {
         this.sprite.scale.x = scale;
         this.sprite.scale.y = scale;
     }
+
     randomizerotation(max) {
         const scale = Math.random() * max;
         this.sprite.rotation = scale;
     }
-    randomizetint(amount) {
-        this.sprite.tint = Math.random() * amount;
+
+    randomizetint(amount, min, chance) {
+        if ((Math.random() * 100) < chance)
+            this.sprite.tint = (Math.random() * amount) + min;
     }
+
 }
 
 
-class Star extends Element {
+class Star extends RandomElement {
+
     constructor() {
         super();
         this.texture = PIXI.Texture.from("dat/star.png");
         this.sprite = new PIXI.Sprite(this.texture);
     }
+
 }
 
-class Planet extends Element {
+class Planet extends RandomElement {
+
     constructor() {
         super();
         this.texture = PIXI.Texture.from("dat/planet1.png");
@@ -192,12 +193,13 @@ class Planet extends Element {
 }
 
 class Map {
+
     constructor(width, height) {
         this.container = new PIXI.Container();
         this.width = width;
         this.height = height;
-        this.createstars(2000);
-        this.createplanets(2);
+        this.createstars(Math.pow(2, 16));
+        this.createplanets(Math.pow(2, 4));
     }
 
     createstars(amount) {
@@ -205,7 +207,7 @@ class Map {
             let star = new Star();
             star.randomizeposition(this.width, this.height);
             star.randomizescale(0.15);
-            star.randomizetint(0xFFFFFF);
+            star.randomizetint(0x55FFFF, 0xAA0000, 10); //a few red-shifted tints
             this.container.addChild(star.sprite);
         }
     }
@@ -217,48 +219,64 @@ class Map {
             planet.randomizeposition(this.width, this.height);
             planet.randomizescale(0.5);
             planet.randomizerotation(360);
-            planet.randomizetint(0x111111);
+            planet.randomizetint(0xFFFFFF, 0x0, 100);
             this.container.addChild(planet.sprite);
         }
     }
+
+    move(x, y) {
+        this.container.position.x += x;
+        this.container.position.y += y;
+    }
+
 }
 
 /**
- * Game idea: randomizetint(0) creates a black void. This black voids could be "black holes" that the player can feel gravitational pull towards but has to dodge.
+ * Game idea: randomizetint(0) creates a black void. 
+ * This "black voids" could be "black holes" 
+ * The player can feel gravitational pull towards them to but would have to dodge.
  */
 
-class SuperMap {
-    
+class Game {
+
     constructor() {
-        this.chunks = [];
+        this.map = new Map(Math.pow(2, 12), Math.pow(2, 12));
     }
 
-    updateChunk(position, chunk) {
-        switch (position) {
-            case "n": {
-                this.chunks.n = chunk;
+    logKey(e) {
+        switch (e.keyCode) {
+            case 87: {
+                console.log("w");
+                turing.map.move(0, 5);
             } break;
-            
-            case "r": {
-                this.chunks.r = chunk;
+            case 83: {
+                console.log("S");
+                turing.map.move(0, -5);
             } break;
-            
-            case "d": {
-                this.chunks.d = chunk;
+            case 65: {
+                console.log("A");
+                turing.map.move(5, 0);
             } break;
-                
-            case "l": {
-                this.chunks.l = chunk;
+            case 68: {
+                console.log("D");
+                turing.map.move(-5, 0);
+            } break;
+
+            default: {
+                console.log(e.keyCode);
             } break;
         }
     }
+
 }
 
-let map = new Map(app.screen.width, app.screen.height);
+const app = new PIXI.Application({
+    width: window.innerWidth,
+    height: window.innerHeight
+});
+document.body.appendChild(app.view);
 
-app.stage.addChild(map.container);
+let turing = new Game();
+app.stage.addChild(turing.map.container);
 
-function loop() {
-    while (true) {
-    }
-}
+document.addEventListener('keydown', turing.logKey);
