@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="SimpleJSONReader">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/SimpleJSONReader.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/lib/SimpleJSONReader.jar!/" />
+    </SOURCES>
+  </library>
+</component>
