@@ -198,11 +198,12 @@ class Map {
         this.container = new PIXI.Container();
         this.width = width;
         this.height = height;
-        this.createstars(Math.pow(2, 16));
+        this.move(-Math.round(this.width / 4), -Math.round(this.height / 4));
+        this.createstars(Math.pow(2, 18));
         this.createplanets(Math.pow(2, 4));
     }
 
-    createstars(amount) {
+    async createstars(amount) {
         for (let i = 0; i < amount; i++) {
             let star = new Star();
             star.randomizeposition(this.width, this.height);
@@ -212,14 +213,14 @@ class Map {
         }
     }
 
-    createplanets(amount) {
+    async createplanets(amount) {
         for (let i = 0; i < amount; i++) {
             let planet = new Planet();
             planet.randomizetexture();
             planet.randomizeposition(this.width, this.height);
             planet.randomizescale(0.5);
             planet.randomizerotation(360);
-            planet.randomizetint(0xFFFFFF, 0x0, 100);
+            planet.randomizetint(0xFFFFFF, 0xFFFFFF, 100);
             this.container.addChild(planet.sprite);
         }
     }
@@ -237,37 +238,114 @@ class Map {
  * The player can feel gravitational pull towards them to but would have to dodge.
  */
 
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+let doingactions = [];
+
+async function keepDoing(action, ms) {
+    if (doingactions.indexOf(action) < 0) { // check that actions is not in list
+        doingactions.push(action); // push action to list
+        while (true) {
+            if (doingactions.indexOf(action) > -1) {
+                action();
+                await sleep(ms);
+            }
+            else break;
+            console.log(doingactions);
+        }
+    }
+}
+
+function stopDoing(action) {
+    doingactions = doingactions.map( a => {
+        if (a != action) return a;
+    });
+    console.log("hi");
+}
+
 class Game {
 
     constructor() {
-        this.map = new Map(Math.pow(2, 12), Math.pow(2, 12));
+        this.map = new Map(Math.pow(2, 14), Math.pow(2, 14));
+        this.velx = 0.0;
+        this.vely = 0.0;
+        this.updateCamera();
     }
 
-    logKey(e) {
-        switch (e.keyCode) {
-            case 87: {
-                console.log("w");
-                turing.map.move(0, 5);
-            } break;
-            case 83: {
-                console.log("S");
-                turing.map.move(0, -5);
-            } break;
-            case 65: {
-                console.log("A");
-                turing.map.move(5, 0);
-            } break;
-            case 68: {
-                console.log("D");
-                turing.map.move(-5, 0);
-            } break;
-
-            default: {
-                console.log(e.keyCode);
-            } break;
+    async updateCamera() {
+        while (true) {
+            await sleep(1);
+            this.map.move(this.velx, this.vely);
+            if (this.velx > 0)
+                this.velx -= 1;
+            if (this.vely > 0)
+                this.vely -= 1;
+            if (this.velx < 0)
+                this.velx += 1;
+            if (this.vely < 0)
+                this.vely += 1;
         }
     }
+}
 
+function decVelY() {
+    turing.vely += -1;
+}
+
+function decVelX() {
+    turing.velx += -1;
+}
+
+function incVelY() {
+    turing.vely += 1;
+}
+
+function incVelX() {
+    turing.velx += 1;
+}
+
+function logKeyDown(e) {
+    switch (e.keyCode) {
+        case 87: {
+            keepDoing(incVelY, 1);
+        } break;
+        case 83: {
+            keepDoing(decVelY, 1);
+        } break;
+        case 65: {
+            keepDoing(incVelX, 1);
+        } break;
+        case 68: {
+            keepDoing(decVelX, 1)
+        } break;
+
+        default: {
+            console.log(e.keyCode);
+        } break;
+    }
+}
+
+function logKeyUp(e) {
+    switch (e.keyCode) {
+        case 87: {
+            stopDoing(incVelY, 1);
+        } break;
+        case 83: {
+            stopDoing(decVelY, 1);
+        } break;
+        case 65: {
+            stopDoing(incVelX, 1);
+        } break;
+        case 68: {
+            stopDoing(decVelX, 1)
+        } break;
+
+        default: {
+            console.log(e.keyCode);
+        } break;
+    }
 }
 
 const app = new PIXI.Application({
@@ -279,4 +357,5 @@ document.body.appendChild(app.view);
 let turing = new Game();
 app.stage.addChild(turing.map.container);
 
-document.addEventListener('keydown', turing.logKey);
+document.addEventListener('keydown', logKeyDown);
+document.addEventListener('keydown', logKeyUp);
