@@ -3,6 +3,7 @@ package org.proj.physics;
 import org.proj.math.MathUtils;
 
 import java.math.BigDecimal;
+import java.math.MathContext;
 
 /**
  * Constants used for the calculations
@@ -26,40 +27,7 @@ public class Constants {
      */
     final public static BigDecimal G = BigDecimal.valueOf(4.93e-6);
 
-    final public static double C2 = C * C;
-    final public static double C4 = C2 * C2;
-    final public static double K = 8 * Math.PI * G / C2;
-
-    /**
-     * @param m Distance in meters
-     * @return Distance in light seconds
-     */
-    public static double fromMeters (double m) {
-        return m / 299792458d;
-    }
-
-    /**
-     * @param km Distance in kilometers
-     * @return Distance in light seconds
-     */
-    public static double fromKiloMeters (double km) {
-        return km / 299792.458d;
-    }
-
-    /**
-     * @param kg Mass in kilograms
-     * @return Mass in solar masses
-     */
-    public static double fromKiloGrams (double kg) {
-        return kg / 1.998e30d;
-    }
-
-    /**
-     * @param revs Angular velocity in revolutions per second
-     * @param r Radius of rotation
-     * @return Angular velocity in radians per second
-     */
-    public static double fromRevolutionsSecond (double revs, double r) {
-        return MathUtils.PI_2 * r * revs;
-    }
+    final public static BigDecimal C2 = C.pow(2);
+    final public static BigDecimal C4 = C2.pow(2);
+    final public static BigDecimal K = MathUtils.PI.multiply(G).multiply(BigDecimal.valueOf(8)).divide(C2, MathContext.DECIMAL128);
 }

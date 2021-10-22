@@ -3,6 +3,8 @@ package org.proj.math.matrix.special;
 import org.proj.math.matrix.Matrix;
 import org.proj.math.vector.Vector;
 
+import java.math.BigDecimal;
+
 public class DiagonalMatrix extends Matrix {
     final private Vector values;
 
@@ -11,13 +13,13 @@ public class DiagonalMatrix extends Matrix {
         this.values = values;
     }
 
-    public DiagonalMatrix(double... values) {
+    public DiagonalMatrix(BigDecimal... values) {
         this(Vector.of(values));
     }
 
     @Override
-    final public double get (int i, int j) {
-        return i == j ? values.get(i) : 0;
+    final public BigDecimal get (int i, int j) {
+        return i == j ? values.get(i) : BigDecimal.ZERO;
     }
 
     final public Vector getVector () {
@@ -38,18 +40,18 @@ public class DiagonalMatrix extends Matrix {
     }
 
     @Override
-    public DiagonalMatrix mul (double other) {
+    public DiagonalMatrix mul (BigDecimal other) {
         return new DiagonalMatrix(values.mul(other));
     }
 
     @Override
-    public DiagonalMatrix div (double other) {
+    public DiagonalMatrix div (BigDecimal other) {
         return new DiagonalMatrix(values.div(other));
     }
 
     @Override
     public DiagonalMatrix inverse() {
-        return new DiagonalMatrix(values.invDiv(1d));
+        return new DiagonalMatrix(values.invDiv(BigDecimal.ONE));
     }
 
     @Override

@@ -3,14 +3,16 @@ package org.proj.math.matrix.special;
 import org.proj.math.matrix.Matrix;
 import org.proj.math.vector.special.ZeroVector;
 
+import java.math.BigDecimal;
+
 public class ZeroMatrix extends Matrix {
     public ZeroMatrix (int rows, int cols) {
         super(rows, cols);
     }
 
     @Override
-    public double get(int i, int j) {
-        return 0;
+    public BigDecimal get(int i, int j) {
+        return BigDecimal.ZERO;
     }
 
     @Override
@@ -25,7 +27,7 @@ public class ZeroMatrix extends Matrix {
 
     @Override
     public Matrix subtr (Matrix other) {
-        return other.mul(-1);
+        return other.mul(BigDecimal.ONE.negate());
     }
 
     @Override
@@ -34,12 +36,12 @@ public class ZeroMatrix extends Matrix {
     }
 
     @Override
-    public ZeroMatrix mul (double other) {
+    public ZeroMatrix mul (BigDecimal other) {
         return this;
     }
 
     @Override
-    public ZeroMatrix div (double other) {
+    public ZeroMatrix div (BigDecimal other) {
         return this;
     }
 

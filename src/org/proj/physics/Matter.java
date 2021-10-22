@@ -1,5 +1,6 @@
 package org.proj.physics;
 
+import org.proj.math.vector.LazyVector;
 import org.proj.math.vector.Vector;
 import org.proj.physics.metric.Schwarzschild;
 
@@ -47,8 +48,8 @@ public abstract class Matter {
 
     /**
      * Calculates weather matter is a black hole
-     * @see Schwarzschild#radius(double)
-     * @return {@link Boolean#TRUE} if {@link #radius()} is lower or equal to {@link Schwarzschild#radius(double)}, otherwise {@link Boolean#FALSE}
+     * @see Schwarzschild#radius(BigDecimal)
+     * @return {@link Boolean#TRUE} if {@link #radius()} is lower or equal to {@link Schwarzschild#radius(BigDecimal)}, otherwise {@link Boolean#FALSE}
      */
     final public boolean isBlackHole () {
         return radius().compareTo(Schwarzschild.radius(restMass())) <= 0;
@@ -140,8 +141,11 @@ public abstract class Matter {
             this.velocity = this.velocity.add(vel);
         }
 
-        final public void update (double dt) {
+        final public void update (BigDecimal dt) {
             this.position = this.position.add(velocity.mul(dt));
+            if (position instanceof LazyVector) {
+                this.position = ((LazyVector) this.position).toStatic();
+            }
         }
     }
 }

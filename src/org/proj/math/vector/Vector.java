@@ -125,6 +125,15 @@ public abstract class Vector implements Iterable<BigDecimal> {
         return div(length());
     }
 
+    public Vector round (MathContext context) {
+        return new LazyVector (size) {
+            @Override
+            public BigDecimal compute (int pos) {
+                return Vector.this.get(pos).round(context);
+            }
+        };
+    }
+
     // SLICING
     public Vector copyOf (int offset, int stride, int size) {
         return new Vector (size) {

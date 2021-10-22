@@ -5,17 +5,18 @@ import org.proj.physics.coordinate.CoordinateSystem;
 import org.proj.physics.metric.Schwarzschild;
 
 import java.math.BigDecimal;
+import java.math.MathContext;
 
 public class SchwrzTest {
     public static void main (String... args) {
-        double mass = 1d;
-        double r = 496.6d;
-        double velocity = 9.93e-5;
+        BigDecimal mass = BigDecimal.ONE;
+        BigDecimal r = BigDecimal.valueOf(496.6d);
+        BigDecimal velocity = BigDecimal.valueOf(9.93e-5);
 
         Schwarzschild metric = new Schwarzschild(mass);
 
-        Matter.Defined earth = new Matter.Defined(3e-6, 0.021251398d, 7.292115e-5, Vector.of(r, 0), CoordinateSystem.POLAR.fromCartesianVelocity(Vector.of(r, 0), Vector.of(0, velocity)));
-        Matter.Defined newton = new Matter.Defined(3e-6, 0.021251398d, 7.292115e-5, Vector.of(r, 0), Vector.of(0, velocity));
+        Matter.Defined earth = new Matter.Defined(BigDecimal.valueOf(3e-6), BigDecimal.valueOf(0.021251398d), BigDecimal.valueOf(7.292115e-5), Vector.of(r, BigDecimal.ZERO), CoordinateSystem.POLAR.fromCartesianVelocity(Vector.of(r, BigDecimal.ZERO), Vector.of(BigDecimal.ZERO, velocity)));
+        Matter.Defined newton = new Matter.Defined(BigDecimal.valueOf(3e-6), BigDecimal.valueOf(0.021251398d), BigDecimal.valueOf(7.292115e-5), Vector.of(r, BigDecimal.ZERO), Vector.of(BigDecimal.ZERO, velocity));
 
         Vector start = earth.getPosition();
         System.out.println(start);
@@ -24,7 +25,7 @@ public class SchwrzTest {
         for (int i=0;i<87600;i++) { // Each iter an hour
             BigDecimal sec = BigDecimal.valueOf(3600);
             Vector acc = metric.getAcceleration(earth);
-            Vector accNewton = newton.getPosition().unit().mul(-1).mul(Constants.G * mass / newton.getPosition().length2());
+            Vector accNewton = newton.getPosition().unit().mul(BigDecimal.ONE.negate()).mul(Constants.G.multiply(mass).divide(newton.getPosition().length2(), MathContext.DECIMAL128));
 
             earth.addVelocity(acc.mul(sec));
             earth.update(sec);
@@ -32,11 +33,11 @@ public class SchwrzTest {
             newton.addVelocity(accNewton.mul(sec));
             newton.update(sec);
 
-            System.out.println(CoordinateSystem.POLAR.toCartesianVelocity(earth.getPosition(), earth.getVelocity()));
-            System.out.println(newton.getVelocity());
-            System.out.println();
+            System.out.println(i * 100d / 87600);
         }
 
-        Vector end = earth.getPosition();
+        System.out.println();
+        System.out.println(CoordinateSystem.POLAR.toCartesianVelocity(earth.getPosition(), earth.getVelocity()).round(MathContext.DECIMAL64));
+        System.out.println(newton.getVelocity().round(MathContext.DECIMAL64));
     }
 }

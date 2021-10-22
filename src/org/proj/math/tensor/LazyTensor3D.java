@@ -4,6 +4,8 @@ import org.proj.math.matrix.LazyMatrix;
 import org.proj.math.matrix.Matrix;
 import org.proj.math.vector.Vector;
 
+import java.math.BigDecimal;
+
 public abstract class LazyTensor3D extends Tensor3D {
     final private Matrix[] values;
 
@@ -12,12 +14,12 @@ public abstract class LazyTensor3D extends Tensor3D {
         this.values = new Matrix[alpha];
     }
 
-    public abstract double compute (int i, int j, int k);
+    public abstract BigDecimal compute (int i, int j, int k);
 
     public Matrix compute (int i) {
         return new LazyMatrix (beta, gamma) {
             @Override
-            public double compute (int j, int k) {
+            public BigDecimal compute (int j, int k) {
                 return LazyTensor3D.this.compute(i, j, k);
             }
         };
@@ -39,7 +41,7 @@ public abstract class LazyTensor3D extends Tensor3D {
     }
 
     @Override
-    public double get (int x, int y, int z) {
+    public BigDecimal get (int x, int y, int z) {
         return get(x).get(y, z);
     }
 
@@ -53,7 +55,7 @@ public abstract class LazyTensor3D extends Tensor3D {
         public abstract Matrix compute (int i);
 
         @Override
-        public double compute (int x, int y, int z) {
+        public BigDecimal compute (int x, int y, int z) {
             return compute(x).get(y, z);
         }
     }
