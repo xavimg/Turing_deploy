@@ -10,7 +10,7 @@ const db = mysql.createConnection({
 });
 exports.register = (req, res) => {
     console.log(req.body);
-    const { name, email, password, passwordConfirmation } = req.body;
+    const { name, email, password, passwordConfirm } = req.body;
 
     // With ? we evade SQLinjection
     db.query('SELECT email FROM users WHERE email = ?', [email], async (error, result) => {
@@ -23,11 +23,12 @@ exports.register = (req, res) => {
             return res.render('register', {
                 message: 'That email is already in use'
             });
-        } /*else if (password !== passwordConfirmation) {
+
+        } else if (password != passwordConfirm) {
             return res.render('register', {
                 message: 'Password do not match'
             });
-        }*/
+        }
         
         let hashedPassword = await bcrypt.hash(password, 8);
         console.log(hashedPassword);
