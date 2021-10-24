@@ -35,10 +35,15 @@ function registerPlayerAction(action) {
         action.direction = action.direction.replace("r", "");
         action.direction = action.direction.replace("l", "");
     }
+
+    let step = 1;
+
+    step = step / action.direction.length;
+
     switch (action.type) {
         case "move": {
             player.rotate(action.direction);
-            player.move(action.direction, 1);
+            player.move(action.direction, step);
         }
     }
 }
