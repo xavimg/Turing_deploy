@@ -12,6 +12,14 @@ exports.register = (req, res) => {
     console.log(req.body);
     const { name, email, password, passwordConfirm } = req.body;
 
+    // const sql = "CREATE TABLE customers (name VARCHAR(255), address VARCHAR(255))";
+    // db.query(sql, function (err, result) {
+    // if (err) throw err;
+    // console.log("Table created");
+    // });
+
+    db.query("CREATE TABLE amigos (name VARCHAR(255), address VARCHAR(255))")
+
     // With ? we evade SQLinjection
     db.query('SELECT email FROM users WHERE email = ?', [email], async (error, result) => {
 
