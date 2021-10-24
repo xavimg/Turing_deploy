@@ -24,9 +24,21 @@ function sleep(ms) {
 }
 
 function registerPlayerAction(action) {
+    // negate up and down directions pressed at the same time
+    if (action.direction.indexOf("u") > -1 && action.direction.indexOf("d") > -1) {
+        action.direction = action.direction.replace("u", "");
+        action.direction = action.direction.replace("d", "");
+    }
+
+    // negate right and left directions pressed at the same time
+    if (action.direction.indexOf("r") > -1 && action.direction.indexOf("l") > -1) {
+        action.direction = action.direction.replace("r", "");
+        action.direction = action.direction.replace("l", "");
+    }
     switch (action.type) {
-        case "keymovement": {
+        case "move": {
             player.rotate(action.direction);
+            player.move(action.direction, 1);
         }
     }
 }
@@ -49,22 +61,24 @@ async function keyLookup() {
     while (true) {
         await sleep(1);
         action = {
-            type: "move"
+            type: "move",
+            direction: ""
         };
         if (keys.includes(87)) { // W
-            action.direction = "u";
-        } else 
+            action.direction += "u";
+        } 
         if (keys.includes(68)) { // D
-            action.direction = "r";
-        } else 
+            action.direction += "r";
+        } 
         if (keys.includes(83)) { // S
-            action.direction = "d";
-        } else 
+            action.direction += "d";
+        } 
         if (keys.includes(65)) { // A
-            action.direction = "l";
+            action.direction += "l";
         }
-        if (action.direction != undefined)
+        if (action.direction != "") {
             registerPlayerAction(action);
+        }                
     }
 }
 

@@ -20,14 +20,14 @@ class MockServer {
                                 "x": 0,
                                 "y": 0
                             },
-                            "color": "0xFF0000"
+                            "color": "0xFF00FF"
                         }
                     },
                     {
                         "planet" : {
                             "id": "",
                             "mass": 500,
-                            "radius": 500,
+                            "radius": 0,
                             "angularSpeed": 50,
                             "position": {
                                 "x": 550,
@@ -72,6 +72,12 @@ class MockServer {
     }
 }
 
+/*
+const up = 0;
+const right = MATH.PI / 2;
+const down = MATH.PI;
+const left = down + right;*/
+
 class Player {
 
     constructor(json) {
@@ -81,6 +87,8 @@ class Player {
         this.position = json.player.position;
         this.rotation = 0.0;
         this.sprite = PIXI.Sprite.from("dat/spaceship.png");
+        this.sprite.anchor.x = 0.5;
+        this.sprite.anchor.y = 0.5;
         this.updateSprite();
     }
 
@@ -104,6 +112,39 @@ class Player {
             case "l": {
                 this.rotation = Math.PI + (Math.PI / 2);
             } break;
+            case "ur":
+            case "ru":
+            {
+                this.rotation = Math.PI / 4;
+            } break;
+            case "dr":
+            case "rd": {
+                this.rotation = Math.PI - (Math.PI / 4);
+            } break;
+            case "dl":
+            case "ld": {
+                this.rotation = Math.PI + (Math.PI / 4);
+            } break;
+            case "ul":
+            case "lu": {
+                this.rotation = Math.PI * 2 - (Math.PI / 4);
+            } break;
+        }
+        this.updateSprite();
+    }
+
+    move(direction, step) {
+        if (direction.indexOf("u") > -1) {
+            this.position.y += -step;
+        }
+        if (direction.indexOf("d") > -1) {
+            this.position.y += +step;
+        }
+        if (direction.indexOf("r") > -1) {
+            this.position.x += +step;
+        }
+        if (direction.indexOf("l") > -1) {
+            this.position.x += -step;
         }
         this.updateSprite();
     }
