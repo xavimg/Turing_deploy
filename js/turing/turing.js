@@ -1,81 +1,3 @@
-class MockServer {
-    static getPlanetarySystem(id) {
-        let str = 
-        `
-        {
-            "planetarySystem" : {
-                "id": 1,
-                "size": {
-                    "x": 4800,
-                    "y": 4800
-                },
-                "planets" : [
-                    {
-                        "planet" : {
-                            "id": 1,
-                            "mass": 100,
-                            "radius": 250,
-                            "angularSpeed": 0,
-                            "position": {
-                                "x": 500,
-                                "y": 500
-                            },
-                            "speed": {
-                                "x": 0,
-                                "y": 0
-                            },
-                            "color": "0x990077"
-                        }
-                    },
-                    {
-                        "planet" : {
-                            "id": "",
-                            "mass": 500,
-                            "radius": 0,
-                            "angularSpeed": 50,
-                            "position": {
-                                "x": 550,
-                                "y": 150
-                            },
-                            "speed": {
-                                "x": 0,
-                                "y": 0
-                            },
-                            "color": "0x0000FF"
-                        }
-                    }
-                ]       
-            }
-        }
-        `;
-        return str;
-    }
-
-    static getPlayer(token) {
-        const str =
-        `
-        {
-            "player" : {
-
-                "currentSystemId": 1,
-                "currentPlanetId": 1,
-
-                "speed" : {
-                    "x": 0,
-                    "y": 0
-                },
-
-                "position": {
-                    "x": 55,
-                    "y": 55
-                }
-            } 
-        }
-        `;
-        return str;
-    }
-}
-
 /*
 const up = 0;
 const right = MATH.PI / 2;
@@ -83,22 +5,6 @@ const down = MATH.PI;
 const left = down + right;*/
 
 class Player {
-
-    constructor(json) {
-        this.currentSystemId = json.player.currentSystemId;
-        this.currentPlanetId = json.player.currentPlanetId;
-        this.speed = json.player.speed;
-        this.position = json.player.position;
-        this.rotation = 0.0;
-        this.sprite = PIXI.Sprite.from("dat/spaceship.png");
-        this.sprite.anchor.x = 0.5;
-        this.sprite.anchor.y = 0.5;
-        this.updateSprite();
-    }
-
-    updateSprite() {
-        this.sprite.rotation = this.rotation;
-    }
 
     rotate(direction) {
         switch (direction) {
