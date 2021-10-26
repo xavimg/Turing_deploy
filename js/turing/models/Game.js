@@ -5,8 +5,11 @@ class Game {
         this.server = server;
         this.player = new Player(JSON.parse(server.getPlayer("self")));
         this.system = new System(JSON.parse(server.getSystem(this.player.currentSystem)));
-        this.app.stage.addChild(this.player.sprite);
         this.app.stage.addChild(this.system.sprite);
+        this.app.stage.addChild(this.player.sprite);
+        this.keys = [];
+        this.setPlayerToScreenCenter();
+        // console.log("🌌 Turing started 🌌")
     }
 
     moveCamera(x, y) {
@@ -28,6 +31,12 @@ class Game {
     movePlayer(x, y) {
         // moves camera
         this.moveCamera(x, y);
+    }
+
+    setPlayerToScreenCenter() {
+        this.player.lockSpritePosition = false;
+        this.player.setPosition(this.app.screen.width / 2, this.app.screen.height / 2);
+        this.player.lockSpritePosition = true;
     }
 
 }

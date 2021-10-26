@@ -9,7 +9,6 @@ class Planet {
         this.color = json.color;
         this.atmosphere = new Atmosphere(json.atmosphere, this.position);
         this.sprite = new PIXI.Container();
-        debugger
         this.sprite.addChild(this.createPlanetSprite());
         this.sprite.addChild(this.atmosphere.sprite);
     }

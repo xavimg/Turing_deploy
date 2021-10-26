@@ -6,11 +6,11 @@ class Player {
      */
     constructor(json) {
         this.sprite = PIXI.Sprite.from(json.player.texture);
+        this.sprite.zIndex = 9999;
         this.lockSpritePosition = true;
         this.setPosition(json.player.position.x, json.player.position.y);
         this.setRotation(json.player.rotation);
         this.sprite.anchor = {x: 0.5, y: 0.5};
-
         this.name = json.player.name;
         this.currentSystem = json.player.currentSystem;
         this.currentPlanet = json.player.currentPlanet;
