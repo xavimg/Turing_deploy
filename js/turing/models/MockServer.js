@@ -25,8 +25,8 @@ class MockServer extends Server {
                         "radius": 250,
                         "angularSpeed": 10,
                         "position": {
-                            "x": 5,
-                            "y": 5
+                            "x": 550,
+                            "y": 550
                         },
                         "speed": {
                             "x": 0,

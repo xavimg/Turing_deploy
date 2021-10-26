@@ -1,16 +1,17 @@
 class Planet {
     
     constructor(json) {
-        this.id = json.planet.id;
-        this.name = json.planet.name;
-        this.radius = json.planet.radius;
-        this.angularSpeed = json.planet.angularSpeed;
-        this.position = json.planet.position;
-        this.color = json.planet.color;
-        this.atmosphere = new Atmosphere(json.planet.atmosphere);
+        this.id = json.id;
+        this.name = json.name;
+        this.radius = json.radius;
+        this.angularSpeed = json.angularSpeed;
+        this.position = json.position;
+        this.color = json.color;
+        this.atmosphere = new Atmosphere(json.atmosphere, this.position);
         this.sprite = new PIXI.Container();
-        this.sprite.addChild(this.createPlanetSprite(radius, color));
-        this.sprite.addChild(this.atmosphere);
+        debugger
+        this.sprite.addChild(this.createPlanetSprite());
+        this.sprite.addChild(this.atmosphere.sprite);
     }
 
     createPlanetSprite() {

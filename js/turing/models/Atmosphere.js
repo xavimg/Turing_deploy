@@ -6,7 +6,7 @@ class Atmosphere {
         this.layers = [];
         for (let i = 0; i < json.layers.length; i++) {
             this.layers.push(this.createLayer(json.layers[i].radius, json.layers[i].color, json.layers[i].alpha));
-            this.sprite.addChild(this.layers[this.layers.length]);
+            this.sprite.addChild(this.layers[i]);
         }
     }
 
@@ -15,6 +15,7 @@ class Atmosphere {
         gfx.beginFill(color, alpha);
         gfx.drawCircle(this.position.x, this.position.y, radius);
         gfx.endFill();
+        return gfx;
     }
 
 }

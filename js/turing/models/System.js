@@ -6,9 +6,9 @@ class System {
         this.planets = [];
         this.layers = [];
         this.sprite = new PIXI.Container();
-        for (let i = 0; i < json.system.planets.size; i++) {
+        for (let i = 0; i < json.system.planets.length; i++) {
             this.planets.push(new Planet(json.system.planets[i]));
-            this.sprite.addChild(this.planets[this.planets.length]);
+            this.sprite.addChild(this.planets[i].sprite);
         }
         this.createStarBackground();
     }
