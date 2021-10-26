@@ -5,6 +5,10 @@ class MockServer {
         {
             "planetarySystem" : {
                 "id": 1,
+                "size": {
+                    "x": 1600,
+                    "y": 1600
+                },
                 "planets" : [
                     {
                         "planet" : {
@@ -180,11 +184,41 @@ class PlanetarySystem {
     
     constructor(json) {
         this.id = json.planetarySystem.id;
+        this.size = {
+            x: json.planetarySystem.size.x,
+            y: json.planetarySystem.size.y
+        }
         this.planets = [];
         for (let i = 0; i < json.planetarySystem.planets.length; i++) {
             this.planets.push(new Planet(json.planetarySystem.planets[i]));
         }
+        this.starLayers = [];
         this.container = this.createContainer();
+        this.createStarBackground();
+    }
+
+    createStarLayer(color, density) {
+        const starLayer = new PIXI.Graphics();
+        starLayer.beginFill(color, 1);
+        for (let i = 0; i < Math.pow(2, density); i++) {
+            starLayer.drawRect(Math.random() * this.size.x, Math.random() * this.size.y, Math.random() * 2, Math.random() * 2);
+        }
+        starLayer.endFill();
+        return starLayer;
+    }
+
+    createStarBackground() {
+        let starLayer;
+        
+        // Red shifted star bg
+        starLayer = this.createStarLayer(0xFFAAAA, 12);
+        this.starLayers.push(starLayer);
+
+        // Normal intermedium stars
+        starLayer = this.createStarLayer(0xFFFFFF, 12);
+        this.starLayers.push(starLayer);
+
+        this.starLayers.forEach( layer => this.container.addChild(layer));
     }
 
     createContainer() {

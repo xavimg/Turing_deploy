@@ -1,8 +1,7 @@
 const options = {
-    width: 800,
-    height: 800,
-    backgroundColor: "black",
-    resolution: 1
+    width: window.screen.width,
+    height: window.screen.height,
+    backgroundColor: "black"
 };
 
 const token = "abcd1234";
