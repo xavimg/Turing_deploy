@@ -6,5 +6,5 @@ public class PlanetarySystem {
     private Matter central;
     private Planet[] planets;
 
-    public void step (double dt);
+    public void step (double dt) {};
 }

@@ -27,6 +27,10 @@ public class MathUtils {
         return Range.parallelOfInt(0, size).mapToDouble(function).sum();
     }
 
+    public static double clamp (double value, double min, double max) {
+        return Math.min(max, Math.max(min, value));
+    }
+
     public static BigDecimal sum (int size, IntFunction<BigDecimal> function) {
         return Range.parallelOfInt(0, size).mapToObj(function).reduce(BigDecimal::add).get();
     }

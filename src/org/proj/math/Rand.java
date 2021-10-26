@@ -6,18 +6,18 @@ import org.proj.math.numbers.unsigned.ULong;
 import java.util.Random;
 
 public class Rand {
-    final private static Random rng = new Random();
+    final public static Random RANDOM = new Random();
 
     public static long nextLong () {
-        return rng.nextLong();
+        return RANDOM.nextLong();
     }
 
     public static long nextLong (long min, long max) {
-        return rng.nextLong(min, max);
+        return RANDOM.nextLong(min, max);
     }
 
     public static ULong nextULong () {
-        return ULong.ofBits(rng.nextLong());
+        return ULong.ofBits(RANDOM.nextLong());
     }
 
     public static ULong nextULong (ULong min, ULong max) {
@@ -32,6 +32,6 @@ public class Rand {
     }
 
     public static double nextDouble (double min, double max) {
-        return rng.nextDouble(min, max);
+        return RANDOM.nextDouble(min, max);
     }
 }

@@ -59,6 +59,11 @@ public abstract class MetricTensor {
         };
     }
 
+    final public LazyTensor3D getChristoffel (Matter matter) {
+        Couple<? extends Matrix, ? extends Tensor3D> calc = calculateMetric(matter);
+        return getChristoffel(calc.first, calc.last);
+    }
+
     /**
      * @param christoffel Christoffel Symbols
      * @param vt Time dilation
