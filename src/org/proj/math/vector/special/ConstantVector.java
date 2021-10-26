@@ -5,20 +5,20 @@ import org.proj.math.vector.Vector;
 import java.math.BigDecimal;
 
 public class ConstantVector extends Vector {
-    final private BigDecimal value;
+    final private double value;
 
-    public ConstantVector (int size, BigDecimal value) {
+    public ConstantVector (int size, double value) {
         super(size);
         this.value = value;
     }
 
     @Override
-    public BigDecimal get(int i) {
+    public double get (int i) {
         return value;
     }
 
     @Override
-    public BigDecimal sum () {
-        return value.multiply(BigDecimal.valueOf(size));
+    public double sum () {
+        return value * size;
     }
 }

@@ -16,12 +16,12 @@ import java.math.BigDecimal;
 import java.math.MathContext;
 
 public class Schwarzschild extends MetricTensor {
-    final public BigDecimal mass;
-    final private BigDecimal value;
+    final public double mass;
+    final private double value;
 
-    public Schwarzschild (BigDecimal mass) {
+    public Schwarzschild (double mass) {
         this.mass = mass;
-        this.value = MathUtils.TWO.multiply(Constants.G).multiply(mass);
+        this.value = 2 * Constants.G * mass;
     }
 
     @Override
@@ -31,20 +31,20 @@ public class Schwarzschild extends MetricTensor {
 
     @Override
     public Couple<DiagonalMatrix, Tensor3D> calculateMetric (Matter matter) {
-        BigDecimal r = matter.getPosition().get(0);
-        BigDecimal _alpha = value.divide(r, MathContext.DECIMAL128);
+        double r = matter.getPosition().get(0);
+        double _alpha = value / r;
 
         DiagonalMatrix metric = new DiagonalMatrix(
-                Constants.C2.subtract(_alpha),
-                BigDecimal.ONE.negate().divide(BigDecimal.ONE.subtract(_alpha.divide(Constants.C2, MathContext.DECIMAL128)), MathContext.DECIMAL128),
-                r.pow(2).negate()
+                Constants.C2 - _alpha,
+                -1d / (1 - (_alpha / Constants.C2)),
+                -(r * r)
         );
 
         Tensor3D deriv = new LazyTensor3D.OfMatrix (3, 3, 3) {
             @Override
             public Matrix compute (int i) {
                 return switch (i) {
-                    case 1 -> new DiagonalMatrix(Vector.of(_alpha.divide(r, MathContext.DECIMAL128), value.multiply(Constants.C2).divide(Constants.C2.multiply(r).subtract(_alpha).pow(2), MathContext.DECIMAL128), r.negate().multiply(MathUtils.TWO)));
+                    case 1 -> new DiagonalMatrix(Vector.of(_alpha / r, value * Constants.C2 / Math.pow(Constants.C2 * r - _alpha, 2), -2 * r));
                     default -> new ZeroMatrix(3, 3);
                 };
             }
@@ -55,33 +55,37 @@ public class Schwarzschild extends MetricTensor {
 
     @Override
     public DiagonalMatrix getMetric (Matter matter) {
-        BigDecimal r = matter.getPosition().get(0);
-        BigDecimal _alpha = value.divide(r);
+        double r = matter.getPosition().get(0);
+        double _alpha = value / r;
 
-        return new DiagonalMatrix(
-                Constants.C2.subtract(_alpha),
-                BigDecimal.ONE.negate().divide(BigDecimal.ONE.subtract(_alpha.divide(Constants.C2, MathContext.DECIMAL128)), MathContext.DECIMAL128),
-                r.pow(2).negate()
+        DiagonalMatrix metric = new DiagonalMatrix(
+                Constants.C2 - _alpha,
+                -1d / (1 - (_alpha / Constants.C2)),
+                -(r * r)
         );
+
+        return metric;
     }
 
     @Override
     public Tensor3D getDerivative (Matter matter) {
-        BigDecimal r = matter.getPosition().get(0);
-        BigDecimal _alpha = value.divide(r);
+        double r = matter.getPosition().get(0);
+        double _alpha = value / r;
 
-        return new LazyTensor3D.OfMatrix (3, 3, 3) {
+        Tensor3D deriv = new LazyTensor3D.OfMatrix (3, 3, 3) {
             @Override
             public Matrix compute (int i) {
                 return switch (i) {
-                    case 1 -> new DiagonalMatrix(Vector.of(_alpha.divide(r, MathContext.DECIMAL128), value.multiply(Constants.C2).divide(Constants.C2.multiply(r).subtract(_alpha).pow(2), MathContext.DECIMAL128), r.negate().multiply(MathUtils.TWO)));
+                    case 1 -> new DiagonalMatrix(Vector.of(_alpha / r, value * Constants.C2 / Math.pow(Constants.C2 * r - _alpha, 2), -2 * r));
                     default -> new ZeroMatrix(3, 3);
                 };
             }
         };
+
+        return deriv;
     }
 
-    public static BigDecimal radius (BigDecimal mass) {
-        return MathUtils.TWO.multiply(Constants.G).multiply(mass).divide(Constants.C2, MathContext.DECIMAL128);
+    public static double radius (double mass) {
+        return 2 * Constants.G * mass / Constants.C2;
     }
 }

@@ -18,12 +18,12 @@ public abstract class LazyMatrix extends Matrix.OfVector {
         this.values = rows;
     }
 
-    public abstract BigDecimal compute (int i, int j);
+    public abstract double compute (int i, int j);
 
     public Vector compute (int i) {
         return new LazyVector (cols) {
             @Override
-            public BigDecimal compute (int j) {
+            public double compute (int j) {
                 return LazyMatrix.this.compute(i, j);
             }
         };
@@ -43,7 +43,7 @@ public abstract class LazyMatrix extends Matrix.OfVector {
     public static LazyMatrix of (int cols, LazyVector... rows) {
         return new LazyMatrix (rows.length, cols) {
             @Override
-            public BigDecimal compute(int i, int j) {
+            public double compute(int i, int j) {
                 throw new AssertionError();
             }
         };
@@ -59,7 +59,7 @@ public abstract class LazyMatrix extends Matrix.OfVector {
         public abstract Vector compute (int i);
 
         @Override
-        public BigDecimal compute (int i, int j) {
+        public double compute (int i, int j) {
             return compute(i).get(j);
         }
     }

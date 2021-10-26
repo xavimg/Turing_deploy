@@ -9,31 +9,31 @@ import java.util.stream.DoubleStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-public abstract class Vector implements Iterable<BigDecimal> {
+public abstract class Vector implements Iterable<Double> {
     final public int size;
 
     public Vector (int size) {
         this.size = size;
     }
 
-    public abstract BigDecimal get (int i);
+    public abstract double get (int i);
 
     // ARITHMETIC
     public Vector add (Vector other) {
         assertSameSize(other);
         return new LazyVector (size) {
             @Override
-            public BigDecimal compute (int pos) {
-                return Vector.this.get(pos).add(other.get(pos));
+            public double compute (int pos) {
+                return Vector.this.get(pos) + other.get(pos);
             }
         };
     }
 
-    public Vector add (BigDecimal other) {
+    public Vector add (double other) {
         return new LazyVector (size) {
             @Override
-            public BigDecimal compute (int pos) {
-                return Vector.this.get(pos).add(other);
+            public double compute (int pos) {
+                return Vector.this.get(pos) + other;
             }
         };
     }
@@ -42,17 +42,17 @@ public abstract class Vector implements Iterable<BigDecimal> {
         assertSameSize(other);
         return new LazyVector (size) {
             @Override
-            public BigDecimal compute (int pos) {
-                return Vector.this.get(pos).subtract(other.get(pos));
+            public double compute (int pos) {
+                return Vector.this.get(pos) - other.get(pos);
             }
         };
     }
 
-    public Vector subtr (BigDecimal other) {
+    public Vector subtr (double other) {
         return new LazyVector (size) {
             @Override
-            public BigDecimal compute (int pos) {
-                return Vector.this.get(pos).subtract(other);
+            public double compute (int pos) {
+                return Vector.this.get(pos) - other;
             }
         };
     }
@@ -61,17 +61,17 @@ public abstract class Vector implements Iterable<BigDecimal> {
         assertSameSize(other);
         return new LazyVector (size) {
             @Override
-            public BigDecimal compute (int pos) {
-                return Vector.this.get(pos).multiply(other.get(pos));
+            public double compute (int pos) {
+                return Vector.this.get(pos) * other.get(pos);
             }
         };
     }
 
-    public Vector mul (BigDecimal other) {
+    public Vector mul (double other) {
         return new LazyVector (size) {
             @Override
-            public BigDecimal compute (int pos) {
-                return Vector.this.get(pos).multiply(other);
+            public double compute (int pos) {
+                return Vector.this.get(pos) * other;
             }
         };
     }
@@ -80,65 +80,56 @@ public abstract class Vector implements Iterable<BigDecimal> {
         assertSameSize(other);
         return new LazyVector (size) {
             @Override
-            public BigDecimal compute (int pos) {
-                return Vector.this.get(pos).divide(other.get(pos), MathContext.DECIMAL128);
+            public double compute (int pos) {
+                return Vector.this.get(pos) / other.get(pos);
             }
         };
     }
 
-    public Vector div (BigDecimal other) {
+    public Vector div (double other) {
         return new LazyVector (size) {
             @Override
-            public BigDecimal compute (int pos) {
-                return Vector.this.get(pos).divide(other, MathContext.DECIMAL128);
+            public double compute (int pos) {
+                return Vector.this.get(pos) / other;
             }
         };
     }
 
-    public Vector invDiv (BigDecimal other) {
+    public Vector invDiv (double other) {
         return new LazyVector (size) {
             @Override
-            public BigDecimal compute (int pos) {
-                return other.divide(Vector.this.get(pos), MathContext.DECIMAL128);
+            public double compute (int pos) {
+                return other / Vector.this.get(pos);
             }
         };
     }
 
     // METHODS
-    public BigDecimal sum () {
-        return parallelStream().reduce(BigDecimal::add).get();
+    public double sum () {
+        return parallelStream().sum();
     }
 
-    public BigDecimal dot (Vector other) {
+    public double dot (Vector other) {
         return mul(other).sum();
     }
 
-    public BigDecimal length2 () {
+    public double length2 () {
         return dot(this);
     }
 
-    public BigDecimal length () {
-        return length2().sqrt(MathContext.DECIMAL128);
+    public double length () {
+        return Math.sqrt(length2());
     }
 
     public Vector unit () {
         return div(length());
     }
 
-    public Vector round (MathContext context) {
-        return new LazyVector (size) {
-            @Override
-            public BigDecimal compute (int pos) {
-                return Vector.this.get(pos).round(context);
-            }
-        };
-    }
-
     // SLICING
     public Vector copyOf (int offset, int stride, int size) {
         return new Vector (size) {
             @Override
-            public BigDecimal get (int i) {
+            public double get (int i) {
                 return Vector.this.get(offset + i * stride);
             }
         };
@@ -147,7 +138,7 @@ public abstract class Vector implements Iterable<BigDecimal> {
     public Vector copyOf (int offset, int size) {
         return new Vector (size) {
             @Override
-            public BigDecimal get (int i) {
+            public double get (int i) {
                 return Vector.this.get(offset + i);
             }
         };
@@ -168,7 +159,7 @@ public abstract class Vector implements Iterable<BigDecimal> {
         }
 
         for (int i=0;i<size;i++) {
-            if (!get(i).equals(doubles.get(i))) {
+            if (get(i) != doubles.get(i)) {
                 return false;
             }
         }
@@ -183,12 +174,12 @@ public abstract class Vector implements Iterable<BigDecimal> {
 
     // STREAMS
     @Override
-    public Iterator<BigDecimal> iterator() {
-        return new Iterator<BigDecimal>() {
+    public PrimitiveIterator.OfDouble iterator() {
+        return new PrimitiveIterator.OfDouble() {
             int i = 0;
 
             @Override
-            public BigDecimal next() {
+            public double nextDouble() {
                 return get(i++);
             }
 
@@ -200,16 +191,16 @@ public abstract class Vector implements Iterable<BigDecimal> {
     }
 
     @Override
-    public Spliterator<BigDecimal> spliterator() {
+    public Spliterator.OfDouble spliterator() {
         return Spliterators.spliterator(iterator(), size, 0);
     }
 
-    public Stream<BigDecimal> stream () {
-        return StreamSupport.stream(spliterator(), false);
+    public DoubleStream stream () {
+        return StreamSupport.doubleStream(spliterator(), false);
     }
 
-    public Stream<BigDecimal> parallelStream () {
-        return StreamSupport.stream(spliterator(), true);
+    public DoubleStream parallelStream () {
+        return StreamSupport.doubleStream(spliterator(), true);
     }
 
     // OTHERS
@@ -222,7 +213,7 @@ public abstract class Vector implements Iterable<BigDecimal> {
     @Override
     public String toString () {
         StringBuilder builder = new StringBuilder();
-        for (BigDecimal val: this) {
+        for (double val: this) {
             builder.append(", ").append(val);
         }
 
@@ -230,25 +221,21 @@ public abstract class Vector implements Iterable<BigDecimal> {
     }
 
     // STATIC
-    public static OfArray of (BigDecimal... array) {
-        return new OfArray(array);
-    }
-
     public static OfArray of (double... array) {
-        return of(Arrays.stream(array).mapToObj(BigDecimal::valueOf).toArray(BigDecimal[]::new));
+        return new OfArray(array);
     }
 
     // SUBCLASSES
     public static class OfArray extends Vector {
-        final private BigDecimal[] array;
+        final private double[] array;
 
-        public OfArray (BigDecimal... array) {
+        public OfArray (double... array) {
             super(array.length);
             this.array = array;
         }
 
         @Override
-        public BigDecimal get (int i) {
+        public double get (int i) {
             return array[i];
         }
     }

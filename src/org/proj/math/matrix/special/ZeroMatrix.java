@@ -11,8 +11,8 @@ public class ZeroMatrix extends Matrix {
     }
 
     @Override
-    public BigDecimal get(int i, int j) {
-        return BigDecimal.ZERO;
+    public double get(int i, int j) {
+        return 0;
     }
 
     @Override
@@ -27,7 +27,7 @@ public class ZeroMatrix extends Matrix {
 
     @Override
     public Matrix subtr (Matrix other) {
-        return other.mul(BigDecimal.ONE.negate());
+        return other.mul(-1);
     }
 
     @Override
@@ -36,12 +36,12 @@ public class ZeroMatrix extends Matrix {
     }
 
     @Override
-    public ZeroMatrix mul (BigDecimal other) {
+    public ZeroMatrix mul (double other) {
         return this;
     }
 
     @Override
-    public ZeroMatrix div (BigDecimal other) {
+    public ZeroMatrix div (double other) {
         return this;
     }
 

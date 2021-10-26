@@ -11,8 +11,8 @@ public class ZeroVector extends Vector {
     }
 
     @Override
-    final public BigDecimal get(int i) {
-        return BigDecimal.ZERO;
+    final public double get(int i) {
+        return 0;
     }
 
     @Override
@@ -21,18 +21,18 @@ public class ZeroVector extends Vector {
     }
 
     @Override
-    public ConstantVector add (BigDecimal other) {
+    public ConstantVector add (double other) {
         return new ConstantVector(size, other);
     }
 
     @Override
     public Vector subtr (Vector other) {
-        return other.mul(BigDecimal.ONE.negate());
+        return other.mul(-1);
     }
 
     @Override
-    public ConstantVector subtr (BigDecimal other) {
-        return new ConstantVector(size, other.negate());
+    public ConstantVector subtr (double other) {
+        return new ConstantVector(size, -other);
     }
 
     @Override
@@ -41,7 +41,7 @@ public class ZeroVector extends Vector {
     }
 
     @Override
-    public Vector mul (BigDecimal other) {
+    public Vector mul (double other) {
         return this;
     }
 
@@ -51,32 +51,32 @@ public class ZeroVector extends Vector {
     }
 
     @Override
-    public Vector div (BigDecimal other) {
+    public Vector div (double other) {
         return this;
     }
 
     @Override
-    public Vector invDiv (BigDecimal other) {
+    public Vector invDiv (double other) {
         throw new ArithmeticException("Division by zero");
     }
 
     @Override
-    public BigDecimal sum() {
-        return BigDecimal.ZERO;
+    public double sum() {
+        return 0;
     }
 
     @Override
-    public BigDecimal dot (Vector other) {
-        return BigDecimal.ZERO;
+    public double dot (Vector other) {
+        return 0;
     }
 
     @Override
-    public BigDecimal length2() {
-        return BigDecimal.ZERO;
+    public double length2() {
+        return 0;
     }
 
     @Override
-    public BigDecimal length() {
-        return BigDecimal.ZERO;
+    public double length() {
+        return 0;
     }
 }

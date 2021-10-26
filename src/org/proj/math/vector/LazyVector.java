@@ -3,18 +3,18 @@ package org.proj.math.vector;
 import java.math.BigDecimal;
 
 public abstract class LazyVector extends Vector {
-    final private BigDecimal[] values;
+    final private Double[] values;
 
     public LazyVector (int size) {
         super(size);
-        this.values = new BigDecimal[size];
+        this.values = new Double[size];
     }
 
-    public abstract BigDecimal compute (int pos);
+    public abstract double compute (int pos);
 
     @Override
-    public BigDecimal get (int i) {
-        BigDecimal value = values[i];
+    public double get (int i) {
+        Double value = values[i];
         if (value == null) {
             value = values[i] = compute(i);
         }
@@ -23,6 +23,6 @@ public abstract class LazyVector extends Vector {
     }
 
     public Vector.OfArray toStatic () {
-        return new Vector.OfArray(parallelStream().toArray(BigDecimal[]::new));
+        return new Vector.OfArray(parallelStream().toArray());
     }
 }

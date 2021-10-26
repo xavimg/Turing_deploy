@@ -3,13 +3,11 @@ package org.proj.utils;
 import java.util.function.LongConsumer;
 
 public class ThreadUtils {
-    public static Thread interval (long interval, LongConsumer run) {
+    public static Thread interval (long interval, Runnable run) {
         return new Thread(() -> {
-            long lastDelta = 0;
-
             while (true) {
                 long start = System.currentTimeMillis();
-                run.accept(lastDelta);
+                run.run();
                 long end = System.currentTimeMillis();
 
                 long delta = end - start;
@@ -22,8 +20,6 @@ public class ThreadUtils {
                         break;
                     }
                 }
-
-                lastDelta = delta;
             }
         });
     };

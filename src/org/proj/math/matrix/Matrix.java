@@ -18,12 +18,12 @@ public abstract class Matrix implements Iterable<Vector> {
         this.cols = cols;
     }
 
-    public abstract BigDecimal get (int i, int j);
+    public abstract double get (int i, int j);
 
     public Vector get (int i) {
         return new Vector (cols) {
             @Override
-            public BigDecimal get (int j) {
+            public double get (int j) {
                 return Matrix.this.get(i, j);
             }
         };
@@ -59,13 +59,13 @@ public abstract class Matrix implements Iterable<Vector> {
             final Matrix transp = other.transp();
 
             @Override
-            public BigDecimal compute (int i, int j) {
+            public double compute (int i, int j) {
                 return Matrix.this.get(i).dot(transp.get(j));
             }
         };
     }
 
-    public Matrix mul (BigDecimal other) {
+    public Matrix mul (double other) {
         return new LazyMatrix.OfVector (rows, cols) {
             @Override
             public Vector compute(int i) {
@@ -74,7 +74,7 @@ public abstract class Matrix implements Iterable<Vector> {
         };
     }
 
-    public Matrix div (BigDecimal other) {
+    public Matrix div (double other) {
         return new LazyMatrix.OfVector (rows, cols) {
             @Override
             public Vector compute(int i) {
@@ -87,7 +87,7 @@ public abstract class Matrix implements Iterable<Vector> {
     public Matrix transp () {
         return new Matrix (cols, rows) {
             @Override
-            public BigDecimal get (int i, int j) {
+            public double get (int i, int j) {
                 return Matrix.this.get(j, i);
             }
         };
@@ -96,9 +96,9 @@ public abstract class Matrix implements Iterable<Vector> {
     public Matrix inverse () {
         Matrix alpha = new Matrix(rows, 2 * cols) {
             @Override
-            public BigDecimal get (int i, int j) {
+            public double get (int i, int j) {
                 if (j >= Matrix.this.cols) {
-                    return i == (j - Matrix.this.cols) ? BigDecimal.ONE : BigDecimal.ZERO;
+                    return i == (j - Matrix.this.cols) ? 1 : 0;
                 }
 
                 return Matrix.this.get(i, j);
@@ -107,7 +107,7 @@ public abstract class Matrix implements Iterable<Vector> {
 
         return new Matrix (rows, cols) {
             @Override
-            public BigDecimal get (int i, int j) {
+            public double get (int i, int j) {
                 return alpha.get(i, j + cols);
             }
         };
@@ -182,10 +182,10 @@ public abstract class Matrix implements Iterable<Vector> {
     }
 
     // STATIC
-    public static Matrix of (BigDecimal[]... array) {
+    public static Matrix of (double[]... array) {
         return new Matrix (array.length, array[0].length) {
             @Override
-            public BigDecimal get(int i, int j) {
+            public double get(int i, int j) {
                 return array[i][j];
             }
         };
@@ -205,7 +205,7 @@ public abstract class Matrix implements Iterable<Vector> {
         public abstract Vector get (int i);
 
         @Override
-        public BigDecimal get (int i, int j) {
+        public double get (int i, int j) {
             return OfVector.this.get(i).get(j);
         }
     }

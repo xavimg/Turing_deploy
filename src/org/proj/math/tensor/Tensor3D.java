@@ -15,12 +15,12 @@ public abstract class Tensor3D implements Iterable<Matrix> {
         this.gamma = gamma;
     }
 
-    public abstract BigDecimal get (int x, int y, int z);
+    public abstract double get (int x, int y, int z);
 
     public Matrix get (int i) {
         return new Matrix (beta, gamma) {
             @Override
-            public BigDecimal get (int j, int k) {
+            public double get (int j, int k) {
                 return Tensor3D.this.get(i, j, k);
             }
         };
@@ -29,7 +29,7 @@ public abstract class Tensor3D implements Iterable<Matrix> {
     public Vector get (int i, int j) {
         return new Vector (gamma) {
             @Override
-            public BigDecimal get(int k) {
+            public double get(int k) {
                 return Tensor3D.this.get(i, j, k);
             }
         };
@@ -72,7 +72,7 @@ public abstract class Tensor3D implements Iterable<Matrix> {
         public abstract Matrix get (int i);
 
         @Override
-        public BigDecimal get (int x, int y, int z) {
+        public double get (int x, int y, int z) {
             return get(x).get(y, z);
         }
     }

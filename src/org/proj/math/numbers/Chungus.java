@@ -1,5 +1,6 @@
 package org.proj.math.numbers;
 
+import org.proj.math.numbers.unsigned.ULong;
 import org.proj.utils.Compare;
 
 import java.math.BigInteger;

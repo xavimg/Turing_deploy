@@ -1,7 +1,7 @@
 package org.proj.math;
 
 import org.proj.math.numbers.Chungus;
-import org.proj.math.numbers.ULong;
+import org.proj.math.numbers.unsigned.ULong;
 
 import java.util.Random;
 

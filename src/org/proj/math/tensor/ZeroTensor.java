@@ -13,8 +13,8 @@ public class ZeroTensor extends Tensor3D {
     }
 
     @Override
-    public BigDecimal get (int x, int y, int z) {
-        return BigDecimal.ZERO;
+    public double get (int x, int y, int z) {
+        return 0;
     }
 
     @Override

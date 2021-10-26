@@ -7,20 +7,22 @@ import org.proj.physics.metric.Schwarzschild;
 import java.math.BigDecimal;
 
 public abstract class Matter {
+    private Matter () {};
+
     /**
      * @return Rest mass in solar masses
      */
-    public abstract BigDecimal restMass ();
+    public abstract double restMass ();
 
     /**
      * @return Radius in light seconds
      */
-    public abstract BigDecimal radius ();
+    public abstract double radius ();
 
     /**
      * @return Angular velocity in radians per second
      */
-    public abstract BigDecimal angularVelocity ();
+    public abstract double angularVelocity ();
 
     /**
      * @return Spacial position in light seconds relative to origin
@@ -35,40 +37,31 @@ public abstract class Matter {
     /**
      * @return Moment of inertia in M☉ * ls<sup>2</sup>
      */
-    public BigDecimal inertia () {
-        return radius().pow(2).multiply(restMass());
+    public double inertia () {
+        return radius() * radius() * restMass();
     }
 
     /**
      * @return Angular momentum in M☉ * ls<sup>2</sup> * s<sup>-1</sup>
      */
-    public BigDecimal angularMomentum () {
-        return inertia().multiply(angularVelocity());
-    }
-
-    /**
-     * Calculates weather matter is a black hole
-     * @see Schwarzschild#radius(BigDecimal)
-     * @return {@link Boolean#TRUE} if {@link #radius()} is lower or equal to {@link Schwarzschild#radius(BigDecimal)}, otherwise {@link Boolean#FALSE}
-     */
-    final public boolean isBlackHole () {
-        return radius().compareTo(Schwarzschild.radius(restMass())) <= 0;
+    public double angularMomentum () {
+        return inertia() * angularVelocity();
     }
 
     public Matter delta (Vector pos, Vector vel) {
         return new Matter() {
             @Override
-            public BigDecimal restMass() {
+            public double restMass() {
                 return Matter.this.restMass();
             }
 
             @Override
-            public BigDecimal radius() {
+            public double radius() {
                 return Matter.this.radius();
             }
 
             @Override
-            public BigDecimal angularVelocity() {
+            public double angularVelocity() {
                 return Matter.this.angularVelocity();
             }
 
@@ -86,44 +79,43 @@ public abstract class Matter {
 
     // SUBCLASSES
     public static class Defined extends Matter {
-        final private BigDecimal restMass, radius, angularVelocity;
-        final private BigDecimal inertia, angularMomentum;
-
+        final private double restMass, radius, angularVelocity;
+        final private double inertia, angularMomentum;
         private Vector position, velocity;
 
-        public Defined (BigDecimal restMass, BigDecimal radius, BigDecimal angularVelocity, Vector position, Vector velocity) {
+        public Defined (double restMass, double radius, double angularVelocity, Vector position, Vector velocity) {
             this.restMass = restMass;
             this.radius = radius;
             this.angularVelocity = angularVelocity;
             this.position = position;
             this.velocity = velocity;
 
-            this.inertia = this.radius.pow(2).multiply(this.restMass);
-            this.angularMomentum = this.inertia.pow(2);
+            this.inertia = this.radius * this.radius * this.restMass;
+            this.angularMomentum = this.inertia * this.angularVelocity;
         }
 
         @Override
-        public BigDecimal restMass() {
+        public double restMass() {
             return restMass;
         }
 
         @Override
-        public BigDecimal radius() {
+        public double radius() {
             return radius;
         }
 
         @Override
-        public BigDecimal angularVelocity() {
+        public double angularVelocity() {
             return angularVelocity;
         }
 
         @Override
-        public BigDecimal inertia() {
+        public double inertia() {
             return inertia;
         }
 
         @Override
-        public BigDecimal angularMomentum() {
+        public double angularMomentum() {
             return angularMomentum;
         }
 
@@ -141,10 +133,10 @@ public abstract class Matter {
             this.velocity = this.velocity.add(vel);
         }
 
-        final public void update (BigDecimal dt) {
+        final public void update (double dt) {
             this.position = this.position.add(velocity.mul(dt));
             if (position instanceof LazyVector) {
-                //this.position = ((LazyVector) this.position).toStatic();
+                this.position = ((LazyVector) this.position).toStatic();
             }
         }
     }

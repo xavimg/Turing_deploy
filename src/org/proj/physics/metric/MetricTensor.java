@@ -16,9 +16,7 @@ import java.math.BigDecimal;
 import java.math.MathContext;
 
 public abstract class MetricTensor {
-    final private static BigDecimal TWO = BigDecimal.valueOf(2);
     public abstract CoordinateSystem getCoordinateSystem ();
-
     public abstract Matrix getMetric (Matter matter);
     public abstract Tensor3D getDerivative (Matter matter);
 
@@ -32,14 +30,14 @@ public abstract class MetricTensor {
      * @param matter Matter
      * @return Time dilation
      */
-    public BigDecimal getTimeDilation (DiagonalMatrix metric, Matter matter) {
+    public double getTimeDilation (DiagonalMatrix metric, Matter matter) {
         Vector vector = metric.getVector();
         Vector vel = matter.getVelocity();
 
-        BigDecimal sum = vector.get(1).multiply(vel.get(0).pow(2));
-        sum = sum.add(vector.get(2).multiply(vel.get(1).pow(2)));
+        double sum = vector.get(1) * Math.pow(vel.get(0), 2);
+        sum += vector.get(2) * Math.pow(vel.get(1), 2);
 
-        return Constants.C2.subtract(sum).divide(vector.get(0), MathContext.DECIMAL128).sqrt(MathContext.DECIMAL128);
+        return Math.sqrt((Constants.C2 - sum) / vector.get(0));
     }
 
     /**
@@ -52,10 +50,10 @@ public abstract class MetricTensor {
             Matrix inverse = metric.inverse();
 
             @Override
-            public BigDecimal compute (int i, int j, int k) {
+            public double compute (int i, int j, int k) {
                 return MathUtils.sum(3, (int q) -> {
-                    BigDecimal sum = deriv.get(k, q, j).add(deriv.get(j, q, k)).subtract(deriv.get(q, j, k));
-                    return inverse.get(i, q).multiply(sum).divide(TWO);
+                    double sum = deriv.get(k, q, j) + deriv.get(j, q, k) - deriv.get(q, j, k);
+                    return inverse.get(i, q) * sum / 2d;
                 });
             }
         };
@@ -68,18 +66,18 @@ public abstract class MetricTensor {
      * @see #getChristoffel(Matrix, Tensor3D)
      * @return Acceleration given as dv / d&tau;
      */
-    final public Vector getProperAcceleration (Tensor3D christoffel, BigDecimal vt, Vector vel) {
+    final public Vector getProperAcceleration (Tensor3D christoffel, double vt, Vector vel) {
         return new LazyVector (3) {
             final Vector velocity = new Vector(3) {
                 @Override
-                public BigDecimal get(int i) {
+                public double get(int i) {
                     return i == 0 ? vt : vel.get(i - 1);
                 }
             };
 
             @Override
-            public BigDecimal compute (int pos) {
-                return MathUtils.sum(3, (int i) -> MathUtils.sum(3, (int j) -> christoffel.get(pos, i, j).multiply(velocity.get(i)).multiply(velocity.get(j)))).negate();
+            public double compute (int pos) {
+                return -MathUtils.sum(3, (int i) -> MathUtils.sum(3, (int j) -> christoffel.get(pos, i, j) * velocity.get(i) * velocity.get(j)));
             }
         }.copyOf(1);
     }
@@ -88,7 +86,7 @@ public abstract class MetricTensor {
         Couple<? extends Matrix, ? extends Tensor3D> calc = calculateMetric(matter);
         Tensor3D christoffel = getChristoffel(calc.first, calc.last);
 
-        BigDecimal timeDilation;
+        double timeDilation;
         if (calc.first instanceof DiagonalMatrix) {
             timeDilation = this.getTimeDilation((DiagonalMatrix) calc.first, matter);
         } else {

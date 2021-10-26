@@ -13,13 +13,13 @@ public class DiagonalMatrix extends Matrix {
         this.values = values;
     }
 
-    public DiagonalMatrix(BigDecimal... values) {
+    public DiagonalMatrix(double... values) {
         this(Vector.of(values));
     }
 
     @Override
-    final public BigDecimal get (int i, int j) {
-        return i == j ? values.get(i) : BigDecimal.ZERO;
+    final public double get (int i, int j) {
+        return i == j ? values.get(i) : 0;
     }
 
     final public Vector getVector () {
@@ -40,18 +40,18 @@ public class DiagonalMatrix extends Matrix {
     }
 
     @Override
-    public DiagonalMatrix mul (BigDecimal other) {
+    public DiagonalMatrix mul (double other) {
         return new DiagonalMatrix(values.mul(other));
     }
 
     @Override
-    public DiagonalMatrix div (BigDecimal other) {
+    public DiagonalMatrix div (double other) {
         return new DiagonalMatrix(values.div(other));
     }
 
     @Override
     public DiagonalMatrix inverse() {
-        return new DiagonalMatrix(values.invDiv(BigDecimal.ONE));
+        return new DiagonalMatrix(values.invDiv(1));
     }
 
     @Override
