@@ -144,7 +144,7 @@ public abstract class Matter {
         final public void update (BigDecimal dt) {
             this.position = this.position.add(velocity.mul(dt));
             if (position instanceof LazyVector) {
-                this.position = ((LazyVector) this.position).toStatic();
+                //this.position = ((LazyVector) this.position).toStatic();
             }
         }
     }

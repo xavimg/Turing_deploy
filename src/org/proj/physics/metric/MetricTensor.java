@@ -1,6 +1,6 @@
 package org.proj.physics.metric;
 
-import org.proj.math.MassMath;
+import org.proj.math.MathUtils;
 import org.proj.math.matrix.Matrix;
 import org.proj.math.matrix.special.DiagonalMatrix;
 import org.proj.math.tensor.LazyTensor3D;
@@ -53,7 +53,7 @@ public abstract class MetricTensor {
 
             @Override
             public BigDecimal compute (int i, int j, int k) {
-                return MassMath.sum(3, (int q) -> {
+                return MathUtils.sum(3, (int q) -> {
                     BigDecimal sum = deriv.get(k, q, j).add(deriv.get(j, q, k)).subtract(deriv.get(q, j, k));
                     return inverse.get(i, q).multiply(sum).divide(TWO);
                 });
@@ -79,7 +79,7 @@ public abstract class MetricTensor {
 
             @Override
             public BigDecimal compute (int pos) {
-                return MassMath.sum(3, (int i) -> MassMath.sum(3, (int j) -> christoffel.get(pos, i, j).multiply(velocity.get(i)).multiply(velocity.get(j)))).negate();
+                return MathUtils.sum(3, (int i) -> MathUtils.sum(3, (int j) -> christoffel.get(pos, i, j).multiply(velocity.get(i)).multiply(velocity.get(j)))).negate();
             }
         }.copyOf(1);
     }

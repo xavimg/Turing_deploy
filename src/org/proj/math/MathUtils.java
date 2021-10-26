@@ -6,6 +6,8 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
 import java.math.RoundingMode;
+import java.util.function.IntFunction;
+import java.util.function.IntToDoubleFunction;
 
 public class MathUtils {
     final public static BigDecimal TWO = BigDecimal.valueOf(2);
@@ -19,6 +21,15 @@ public class MathUtils {
 
     final public static MathContext DECIMAL256 = new MathContext(71, RoundingMode.HALF_EVEN);
     final public static BigDecimal LIMIT = new BigDecimal(BigInteger.ONE, 34);
+
+    // OTHERS
+    public static double sum (int size, IntToDoubleFunction function) {
+        return Range.parallelOfInt(0, size).mapToDouble(function).sum();
+    }
+
+    public static BigDecimal sum (int size, IntFunction<BigDecimal> function) {
+        return Range.parallelOfInt(0, size).mapToObj(function).reduce(BigDecimal::add).get();
+    }
 
     public static BigDecimal hypot (BigDecimal alpha, BigDecimal beta) {
         return alpha.pow(2).add(beta.pow(2)).sqrt(MathContext.DECIMAL128);
@@ -47,6 +58,10 @@ public class MathUtils {
             k = k.add(MathUtils.TWO);
             add = !add;
         }
+    }
+
+    public static BigDecimal acos (BigDecimal value) {
+        return atan(BigDecimal.ONE.subtract(value.pow(2)).sqrt(DECIMAL256).divide(value, DECIMAL256));
     }
 
     public static BigDecimal atan2 (BigDecimal beta, BigDecimal alpha) {

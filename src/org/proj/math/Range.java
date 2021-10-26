@@ -43,7 +43,7 @@ public class Range {
             }
         };
 
-        Spliterator.OfInt spliter = Spliterators.spliterator(iter, to - from + 1, Spliterator.ORDERED);
+        Spliterator.OfInt spliter = Spliterators.spliterator(iter, to - from, Spliterator.ORDERED);
         return StreamSupport.intStream(spliter, true);
     }
 }
