@@ -24,7 +24,7 @@ class System {
     }
 
     createStarBackground() {
-        this.layers.push(this.createStarLayer(0xFFAAAA, 16)); // red-shifted bg stars
+        this.layers.push(this.createStarLayer(0xFFAAAA, 8)); // red-shifted bg stars
         this.layers.push(this.createStarLayer(0xFFFFFF, 16)); // average bg stars
         this.layers.forEach( layer => this.sprite.addChild(layer));
     }

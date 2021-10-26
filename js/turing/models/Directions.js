@@ -3,7 +3,7 @@
  */
 
 const up = 0;
-const right = Math.PI / 4;
+const right = Math.PI / 2;
 const down = right * 2;
 const left = down + right;
 
