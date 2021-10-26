@@ -6,25 +6,25 @@ class MockServer {
             "planetarySystem" : {
                 "id": 1,
                 "size": {
-                    "x": 1600,
-                    "y": 1600
+                    "x": 4800,
+                    "y": 4800
                 },
                 "planets" : [
                     {
                         "planet" : {
                             "id": 1,
                             "mass": 100,
-                            "radius": 25,
+                            "radius": 250,
                             "angularSpeed": 0,
                             "position": {
-                                "x": 150,
+                                "x": 500,
                                 "y": 500
                             },
                             "speed": {
                                 "x": 0,
                                 "y": 0
                             },
-                            "color": "0xFF00FF"
+                            "color": "0x990077"
                         }
                     },
                     {
@@ -97,8 +97,8 @@ class Player {
     }
 
     updateSprite() {
-        this.sprite.position.x = this.position.x;
-        this.sprite.position.y = this.position.y;
+        //this.sprite.position.x = this.position.x;
+        //this.sprite.position.y = this.position.y;
         this.sprite.rotation = this.rotation;
     }
 
@@ -174,6 +174,8 @@ class Planet {
         graphics.beginFill(this.color, 1);
         graphics.drawCircle(this.position.x, this.position.y, this.radius);
         graphics.endFill();
+        graphics.zIndex = 999;
+        graphics.alpha = 0xFFFFFF;
         return graphics;
     }
 
@@ -204,6 +206,7 @@ class PlanetarySystem {
             starLayer.drawRect(Math.random() * this.size.x, Math.random() * this.size.y, Math.random() * 2, Math.random() * 2);
         }
         starLayer.endFill();
+        starLayer.zIndex = 1;
         return starLayer;
     }
 
@@ -211,11 +214,11 @@ class PlanetarySystem {
         let starLayer;
         
         // Red shifted star bg
-        starLayer = this.createStarLayer(0xFFAAAA, 12);
+        starLayer = this.createStarLayer(0xFFAAAA, 16);
         this.starLayers.push(starLayer);
 
         // Normal intermedium stars
-        starLayer = this.createStarLayer(0xFFFFFF, 12);
+        starLayer = this.createStarLayer(0xFFFFFF, 16);
         this.starLayers.push(starLayer);
 
         this.starLayers.forEach( layer => this.container.addChild(layer));

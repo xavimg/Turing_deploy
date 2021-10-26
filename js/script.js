@@ -1,8 +1,3 @@
-const options = {
-    width: window.screen.width,
-    height: window.screen.height,
-    backgroundColor: "black"
-};
 
 const token = "abcd1234";
 
@@ -35,14 +30,28 @@ function registerPlayerAction(action) {
         action.direction = action.direction.replace("l", "");
     }
 
-    let step = 1;
+    const step = 1;
+    let finalStepX = 0;
+    let finalStepY = 0;
 
-    step = step / action.direction.length;
+    if (action.direction.indexOf("u") > -1) {
+        finalStepY += +step;
+    }
+    if (action.direction.indexOf("d") > -1) {
+        finalStepY += -step;
+    }
+    if (action.direction.indexOf("r") > -1) {
+        finalStepX += -step;
+    }
+    if (action.direction.indexOf("l") > -1) {
+        finalStepX += +step;
+    }
 
     switch (action.type) {
         case "move": {
             player.rotate(action.direction);
-            player.move(action.direction, step);
+            moveCamera(finalStepX, finalStepY);
+            //player.move(action.direction, step);
         }
     }
 }
@@ -59,6 +68,11 @@ function keyup(e) {
     if (index > -1) {
         keys.splice(index, 1);
     }
+}
+
+function moveCamera(x, y) {
+    planetarySystem.container.position.x += x;
+    planetarySystem.container.position.y += y;
 }
 
 async function keyLookup() {
@@ -86,12 +100,24 @@ async function keyLookup() {
     }
 }
 
-const app = new PIXI.Application(options);
-app.stage.addChild(planetarySystem.container);
-app.stage.addChild(player.sprite);
+function init() {
 
-document.body.appendChild(app.view);
-document.addEventListener('keydown', keydown);
-document.addEventListener('keyup', keyup);
+    const app = new PIXI.Application(options);
+    app.stage.addChild(player.sprite);
+    app.stage.addChild(planetarySystem.container);
+    document.body.appendChild(app.view);
+    player.sprite.position.x = app.view.width / 2;
+    player.sprite.position.y = app.view.height / 2;
+    document.addEventListener('keydown', keydown);
+    document.addEventListener('keyup', keyup);
 
-keyLookup();
+    keyLookup();
+}
+
+const options = {
+    width: window.innerWidth,
+    height: window.innerHeight,
+    backgroundColor: "black"
+};
+
+init();
