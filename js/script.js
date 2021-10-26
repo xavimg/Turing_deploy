@@ -74,10 +74,10 @@ function moveCamera(x, y) {
     /**
      * Parallax effect
      */
-    planetarySystem.starLayers[1].position.x += x / 32;
-    planetarySystem.starLayers[1].position.y += y / 32;
-    planetarySystem.starLayers[0].position.x += x / 64;
-    planetarySystem.starLayers[0].position.y += y / 64;
+    planetarySystem.starLayers[1].position.x += x / 128;
+    planetarySystem.starLayers[1].position.y += y / 128;
+    planetarySystem.starLayers[0].position.x += x / 256;
+    planetarySystem.starLayers[0].position.y += y / 256;
     for (let i = 0; i < planetarySystem.planets.length; i++) {
         planetarySystem.planets[i].sprite.position.x += x;
         planetarySystem.planets[i].sprite.position.y += y;
@@ -109,9 +109,16 @@ async function keyLookup() {
     }
 }
 
+function reportWindowSize() {
+    app.resizeTo = window;
+    app.resize();
+}
+
+let app;
+
 function init() {
 
-    const app = new PIXI.Application(options);
+    app = new PIXI.Application(options);
     app.stage.addChild(player.sprite);
     app.stage.addChild(planetarySystem.container);
     document.body.appendChild(app.view);
@@ -119,7 +126,7 @@ function init() {
     player.sprite.position.y = app.view.height / 2;
     document.addEventListener('keydown', keydown);
     document.addEventListener('keyup', keyup);
-
+    window.addEventListener('resize', reportWindowSize);
     keyLookup();
 }
 
