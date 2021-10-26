@@ -51,7 +51,7 @@ function registerPlayerAction(action) {
         case "move": {
             player.rotate(action.direction);
             moveCamera(finalStepX, finalStepY);
-            //player.move(action.direction, step);
+            player.move(action.direction, step);
         }
     }
 }
@@ -71,8 +71,17 @@ function keyup(e) {
 }
 
 function moveCamera(x, y) {
-    planetarySystem.container.position.x += x;
-    planetarySystem.container.position.y += y;
+    /**
+     * Parallax effect
+     */
+    planetarySystem.starLayers[1].position.x += x / 32;
+    planetarySystem.starLayers[1].position.y += y / 32;
+    planetarySystem.starLayers[0].position.x += x / 64;
+    planetarySystem.starLayers[0].position.y += y / 64;
+    for (let i = 0; i < planetarySystem.planets.length; i++) {
+        planetarySystem.planets[i].sprite.position.x += x;
+        planetarySystem.planets[i].sprite.position.y += y;
+    }
 }
 
 async function keyLookup() {

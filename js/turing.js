@@ -97,8 +97,6 @@ class Player {
     }
 
     updateSprite() {
-        //this.sprite.position.x = this.position.x;
-        //this.sprite.position.y = this.position.y;
         this.sprite.rotation = this.rotation;
     }
 
@@ -190,13 +188,14 @@ class PlanetarySystem {
             x: json.planetarySystem.size.x,
             y: json.planetarySystem.size.y
         }
-        this.planets = [];
-        for (let i = 0; i < json.planetarySystem.planets.length; i++) {
-            this.planets.push(new Planet(json.planetarySystem.planets[i]));
-        }
         this.starLayers = [];
+        this.planets = [];
         this.container = this.createContainer();
         this.createStarBackground();
+        for (let i = 0; i < json.planetarySystem.planets.length; i++) {
+            this.planets.push(new Planet(json.planetarySystem.planets[i]));
+            this.container.addChild(this.planets[this.planets.length-1].sprite);
+        }
     }
 
     createStarLayer(color, density) {
@@ -226,9 +225,6 @@ class PlanetarySystem {
 
     createContainer() {
         const container = new PIXI.Container();
-        this.planets.forEach( element => {
-            container.addChild(element.sprite);
-        });
         return container;
     }
 
