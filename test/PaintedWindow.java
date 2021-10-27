@@ -13,9 +13,22 @@ public abstract class PaintedWindow extends JFrame {
 
     public abstract void paint (Graphics g);
 
-    public class PaintedWindowPanel extends JPanel {
+    @Override
+    public void setSize (int width, int height) {
+        this.panel.setSize(width, height);
+        super.setSize(width, height);
+    }
+
+    @Override
+    public void repaint() {
+        super.repaint();
+        panel.repaint();
+    }
+
+    public class PaintedWindowPanel extends Canvas {
         @Override
-        protected void paintComponent (Graphics g) {
+        public void paint (Graphics g) {
+            super.paint(g);
             PaintedWindow.this.paint(g);
         }
     }

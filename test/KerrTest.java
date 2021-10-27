@@ -13,7 +13,6 @@ public class KerrTest {
     public void coordinateTest() {
         Range.parallelOfInt(0, Short.MAX_VALUE).forEach((i) -> {
             Vector pos = Vector.of(Rand.nextDouble(-1000, 1000), Rand.nextDouble(-1000, 1000));
-
             Vector kerr = earth.fromCartesianPosition(pos);
             Vector back = earth.toCartesianPosition(kerr);
         });
