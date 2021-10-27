@@ -39,9 +39,12 @@ db.connect( (err) => {
 
 })
 
-// Define routes
+// Define routes to html
 app.use('/', require('./routes/pages_routes'));
 app.use('/auth', require('./routes/auth'));
+
+// postman routes test
+app.use('/users', require('./routes/users'));
 
 
 app.listen(3000, () => {

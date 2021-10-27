@@ -14,7 +14,7 @@
     <title>Document</title>
   </head>
   <style>
-    body { background-color: orange; } nav { background-color: purple; color:
+    body { background-color: orange } nav { background-color: purple; color:
     white; padding 30px 60px; display: flex; justify-content: space-between} nav
     ul { display: flex; justify-content: space-around; align-items: center;} nav
     li {list-style: none} nav li a{color: white; text-decoration: none; font:
@@ -26,27 +26,28 @@
       <h4>Alan Turing Game</h4>
       <ul>
         <li><a href="/">Home</a></li>
-        {{#if user }}
-          <li><a href="/profile">Profile</li>
-          <li><a href="/auth/logout">Logout</a></li>
-        {{else}}
-          <li><a href="/login">Login</a></li>
-          <li><a href="/register">Register</a></li>
-        {{/if}}
+        <li><a href="/profile">Profile</a></li>
+        <li><a href="/auth/logout">Logout</a></li>
       </ul>
     </nav>
-    <div class="container mt-4">
-      <div class="jumbotron">
-        <h1 class="display-4">Alan Turing Game</h1>
-        <p class="lead">This is a simple hero unit, a simple jumbotron-style
-          component for calling extra attention to featured content or
-          information.</p>
-        <hr class="my-4" />
-        <p>It uses utility classes for typography and spacing to space content
-          out within the larger container.</p>
-        <a class="btn btn-primary btn-lg" href="#" role="button">Learn more</a>
-      </div>
 
+    <div class="container mt-4">
+      <div class="row">
+        <div class="col-4">
+          <div class="card">
+            <div class="avatar-ctn">
+              <img src="/nave.png" class="avatar" alt="user profile picture" />
+            </div>
+            </div>
+            <div class="card-body">
+                <h5 class="card-title"> Hey {{user.name}}</h5>
+                <P class="card-text">Some text...</P>
+            </div>
+          </div>
+        </div>
+        <div class="col-8">
+        </div>
+      </div>
     </div>
   </body>
 </html>
