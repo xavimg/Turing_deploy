@@ -29,7 +29,6 @@ function addEventListeners() {
     window.addEventListener('resize', () => {
         game.app.resizeTo = window;
         game.app.resize();
-        game.setPlayerToScreenCenter();
     });
 }
 

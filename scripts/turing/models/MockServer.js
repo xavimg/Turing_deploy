@@ -15,8 +15,8 @@ class MockServer extends Server {
                 "system": {
                     "id": 1,
                     "size": {
-                        "x": 4800,
-                        "y": 4800
+                        "x": 24800,
+                        "y": 24800
                     },
                     "planets": [
                         {
@@ -25,8 +25,8 @@ class MockServer extends Server {
                         "radius": 250,
                         "angularSpeed": 10,
                         "position": {
-                            "x": 550,
-                            "y": 550
+                            "x": 1,
+                            "y": 1
                         },
                         "speed": {
                             "x": 0,
@@ -67,13 +67,13 @@ class MockServer extends Server {
                     "currentPlanet": 0,
     
                     "position": {
-                        "x": 55,
-                        "y": 55
+                        "x": 1,
+                        "y": 1
                     },
 
                     "rotation": 0,
 
-                    "texture": "dat/spaceship.png"
+                    "texture": "assets/spaceship.png"
                 } 
             }
             `;

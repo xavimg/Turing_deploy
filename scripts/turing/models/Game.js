@@ -9,14 +9,16 @@ class Game {
         this.app.stage.addChild(this.player.sprite);
         this.keys = [];
         this.events = [];
-        this.setPlayerToScreenCenter();
+        this.player.sprite.x = (this.app.screen.width / 2);
+        this.player.sprite.y = (this.app.screen.height / 2);
+        this.moveCamera(this.player.sprite.x, this.player.sprite.y);
         // console.log("🌌 Turing started 🌌")
     }
 
     moveCamera(x, y) {
         // parallax scroll on system layers 
         // do not move first layer (start from 1)
-        const parallaxRate = 0.00001;
+        const parallaxRate = 0.05;
         for (let i = 1; i < this.system.layers.length; i++) {
             this.system.layers[i].position.x += (x * parallaxRate) * i;
             this.system.layers[i].position.y += (y * parallaxRate) * i;
