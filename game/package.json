@@ -1,0 +1,7 @@
+{
+  "name": "game",
+  "main": "/scripts/turing/index.js",
+  "dependencies": {
+    "pixi.js": "^6.1.3"
+  }
+}
