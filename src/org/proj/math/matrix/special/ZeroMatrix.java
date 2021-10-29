@@ -1,6 +1,7 @@
 package org.proj.math.matrix.special;
 
 import org.proj.math.matrix.Matrix;
+import org.proj.math.vector.Vector;
 import org.proj.math.vector.special.ZeroVector;
 
 import java.math.BigDecimal;
@@ -33,6 +34,11 @@ public class ZeroMatrix extends Matrix {
     @Override
     public ZeroMatrix mul (Matrix other) {
         return this;
+    }
+
+    @Override
+    public Vector mul (Vector other) {
+        return new ZeroVector(cols);
     }
 
     @Override

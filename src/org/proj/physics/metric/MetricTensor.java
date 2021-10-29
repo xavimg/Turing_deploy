@@ -90,13 +90,7 @@ public abstract class MetricTensor {
     final public Vector getAcceleration (Matter matter) {
         Couple<? extends Matrix, ? extends Tensor3D> calc = calculateMetric(matter);
         Tensor3D christoffel = getChristoffel(calc.first, calc.last);
-
-        double timeDilation;
-        if (calc.first instanceof DiagonalMatrix) {
-            timeDilation = this.getTimeDilation((DiagonalMatrix) calc.first, matter);
-        } else {
-            return null;
-        }
+        double timeDilation = this.getTimeDilation((DiagonalMatrix) calc.first, matter);
 
         Vector properAcc = getProperAcceleration(christoffel, timeDilation, matter.getVelocity());
         return properAcc.div(timeDilation);

@@ -40,6 +40,11 @@ public class DiagonalMatrix extends Matrix {
     }
 
     @Override
+    public Vector mul (Vector other) {
+        return values.mul(other);
+    }
+
+    @Override
     public DiagonalMatrix mul (double other) {
         return new DiagonalMatrix(values.mul(other));
     }

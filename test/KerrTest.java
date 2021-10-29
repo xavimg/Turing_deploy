@@ -11,16 +11,18 @@ public class KerrTest {
 
     @Test
     public void coordinateTest() {
-        Range.parallelOfInt(0, Short.MAX_VALUE).forEach((i) -> {
+        Range.ofInt(0, Short.MAX_VALUE, true).forEach((i) -> {
             Vector pos = Vector.of(Rand.nextDouble(-1000, 1000), Rand.nextDouble(-1000, 1000));
             Vector kerr = earth.fromCartesianPosition(pos);
             Vector back = earth.toCartesianPosition(kerr);
+
+            Assert.assertEquals(pos, back);
         });
     }
 
     @Test
     public void positionTest() {
-        Range.parallelOfInt(0, Short.MAX_VALUE).forEach(i -> {
+        Range.ofInt(0, Short.MAX_VALUE, true).forEach(i -> {
             Vector pos = Vector.of(Rand.nextDouble(-1000, 1000), Rand.nextDouble(-1000, 1000));
             Vector vel = Vector.of(Rand.nextDouble(-1000, 1000), Rand.nextDouble(-1000, 1000));
 

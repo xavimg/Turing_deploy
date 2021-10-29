@@ -1,2 +1,0 @@
-JMH S 17 bench.DecimalTest S 46 bench.jmh_generated.DecimalTest_binary_jmhTest S 6 binary S 11 AverageTime E A 1 1 1 E E E E E E E I 1 2 E E L 2 6 -Xms2G 6 -Xmx2G E E M 1 1 N 1 16 xAAMAADAwAAMAA== U 11 NANOSECONDS E E 
-JMH S 17 bench.DecimalTest S 47 bench.jmh_generated.DecimalTest_decimal_jmhTest S 7 decimal S 11 AverageTime E A 1 1 1 E E E E E E E I 1 2 E E L 2 6 -Xms2G 6 -Xmx2G E E M 1 1 N 1 16 xAAMAADAwAAMAA== U 11 NANOSECONDS E E 

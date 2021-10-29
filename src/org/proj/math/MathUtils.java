@@ -1,90 +1,48 @@
 package org.proj.math;
 
-import org.proj.utils.Compare;
-
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.math.MathContext;
-import java.math.RoundingMode;
-import java.util.function.IntFunction;
+import java.util.PrimitiveIterator;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.function.DoubleUnaryOperator;
 import java.util.function.IntToDoubleFunction;
+import java.util.stream.StreamSupport;
 
 public class MathUtils {
-    final public static BigDecimal TWO = BigDecimal.valueOf(2);
-    final public static BigDecimal THREE = BigDecimal.valueOf(3);
-    final public static BigDecimal FOUR = BigDecimal.valueOf(4);
-    final public static BigDecimal PI = new BigDecimal("3.1415926535897932384626433832795028841971693993751058209749445923");
+    final public static double PI_2 = 2 * Math.PI;
+    final public static double PI2 = Math.PI * Math.PI;
+    final public static double HALF_PI = Math.PI / 2;
 
-    final public static BigDecimal PI_2 = TWO.multiply(PI);
-    final public static BigDecimal PI2 = PI.pow(2);
-    final public static BigDecimal HALF_PI = PI.divide(TWO);
-
-    final public static MathContext DECIMAL256 = new MathContext(71, RoundingMode.HALF_EVEN);
-    final public static BigDecimal LIMIT = new BigDecimal(BigInteger.ONE, 34);
-
-    // OTHERS
     public static double sum (int size, IntToDoubleFunction function) {
-        return Range.parallelOfInt(0, size).mapToDouble(function).sum();
+        return Range.ofInt(0, size, true).mapToDouble(function).sum();
     }
 
     public static double clamp (double value, double min, double max) {
         return Math.min(max, Math.max(min, value));
     }
 
-    public static BigDecimal sum (int size, IntFunction<BigDecimal> function) {
-        return Range.parallelOfInt(0, size).mapToObj(function).reduce(BigDecimal::add).get();
+    public static float clamp (float value, float min, float max) {
+        return Math.min(max, Math.max(min, value));
     }
 
-    public static BigDecimal hypot (BigDecimal alpha, BigDecimal beta) {
-        return alpha.pow(2).add(beta.pow(2)).sqrt(MathContext.DECIMAL128);
-    }
+    public static double integral (double from, double to, long epochs, DoubleUnaryOperator function) {
+        double dist = to - from;
+        double step = dist / epochs;
 
-    public static BigDecimal atan (BigDecimal value) {
-        value = value.divide(BigDecimal.ONE.add(BigDecimal.ONE.add(value.pow(2)).sqrt(DECIMAL256)), DECIMAL256);
-        value = value.divide(BigDecimal.ONE.add(BigDecimal.ONE.add(value.pow(2)).sqrt(DECIMAL256)), DECIMAL256);
+        PrimitiveIterator.OfDouble iter = new PrimitiveIterator.OfDouble() {
+            double x = from;
 
-        BigDecimal value2 = value.pow(2);
-        BigDecimal result = value;
-
-        BigDecimal k = MathUtils.THREE;
-        boolean add = false;
-        BigDecimal pow = value;
-
-        while (true) {
-            pow = pow.multiply(value2);
-            BigDecimal delta = pow.divide(k, DECIMAL256);
-
-            if (delta.compareTo(LIMIT) <= 0) {
-                return result.multiply(MathUtils.FOUR, MathContext.DECIMAL128);
+            @Override
+            public double nextDouble() {
+                return function.applyAsDouble(x++) * step;
             }
 
-            result = add ? result.add(delta) : result.subtract(delta);
-            k = k.add(MathUtils.TWO);
-            add = !add;
-        }
-    }
+            @Override
+            public boolean hasNext() {
+                return x <= to;
+            }
+        };
 
-    public static BigDecimal acos (BigDecimal value) {
-        return atan(BigDecimal.ONE.subtract(value.pow(2)).sqrt(DECIMAL256).divide(value, DECIMAL256));
-    }
-
-    public static BigDecimal atan2 (BigDecimal beta, BigDecimal alpha) {
-        int compAlpha = alpha.compareTo(BigDecimal.ZERO);
-        int compBeta = beta.compareTo(BigDecimal.ZERO);
-
-        if (compBeta == 0 && compAlpha == 0) {
-            return null;
-        }
-
-        BigDecimal atan = atan(beta.divide(alpha, DECIMAL256));
-        if (compAlpha > 0) {
-            return atan;
-        } else if (compBeta > 0) {
-            return HALF_PI.subtract(atan);
-        } else if (compBeta < 0) {
-            return HALF_PI.add(atan).negate();
-        }
-
-        return atan.add(PI);
+        Spliterator.OfDouble spliter = Spliterators.spliterator(iter, epochs, Spliterator.ORDERED);
+        return StreamSupport.doubleStream(spliter, true).sum();
     }
 }

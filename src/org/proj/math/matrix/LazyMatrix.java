@@ -10,10 +10,10 @@ public abstract class LazyMatrix extends Matrix.OfVector {
 
     public LazyMatrix (int rows, int cols) {
         super(rows, cols);
-        this.values = new LazyVector[rows];
+        this.values = new Vector[rows];
     }
 
-    private LazyMatrix (int cols, LazyVector... rows) {
+    private LazyMatrix (int cols, Vector... rows) {
         super(rows.length, cols);
         this.values = rows;
     }

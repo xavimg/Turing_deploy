@@ -21,8 +21,4 @@ public abstract class LazyVector extends Vector {
 
         return value;
     }
-
-    public Vector.OfArray toStatic () {
-        return new Vector.OfArray(parallelStream().toArray());
-    }
 }

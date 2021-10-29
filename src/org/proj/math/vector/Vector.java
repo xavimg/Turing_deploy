@@ -5,6 +5,7 @@ import org.proj.math.DifferentSizedException;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -104,6 +105,15 @@ public abstract class Vector implements Iterable<Double> {
         };
     }
 
+    public Vector abs () {
+        return new LazyVector (size) {
+            @Override
+            public double compute (int pos) {
+                return Math.abs(Vector.this.get(pos));
+            }
+        };
+    }
+
     // METHODS
     public double sum () {
         return parallelStream().sum();
@@ -123,6 +133,10 @@ public abstract class Vector implements Iterable<Double> {
 
     public Vector unit () {
         return div(length());
+    }
+
+    public Vector.OfArray toStatic () {
+        return new OfArray(parallelStream().toArray());
     }
 
     // SLICING
@@ -212,12 +226,7 @@ public abstract class Vector implements Iterable<Double> {
 
     @Override
     public String toString () {
-        StringBuilder builder = new StringBuilder();
-        for (double val: this) {
-            builder.append(", ").append(val);
-        }
-
-        return "["+builder.substring(2)+"]";
+        return "[" + parallelStream().mapToObj(Double::toString).collect(Collectors.joining(", ")) + "]";
     }
 
     // STATIC
@@ -237,6 +246,11 @@ public abstract class Vector implements Iterable<Double> {
         @Override
         public double get (int i) {
             return array[i];
+        }
+
+        @Override
+        public OfArray toStatic() {
+            return this;
         }
     }
 }

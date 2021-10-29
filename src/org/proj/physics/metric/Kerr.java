@@ -1,5 +1,6 @@
 package org.proj.physics.metric;
 
+import org.proj.math.MathUtils;
 import org.proj.math.matrix.Matrix;
 import org.proj.math.matrix.special.DiagonalMatrix;
 import org.proj.math.matrix.special.ZeroMatrix;
@@ -36,17 +37,18 @@ public class Kerr extends MetricTensor implements CoordinateSystem {
         double sin = Math.sin(theta);
         double cos = Math.cos(theta);
         double r2 = r * r;
+        double cos2 = cos * cos;
 
-        double lambda = a2 * Math.pow(cos, 2);
+        double lambda = a2 * cos2;
         double sigma = r2 + lambda;
         double delta = r2 - rs * r + a2;
 
-        double a2cos = a2 * cos;
-        double a2sin = a2 * sin;
+        double a2cos2 = a2 * cos2;
+        double a2sincos = a2 * sin * cos;
         double sigma2 = sigma * sigma;
 
         DiagonalMatrix metric = new DiagonalMatrix(
-                Constants.C2 * (1 - rs * r / sigma),
+                Constants.C2 * (1 - (rs * r / sigma)),
                 -sigma / delta,
                 -sigma
         );
@@ -56,16 +58,16 @@ public class Kerr extends MetricTensor implements CoordinateSystem {
             public Matrix compute (int i) {
                 return switch (i) {
                     case 1 -> new DiagonalMatrix(
-                            r2 * (r2 - lambda) / sigma2,
-                            (a2cos * (2 * r - rs) + r * (r * rs - 2 * a2)) / Math.pow(a2 + r * (r - rs), 2),
+                            Constants.C2 * rs * (r2 - lambda) / sigma2,
+                            (a2cos2 * (2 * r - rs) + r * (r * rs - 2 * a2)) / Math.pow(a2 + r * (r - rs), 2),
                             -2 * r
 
                     );
 
                     case 2 -> new DiagonalMatrix(
-                        2 * a2cos * rs * r * sin / sigma2,
-                            a2sin / delta,
-                            a2sin
+                        2 * a2sincos * rs * r * Constants.C2 / sigma2,
+                            2 * a2sincos/ delta,
+                            2 * a2sincos
                     );
 
                     default -> new ZeroMatrix(3, 3);
@@ -117,14 +119,14 @@ public class Kerr extends MetricTensor implements CoordinateSystem {
             public Matrix compute (int i) {
                 return switch (i) {
                     case 1 -> new DiagonalMatrix(
-                            r2 * (r2 - lambda) / sigma2,
+                            Constants.C2 * rs * (r2 - lambda) / sigma2,
                             (a2cos * (2 * r - rs) + r * (r * rs - 2 * a2)) / Math.pow(a2 + r * (r - rs), 2),
                             -2 * r
 
                     );
 
                     case 2 -> new DiagonalMatrix(
-                            2 * a2cos * rs * r * sin / sigma2,
+                            2 * a2cos * rs * r * sin * Constants.C2 / sigma2,
                             a2sin / delta,
                             a2sin
                     );
@@ -158,6 +160,28 @@ public class Kerr extends MetricTensor implements CoordinateSystem {
         double theta = position.get(1);
 
         return Vector.of(Math.hypot(a, r) * Math.sin(theta), r * Math.cos(theta));
+    }
+
+    public Vector fromKerrPosAndCartesianVelocity (Vector kerrPos, Vector velocity) {
+        double r = kerrPos.get(0);
+        double theta = kerrPos.get(1);
+
+        double sin = Math.sin(theta);
+        double cos = Math.cos(theta);
+        double tan = sin / cos;
+
+        double vx = velocity.get(0);
+        double vy = velocity.get(1);
+
+        double lambda = a2 + r;
+        double lambdaSqrt = Math.sqrt(lambda);
+        double psi = lambda * cos / lambdaSqrt;
+        double lambda_2 = 2 * lambdaSqrt;
+
+        double vtheta = (lambda_2 * vx - vy * tan) / (lambda_2 * psi + r * tan * sin);
+        double vr = (vy / cos) + (r * vtheta * tan);
+
+        return Vector.of(vr, vtheta);
     }
 
     @Override

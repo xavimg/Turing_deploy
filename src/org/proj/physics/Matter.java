@@ -66,6 +66,16 @@ public abstract class Matter {
             }
 
             @Override
+            public double inertia() {
+                return Matter.this.inertia();
+            }
+
+            @Override
+            public double angularMomentum() {
+                return Matter.this.angularMomentum();
+            }
+
+            @Override
             public Vector getPosition() {
                 return pos;
             }
@@ -130,14 +140,11 @@ public abstract class Matter {
         }
 
         final public void addVelocity (Vector vel) {
-            this.velocity = this.velocity.add(vel);
+            this.velocity = this.velocity.add(vel).toStatic();
         }
 
         final public void update (double dt) {
-            this.position = this.position.add(velocity.mul(dt));
-            if (position instanceof LazyVector) {
-                this.position = ((LazyVector) this.position).toStatic();
-            }
+            this.position = this.position.add(velocity.mul(dt)).toStatic();
         }
     }
 }

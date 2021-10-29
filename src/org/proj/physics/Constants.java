@@ -13,6 +13,7 @@ import java.math.MathContext;
  *     <li><b>Mass</b>: Solar masses (M☉)</li>
  *     <li><b>Velocity</b>: Light seconds per second (ls/s)</li>
  *     <li><b>Angular velocity</b>: Radians per second (rad/s)</li>
+ *     <li><b>Temperature</b>: Kelvin (K)</li>
  * </ul>
  */
 public class Constants {
@@ -26,6 +27,16 @@ public class Constants {
      * @see <a href="https://www.wolframalpha.com/input/?i=gravitational+constant+in+light+seconds+cubed+per+M⊙+per+second+squared">WolframAlpha</a>
      */
     final public static double G = 4.93e-6;
+
+    /**
+     * Planck's constant
+     */
+    final public static double H = 6.626e-34;
+
+    /**
+     * Boltzmann's constant
+     */
+    final public static double K = 1.381e-23;
 
     final public static double C2 = C * C;
     final public static double C4 = C2 * C2;

@@ -63,6 +63,20 @@ public abstract class Tensor3D implements Iterable<Matrix> {
     }
 
     // SUBCLASSES
+    public abstract static class OfVector extends Tensor3D {
+        public OfVector (int alpha, int beta, int gamma) {
+            super(alpha, beta, gamma);
+        }
+
+        @Override
+        public abstract Vector get (int i, int j);
+
+        @Override
+        public double get (int x, int y, int z) {
+            return get(x, y).get(z);
+        }
+    }
+
     public abstract static class OfMatrix extends Tensor3D {
         public OfMatrix (int alpha, int beta, int gamma) {
             super(alpha, beta, gamma);

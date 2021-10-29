@@ -18,11 +18,15 @@ public class SchwrzTest {
         double r = 496.6d;
         double velocity = 9.93e-5;
 
+        double radius = 2.321d;
+        double av = 1d; // Half C
+        //double av = 2.904e-6;
+
         Schwarzschild schwarzschild = new Schwarzschild(mass);
-        Kerr kerr = new Kerr(mass, 2.321d, 2.904e-6);
+        Kerr kerr = new Kerr(mass, radius, av);
 
         Matter.Defined sEarth = new Matter.Defined(3e-6, 0.021251398d, 7.292115e-5, Vector.of(r, 0), CoordinateSystem.POLAR.fromCartesianVelocity(Vector.of(r, 0), Vector.of(0, velocity)));
-        Matter.Defined kEarth = new Matter.Defined(3e-6, 0.021251398d, 7.292115e-5, kerr.fromCartesianPosition(Vector.of(r, 0)), kerr.fromCartesianVelocity(Vector.of(r, 0), Vector.of(0, velocity)));
+        Matter.Defined kEarth = new Matter.Defined(3e-6, 0.021251398d, 7.292115e-5, sEarth.getPosition(), sEarth.getVelocity());
         Matter.Defined newton = new Matter.Defined(3e-6, 0.021251398d, 7.292115e-5, Vector.of(r, 0), Vector.of(0, velocity));
 
         JFrame window = new PaintedWindow("Schwarzschild test") {
@@ -46,12 +50,12 @@ public class SchwrzTest {
                 g.fillOval((int) Math.round(pos2.get(0) + midX - 25), (int) Math.round(pos2.get(1) + midY - 25), 50, 50);
 
                 g.setColor(new Color(0, 255, 0, 128));
-                g.fillOval((int) Math.round(pos3.get(0) + midX - 25), (int) Math.round(pos3.get(1) + midY - 25), 50, 50);
+                g.fillOval((int) Math.round(pos3.get(1) + midX - 25), (int) Math.round(pos3.get(0) + midY - 25), 50, 50);
             }
         };
 
         Thread update = ThreadUtils.interval(10, () -> {
-            double sec = (10 * 1e-3) * 60 * 60 * 24 * 7 * 3; // Every second = 3 week
+            double sec = (10 * 1e-3) * 60 * 60 * 24 * 7 * 4; // Every second = 1 month
 
             Vector acc = schwarzschild.getAcceleration(sEarth);
             sEarth.addVelocity(acc.mul(sec));

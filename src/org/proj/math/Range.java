@@ -4,12 +4,13 @@ import java.util.PrimitiveIterator;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.function.IntSupplier;
+import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 public class Range {
-    public static IntStream ofInt (int from, int to) {
+    public static IntStream ofInt (int from, int to, boolean parallel) {
         PrimitiveIterator.OfInt iter = new PrimitiveIterator.OfInt() {
             int i = from;
 
@@ -25,25 +26,29 @@ public class Range {
         };
 
         Spliterator.OfInt spliter = Spliterators.spliterator(iter, to - from, Spliterator.ORDERED);
-        return StreamSupport.intStream(spliter, false);
+        return StreamSupport.intStream(spliter, parallel);
     }
 
-    public static IntStream parallelOfInt (int from, int to) {
-        PrimitiveIterator.OfInt iter = new PrimitiveIterator.OfInt() {
-            int i = from;
+    public static DoubleStream ofDouble (double from, double to, double step, boolean parallel) {
+        PrimitiveIterator.OfDouble iter = new PrimitiveIterator.OfDouble() {
+            double x = from;
 
             @Override
-            public int nextInt() {
-                return i++;
+            public double nextDouble() {
+                double y = x;
+                x += step;
+
+                return y;
             }
 
             @Override
             public boolean hasNext() {
-                return i < to;
+                return x < to;
             }
         };
 
-        Spliterator.OfInt spliter = Spliterators.spliterator(iter, to - from, Spliterator.ORDERED);
-        return StreamSupport.intStream(spliter, true);
+        long size = (long) Math.ceil((to - from) / step);
+        Spliterator.OfDouble spliter = Spliterators.spliterator(iter, size, Spliterator.ORDERED);
+        return StreamSupport.doubleStream(spliter, parallel);
     }
 }

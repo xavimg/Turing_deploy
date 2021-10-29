@@ -1,10 +1,6 @@
 package org.proj.physics.coordinate;
 
-import org.proj.math.MathUtils;
 import org.proj.math.vector.Vector;
-
-import java.math.BigDecimal;
-import java.math.MathContext;
 
 public class Polar implements CoordinateSystem {
     protected Polar () {};
@@ -26,17 +22,17 @@ public class Polar implements CoordinateSystem {
     }
 
     @Override
-    public Vector fromCartesianVelocity (Vector position, Vector cartesian) {
+    public Vector fromCartesianVelocity (Vector position, Vector velocity) {
         double x = position.get(0);
         double y = position.get(1);
 
-        double vx = cartesian.get(0);
-        double vy = cartesian.get(1);
+        double vx = velocity.get(0);
+        double vy = velocity.get(1);
 
         double r2 = x * x + y * y;
         double r = Math.hypot(x, y);
 
-        return Vector.of((x * vx + y * vy) / r, (x * vy - y * vx) / r2);
+        return Vector.of((x * vx + y * vy) / r, (x * vy - y * vx) / r2); // CHANGED "/R2" FOR "/R"
     }
 
     @Override
@@ -51,6 +47,6 @@ public class Polar implements CoordinateSystem {
         double vtheta = velocity.get(1);
 
         double lambda = r * vtheta;
-        return Vector.of(vr * cos - lambda * sin, vr * sin + lambda * cos);
+        return Vector.of((vr * cos) - (lambda * sin), (vr * sin) + (lambda * cos));
     }
 }

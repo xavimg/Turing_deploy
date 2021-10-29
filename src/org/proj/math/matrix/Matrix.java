@@ -1,6 +1,7 @@
 package org.proj.math.matrix;
 
 import org.proj.math.DifferentSizedException;
+import org.proj.math.vector.LazyVector;
 import org.proj.math.vector.Vector;
 
 import java.math.BigDecimal;
@@ -61,6 +62,19 @@ public abstract class Matrix implements Iterable<Vector> {
             @Override
             public double compute (int i, int j) {
                 return Matrix.this.get(i).dot(transp.get(j));
+            }
+        };
+    }
+
+    public Vector mul (Vector other) {
+        if (cols != other.size) {
+            throw new DifferentSizedException();
+        }
+
+        return new LazyVector (cols) {
+            @Override
+            public double compute (int pos) {
+                return Matrix.this.get(pos).dot(other);
             }
         };
     }

@@ -13,22 +13,8 @@ import java.math.BigDecimal;
 /**
  * WARNING: WHEN SENDING POSITION AND VELOCITY, IT MUST BE WITH RESPECT TO THE PLAYER REQUESTING THE INFO
  */
-public class Planet extends Matter.Defined {
-    private Color color; // TODO CALCULATE
-    private Image texture; // TODO CALCULATE
-    private double surfaceAcceleration;
-
-    private Kerr metric;
-
+public class Planet extends SpaceBody {
     public Planet (double restMass, double radius, double angularVelocity, Vector position, Vector velocity, Color color, Image texture) {
-        super(restMass, radius, angularVelocity, position, velocity);
-        this.color = color;
-        this.texture = texture;
-
-        // CALCULATE SURFACE ACCELERATION USING NEWTONIAN GRAVITY
-        this.surfaceAcceleration = Constants.G * restMass / (radius * radius);
-
-        // METRIC
-        this.metric = new Kerr(restMass, radius, angularVelocity);
+        super(restMass, radius, angularVelocity, position, velocity, color, texture);
     }
 }
