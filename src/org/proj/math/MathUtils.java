@@ -24,6 +24,10 @@ public class MathUtils {
         return Math.min(max, Math.max(min, value));
     }
 
+    public static int clamp (int value, int min, int max) {
+        return Math.min(max, Math.max(min, value));
+    }
+
     public static double integral (double from, double to, long epochs, DoubleUnaryOperator function) {
         double dist = to - from;
         double step = dist / epochs;

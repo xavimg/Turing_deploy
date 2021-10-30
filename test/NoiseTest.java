@@ -1,14 +1,12 @@
-import org.junit.Assert;
 import org.junit.Test;
-import org.proj.math.Rand;
 import org.proj.math.Range;
-import org.proj.math.vector.LazyVector;
 import org.proj.utils.PerlinNoise;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.util.Random;
-import java.util.function.IntToDoubleFunction;
+import java.io.File;
+import java.io.IOException;
 
 public class NoiseTest {
     @Test

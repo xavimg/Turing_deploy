@@ -1,14 +1,7 @@
 package org.proj.game;
 
 import org.proj.math.Range;
-import org.proj.math.vector.LazyVector;
 import org.proj.math.vector.Vector;
-import org.proj.physics.Matter;
-import org.proj.physics.coordinate.CoordinateSystem;
-import org.proj.utils.Couple;
-
-import java.util.Arrays;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class PlanetarySystem {
     final private Sun central;

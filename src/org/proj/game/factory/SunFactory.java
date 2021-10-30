@@ -3,17 +3,18 @@ package org.proj.game.factory;
 import org.proj.game.Sun;
 import org.proj.math.MathUtils;
 import org.proj.physics.Constants;
+import org.proj.utils.PerlinNoise;
 
 import java.util.Random;
 import java.util.function.Supplier;
 
 public class SunFactory implements Supplier<Sun> {
-    final public TextureFactory texture;
     final public Random random;
+    final public TextureFactory texture;
 
-    public SunFactory (TextureFactory texture, Random random) {
-        this.texture = texture;
+    public SunFactory (Random random, TextureFactory texture) {
         this.random = random;
+        this.texture = texture;
     }
 
     public SunFactory (Random random) {

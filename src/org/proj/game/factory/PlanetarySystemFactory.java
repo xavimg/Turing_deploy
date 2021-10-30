@@ -4,6 +4,7 @@ import org.proj.game.Planet;
 import org.proj.game.PlanetarySystem;
 import org.proj.game.Sun;
 import org.proj.math.Range;
+import org.proj.utils.PerlinNoise;
 
 import java.util.Random;
 import java.util.Vector;
@@ -14,7 +15,7 @@ public class PlanetarySystemFactory implements Supplier<PlanetarySystem> {
     final public PlanetFactory planet;
     final public SunFactory sun;
 
-    public PlanetarySystemFactory(Random random, PlanetFactory planet, SunFactory sun) {
+    public PlanetarySystemFactory (Random random, PlanetFactory planet, SunFactory sun) {
         this.random = random;
         this.planet = planet;
         this.sun = sun;
