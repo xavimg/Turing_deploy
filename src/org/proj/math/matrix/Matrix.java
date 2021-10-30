@@ -107,6 +107,19 @@ public abstract class Matrix implements Iterable<Vector> {
         };
     }
 
+    public Vector diag () {
+        if (rows != cols) {
+            throw new UnsupportedOperationException();
+        }
+
+        return new Vector (rows) {
+            @Override
+            public double get(int i) {
+                return Matrix.this.get(i, i);
+            }
+        };
+    }
+
     public Matrix inverse () {
         Matrix alpha = new Matrix(rows, 2 * cols) {
             @Override

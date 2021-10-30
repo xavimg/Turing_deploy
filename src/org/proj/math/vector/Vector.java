@@ -224,6 +224,10 @@ public abstract class Vector implements Iterable<Double> {
         }
     }
 
+    public double[] toArray () {
+        return parallelStream().toArray();
+    }
+
     @Override
     public String toString () {
         return "[" + parallelStream().mapToObj(Double::toString).collect(Collectors.joining(", ")) + "]";
@@ -246,6 +250,11 @@ public abstract class Vector implements Iterable<Double> {
         @Override
         public double get (int i) {
             return array[i];
+        }
+
+        @Override
+        public double[] toArray() {
+            return array.clone();
         }
 
         @Override

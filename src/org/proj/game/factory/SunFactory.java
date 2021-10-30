@@ -8,10 +8,17 @@ import java.util.Random;
 import java.util.function.Supplier;
 
 public class SunFactory implements Supplier<Sun> {
+    final public TextureFactory texture;
     final public Random random;
+
+    public SunFactory (TextureFactory texture, Random random) {
+        this.texture = texture;
+        this.random = random;
+    }
 
     public SunFactory (Random random) {
         this.random = random;
+        this.texture = new TextureFactory(random);
     }
 
     public SunFactory () {
