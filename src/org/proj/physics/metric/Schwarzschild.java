@@ -58,13 +58,11 @@ public class Schwarzschild extends MetricTensor {
         double r = matter.getPosition().get(0);
         double _alpha = value / r;
 
-        DiagonalMatrix metric = new DiagonalMatrix(
+        return new DiagonalMatrix(
                 Constants.C2 - _alpha,
                 -1d / (1 - (_alpha / Constants.C2)),
                 -(r * r)
         );
-
-        return metric;
     }
 
     @Override

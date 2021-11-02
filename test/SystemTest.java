@@ -17,13 +17,11 @@ public class SystemTest {
         // 9.93e-5
         // 1.17e-4
 
-        Sun sun = new Sun(1d, 2.321d, 2.904e-6);
-        Planet earth = new Planet(3e-6, 0.021251398d, 7.292115e-5, Vector.of(496.6d, 0), CoordinateSystem.POLAR.fromCartesianVelocity(Vector.of(496.6d, 0), Vector.of(0, 9.93e-5)), null, null);
-        Planet venus = new Planet(2.448e-6, 0.0202, 2.99246e-7, Vector.of(362.8d, 0), CoordinateSystem.POLAR.fromCartesianVelocity(Vector.of(362.8d, 0), Vector.of(0, 1.17e-4)), null, null);
+        Sun sun = new Sun(1d, 2.321d, 2.904e-6, 0);
+        Planet earth = new Planet(3e-6, 0.021251398d, 7.292115e-5, Vector.of(496.6d, 0), Vector.of(0, 9.93e-5), null, null);
+        Planet venus = new Planet(2.448e-6, 0.0202, 2.99246e-7, Vector.of(362.8d, 0), Vector.of(0, 1.17e-4), null, null);
 
         Planet newtonEarth = new Planet(3e-6, 0.021251398d, 7.292115e-5, Vector.of(496.6d, 0), Vector.of(0, 9.93e-5), null, null);
-        //Planet venus = new Planet(2.448e-6, 0.0202, 2.99246e-7, Vector.of(362.8d, 0), Vector.of(0, 1.17e-4), null, null);
-
         PlanetarySystem system = new PlanetarySystem(sun, venus, earth);
 
         JFrame window = new PaintedWindow("Schwarzschild test") {
@@ -33,8 +31,8 @@ public class SystemTest {
                 int midY = getHeight() / 2;
 
                 double weight = 496.6d / getWidth();
-                Vector pos1 = CoordinateSystem.POLAR.toCartesianPosition(venus.getPosition()).mul(weight);
-                Vector pos2 = CoordinateSystem.POLAR.toCartesianPosition(earth.getPosition()).mul(weight);
+                Vector pos1 = venus.getPosition().mul(weight);
+                Vector pos2 = earth.getPosition().mul(weight);
 
                 Vector posn2 = newtonEarth.getPosition().mul(weight);
 
@@ -68,7 +66,7 @@ public class SystemTest {
             window.repaint();
         });
 
-        window.setSize(900, 1500);
+        window.setSize(900, 900);
         window.setVisible(true);
         window.createBufferStrategy(2);
         update.start();

@@ -17,9 +17,11 @@ public class PlanetarySystem {
 
         Range.ofInt(0, planets.length, true).forEach(i -> {
             Planet planet = planets[i];
-            delta[i] = central.metric.getAcceleration(planet).mul(dt);
+            Vector pos = central.metric.getCoordinateSystem().fromCartesianPosition(planet.getPosition());
+            Vector vel = central.metric.getCoordinateSystem().fromCartesianVelocity(planet.getPosition(), planet.getVelocity());
 
-            // TODO INTERPLANETARY GRAVITY
+            Vector deltaVel = central.metric.getAcceleration(planet.delta(pos, vel)).mul(dt);
+            delta[i] = central.metric.getCoordinateSystem().toCartesianVelocity(pos, deltaVel);
         });
 
         Range.ofInt(0, planets.length, true).forEach(i -> {

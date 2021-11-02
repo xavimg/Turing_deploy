@@ -10,6 +10,10 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 public class Range {
+    public static <T> Stream<T> ofIterable (Iterable<T> iter, boolean parallel) {
+        return StreamSupport.stream(iter.spliterator(), parallel);
+    }
+
     public static IntStream ofInt (int from, int to, boolean parallel) {
         PrimitiveIterator.OfInt iter = new PrimitiveIterator.OfInt() {
             int i = from;

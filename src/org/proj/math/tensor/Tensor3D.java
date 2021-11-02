@@ -5,6 +5,10 @@ import org.proj.math.vector.Vector;
 
 import java.math.BigDecimal;
 import java.util.Iterator;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public abstract class Tensor3D implements Iterable<Matrix> {
     final public int alpha, beta, gamma;
@@ -53,6 +57,19 @@ public abstract class Tensor3D implements Iterable<Matrix> {
     }
 
     @Override
+    public Spliterator<Matrix> spliterator() {
+        return Spliterators.spliterator(iterator(), alpha, 0);
+    }
+
+    public Stream<Matrix> stream () {
+        return StreamSupport.stream(spliterator(), false);
+    }
+
+    public Stream<Matrix> parallelStream () {
+        return StreamSupport.stream(spliterator(), true);
+    }
+
+    @Override
     public String toString () {
         StringBuilder builder = new StringBuilder();
         for (Matrix val: this) {
@@ -62,7 +79,30 @@ public abstract class Tensor3D implements Iterable<Matrix> {
         return "["+builder.substring(2)+"]";
     }
 
+    public OfArray toStatic () {
+        return new OfArray(parallelStream().map(Matrix::toStatic).toArray(Matrix[]::new));
+    }
+
     // SUBCLASSES
+    public static class OfArray extends Tensor3D {
+        final private Matrix[] values;
+
+        public OfArray (Matrix... values) {
+            super(values.length, values[0].rows, values[0].cols);
+            this.values = values;
+        }
+
+        @Override
+        public double get (int x, int y, int z) {
+            return values[x].get(y, z);
+        }
+
+        @Override
+        public OfArray toStatic() {
+            return this;
+        }
+    }
+
     public abstract static class OfVector extends Tensor3D {
         public OfVector (int alpha, int beta, int gamma) {
             super(alpha, beta, gamma);

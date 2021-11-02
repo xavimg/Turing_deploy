@@ -195,6 +195,10 @@ public abstract class Matrix implements Iterable<Vector> {
         };
     }
 
+    public OfArray toStatic () {
+        return new OfArray(parallelStream().map(Vector::toStatic).toArray(Vector[]::new));
+    }
+
     @Override
     public Spliterator<Vector> spliterator() {
         return Spliterators.spliterator(iterator(), rows, 0);
@@ -248,6 +252,11 @@ public abstract class Matrix implements Iterable<Vector> {
         @Override
         public Vector get(int i) {
             return values[i];
+        }
+
+        @Override
+        public OfArray toStatic() {
+            return this;
         }
     }
 }

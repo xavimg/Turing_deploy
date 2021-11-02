@@ -15,6 +15,6 @@ import java.math.BigDecimal;
  */
 public class Planet extends SpaceBody {
     public Planet (double restMass, double radius, double angularVelocity, Vector position, Vector velocity, Color color, Image texture) {
-        super(restMass, radius, angularVelocity, position, velocity, color, texture);
+        super(restMass, radius, angularVelocity, position, velocity, new Schwarzschild(restMass), color, texture);
     }
 }

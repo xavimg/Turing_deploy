@@ -30,14 +30,25 @@ public abstract class MetricTensor {
      * @param matter Matter
      * @return Time dilation
      */
-    public double getTimeDilation (DiagonalMatrix metric, Matter matter) {
-        Vector vector = metric.getVector();
-        Vector vel = matter.getVelocity();
+    public double getTimeDilation (Matrix metric, Matter matter) {
+        if (metric instanceof DiagonalMatrix) {
+            Vector vector = ((DiagonalMatrix) metric).getVector();
+            Vector vel = matter.getVelocity();
 
-        double sum = vector.get(1) * Math.pow(vel.get(0), 2);
-        sum += vector.get(2) * Math.pow(vel.get(1), 2);
+            double sum = vector.get(1) * Math.pow(vel.get(0), 2);
+            sum += vector.get(2) * Math.pow(vel.get(1), 2);
 
-        return Math.sqrt((Constants.C2 - sum) / vector.get(0));
+            return Math.sqrt((Constants.C2 - sum) / vector.get(0));
+        }
+
+        double v1 = matter.getVelocity().get(0);
+        double v2 = matter.getVelocity().get(1);
+
+        double a = metric.get(0, 0);
+        double b = v1 * (metric.get(0, 1) + metric.get(1, 0)) + v2 * (metric.get(0, 2) + metric.get(2, 0));
+        double c = v1 * v2 * (metric.get(1, 1) + metric.get(1, 2) + metric.get(2, 1) + metric.get(2, 2)) - Constants.C2;
+
+        return (-b + Math.sqrt(b * b - 4 * a * c)) / (2 * a);
     }
 
     /**
@@ -90,7 +101,7 @@ public abstract class MetricTensor {
     final public Vector getAcceleration (Matter matter) {
         Couple<? extends Matrix, ? extends Tensor3D> calc = calculateMetric(matter);
         Tensor3D christoffel = getChristoffel(calc.first, calc.last);
-        double timeDilation = this.getTimeDilation((DiagonalMatrix) calc.first, matter);
+        double timeDilation = this.getTimeDilation(calc.first, matter);
 
         Vector properAcc = getProperAcceleration(christoffel, timeDilation, matter.getVelocity());
         return properAcc.div(timeDilation);

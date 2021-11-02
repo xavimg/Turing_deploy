@@ -20,16 +20,12 @@ public class Sun extends SpaceBody {
             Vector.of(0.21, 0.71, 0.08),
             Vector.of(0.15, 0.06, 0.79)
     ).transp().inverse();
-
     final private static Vector whiteScale = Vector.of(0.3101, 0.3162, 0.3737);
 
-    final public Kerr metric;
     final public double temperature; // in kelvin
 
     public Sun (double restMass, double radius, double angularVelocity, double temperature) {
-        super(restMass, radius, angularVelocity, null, null, getColor(temperature), null);
-
-        this.metric = new Kerr(restMass, radius, angularVelocity);
+        super(restMass, radius, angularVelocity, null, null, new Schwarzschild(restMass), getColor(temperature), null);
         this.temperature = temperature;
     }
 

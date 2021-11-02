@@ -162,6 +162,15 @@ public abstract class Vector implements Iterable<Double> {
         return copyOf(offset, size - offset);
     }
 
+    public Vector concat (Vector other) {
+        return new Vector (size + other.size) {
+            @Override
+            public double get (int i) {
+                return i < size ? Vector.this.get(i) : other.get(i - size);
+            }
+        };
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

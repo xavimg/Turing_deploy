@@ -1,16 +1,23 @@
 package org.proj.math;
 
+import org.proj.math.matrix.Matrix;
+
+import java.math.BigDecimal;
+import java.math.MathContext;
 import java.util.PrimitiveIterator;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.function.DoubleUnaryOperator;
 import java.util.function.IntToDoubleFunction;
+import java.util.function.UnaryOperator;
 import java.util.stream.StreamSupport;
 
 public class MathUtils {
     final public static double PI_2 = 2 * Math.PI;
     final public static double PI2 = Math.PI * Math.PI;
     final public static double HALF_PI = Math.PI / 2;
+
+    final private static BigDecimal DOUBLE_DELTA = BigDecimal.ONE.scaleByPowerOfTen(-16);
 
     public static double sum (int size, IntToDoubleFunction function) {
         return Range.ofInt(0, size, true).mapToDouble(function).sum();
@@ -48,5 +55,17 @@ public class MathUtils {
 
         Spliterator.OfDouble spliter = Spliterators.spliterator(iter, epochs, Spliterator.ORDERED);
         return StreamSupport.doubleStream(spliter, true).sum();
+    }
+
+    public static float derivative (double x, DoubleUnaryOperator function) {
+        return (float) ((function.applyAsDouble(x + 1e-7) - function.applyAsDouble(x)) / 1e-7d);
+    }
+
+    public static double derivative (BigDecimal x, UnaryOperator<BigDecimal> function) {
+        return function.apply(x.add(DOUBLE_DELTA)).subtract(function.apply(x)).divide(DOUBLE_DELTA, MathContext.DECIMAL128).doubleValue();
+    }
+
+    public static double derivative (double x, UnaryOperator<BigDecimal> function) {
+        return derivative(BigDecimal.valueOf(x), function);
     }
 }

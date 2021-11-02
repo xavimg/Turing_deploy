@@ -1,5 +1,7 @@
 package org.proj.physics.coordinate;
 
+import org.proj.math.matrix.Matrix;
+import org.proj.math.tensor.Tensor3D;
 import org.proj.math.vector.Vector;
 
 public interface CoordinateSystem {
