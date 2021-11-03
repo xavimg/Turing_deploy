@@ -1,30 +1,24 @@
 package org.proj.game.factory;
 
-import org.proj.game.Planet;
 import org.proj.game.PlanetarySystem;
-import org.proj.game.Sun;
+import org.proj.game.SpaceBody;
 import org.proj.math.Range;
-import org.proj.utils.PerlinNoise;
+import org.proj.math.vector.Vector;
 
 import java.util.Random;
-import java.util.Vector;
 import java.util.function.Supplier;
 
 public class PlanetarySystemFactory implements Supplier<PlanetarySystem> {
     final public Random random;
-    final public PlanetFactory planet;
-    final public SunFactory sun;
+    final public SpaceBodyFactory spaceBody;
 
-    public PlanetarySystemFactory (Random random, PlanetFactory planet, SunFactory sun) {
+    public PlanetarySystemFactory (Random random, SpaceBodyFactory spaceBody) {
         this.random = random;
-        this.planet = planet;
-        this.sun = sun;
+        this.spaceBody = spaceBody;
     }
 
     public PlanetarySystemFactory (Random random) {
-        this.random = random;
-        this.planet = new PlanetFactory(random);
-        this.sun = new SunFactory(random);
+        this(random, new SpaceBodyFactory(random));
     }
 
     public PlanetarySystemFactory () {
@@ -38,12 +32,18 @@ public class PlanetarySystemFactory implements Supplier<PlanetarySystem> {
 
     @Override
     public PlanetarySystem get () {
-        Sun sun = this.sun.get();
         int n = getPlanetCount();
+        SpaceBody[] bodies = new SpaceBody[n];
 
         Range.ofInt(0, n, true).forEach(i -> {
-            Planet planet = this.planet.get();
-            //Vector position = random.nextDouble(0, 1);
+            SpaceBody body = this.spaceBody.get();
+            Vector position;
+
+            if (i == 0) {
+                position = Vector.of(0, 0);
+            } else {
+                position = Vector.of();
+            }
         });
 
         return null;

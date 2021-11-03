@@ -16,8 +16,8 @@ import java.awt.*;
 public class TransformTest {
     public static void main (String... args) {
         SchwarzschildCartesian metric = new SchwarzschildCartesian(1d);
-        Planet earth = new Planet(3e-6, 0.021251398d, 7.292115e-5, Vector.of(496.6d, 0), Vector.of(0, 9.93e-5), null, null);
-        Planet newton = new Planet(3e-6, 0.021251398d, 7.292115e-5, Vector.of(496.6d, 0), Vector.of(0, 9.93e-5), null, null);
+        Planet mercury = new Planet(1.675e-55, 0.00814, 1.24001e-6, Vector.of(117.7d, 0), Vector.of(0, 1.58e-4), null, null);
+        Planet newton = new Planet(1.675e-55, 0.00814, 1.24001e-6, Vector.of(117.7d, 0), Vector.of(0, 1.58e-4), null, null);
 
         JFrame window = new PaintedWindow("Schwarzschild test") {
             @Override
@@ -25,9 +25,9 @@ public class TransformTest {
                 int midX = getWidth() / 2;
                 int midY = getHeight() / 2;
 
-                double weight = 496.6d / getWidth();
+                double weight = 2000d / getWidth();
                 Vector pos1 = newton.getPosition().mul(weight);
-                Vector pos2 = earth.getPosition().mul(weight);
+                Vector pos2 = mercury.getPosition().mul(weight);
 
                 g.setColor(Color.BLACK);
                 g.fillOval(midX - 50, midY - 50, 100, 100);
@@ -43,9 +43,9 @@ public class TransformTest {
         Thread update = ThreadUtils.interval(10, () -> {
             double sec = (10 * 1e-3) * 60 * 60 * 24 * 7 * 4; // Every second = 1 month
 
-            Vector acc = metric.getAcceleration(earth);
-            earth.addVelocity(acc.mul(sec));
-            earth.update(sec);
+            Vector acc = metric.getAcceleration(mercury);
+            mercury.addVelocity(acc.mul(sec));
+            mercury.update(sec);
 
             double r2 = newton.getPosition().length2();
             double newtonAcc = Constants.G * metric.mass / r2;

@@ -1,6 +1,3 @@
-import org.proj.math.Rand;
-import org.proj.math.vector.LazyVector;
-
 public class VectorTest {
     public static void main (String... args) {
         /*LazyVector alpha = new LazyVector(3) {

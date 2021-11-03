@@ -1,13 +1,10 @@
-import org.junit.Assert;
 import org.junit.Test;
-import org.proj.math.MathUtils;
-import org.proj.math.Rand;
+import org.proj.math.RandUtils;
 import org.proj.math.vector.Vector;
 import org.proj.physics.coordinate.CoordinateSystem;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -101,8 +98,8 @@ public class CoordinateTest {
 
         for (double vr=-2d;vr<=2d;vr+=0.01d) {
             for (double vtheta=-5d;vtheta<=5d;vtheta+=0.01d) {
-                double r = Rand.nextDouble(0, 5);
-                double theta = Rand.nextDouble(-Math.PI, Math.PI);
+                double r = RandUtils.nextDouble(0, 5);
+                double theta = RandUtils.nextDouble(-Math.PI, Math.PI);
 
                 Vector pos = Vector.of(r, theta);
                 Vector cartPos = CoordinateSystem.POLAR.toCartesianPosition(pos);
@@ -139,8 +136,8 @@ public class CoordinateTest {
 
         for (double vx=-5d;vx<=5d;vx+=0.01d) {
             for (double vy=-5d;vy<=5d;vy+=0.01d) {
-                double x = Rand.nextDouble(-5, 5);
-                double y = Rand.nextDouble(-5, 5);
+                double x = RandUtils.nextDouble(-5, 5);
+                double y = RandUtils.nextDouble(-5, 5);
 
                 Vector pos = Vector.of(x, y);
                 Vector polarPos = CoordinateSystem.POLAR.fromCartesianPosition(pos);

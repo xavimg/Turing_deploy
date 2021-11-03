@@ -8,6 +8,7 @@ import org.proj.physics.Matter;
 import org.proj.physics.metric.Kerr;
 import org.proj.physics.metric.MetricTensor;
 import org.proj.physics.metric.Schwarzschild;
+import org.proj.physics.metric.cartesian.SchwarzschildCartesian;
 
 import java.awt.*;
 
@@ -25,7 +26,7 @@ public class Sun extends SpaceBody {
     final public double temperature; // in kelvin
 
     public Sun (double restMass, double radius, double angularVelocity, double temperature) {
-        super(restMass, radius, angularVelocity, null, null, new Schwarzschild(restMass), getColor(temperature), null);
+        super(restMass, radius, angularVelocity, null, null, new SchwarzschildCartesian(restMass), getColor(temperature), null);
         this.temperature = temperature;
     }
 

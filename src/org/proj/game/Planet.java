@@ -6,6 +6,7 @@ import org.proj.physics.Matter;
 import org.proj.physics.metric.Kerr;
 import org.proj.physics.metric.MetricTensor;
 import org.proj.physics.metric.Schwarzschild;
+import org.proj.physics.metric.cartesian.SchwarzschildCartesian;
 
 import java.awt.*;
 import java.math.BigDecimal;
@@ -15,6 +16,6 @@ import java.math.BigDecimal;
  */
 public class Planet extends SpaceBody {
     public Planet (double restMass, double radius, double angularVelocity, Vector position, Vector velocity, Color color, Image texture) {
-        super(restMass, radius, angularVelocity, position, velocity, new Schwarzschild(restMass), color, texture);
+        super(restMass, radius, angularVelocity, position, velocity, new SchwarzschildCartesian(restMass), color, texture);
     }
 }

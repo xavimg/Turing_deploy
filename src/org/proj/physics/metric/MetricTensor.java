@@ -17,6 +17,7 @@ import java.math.MathContext;
 
 public abstract class MetricTensor {
     public abstract CoordinateSystem getCoordinateSystem ();
+    public abstract double getIsco (Matter matter);
     public abstract Matrix getMetric (Matter matter);
     public abstract Tensor3D getDerivative (Matter matter);
 

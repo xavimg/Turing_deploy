@@ -17,9 +17,9 @@ public class SystemTest {
         // 9.93e-5
         // 1.17e-4
 
-        Sun sun = new Sun(1d, 2.321d, 2.904e-6, 0);
-        Planet earth = new Planet(3e-6, 0.021251398d, 7.292115e-5, Vector.of(496.6d, 0), Vector.of(0, 9.93e-5), null, null);
-        Planet venus = new Planet(2.448e-6, 0.0202, 2.99246e-7, Vector.of(362.8d, 0), Vector.of(0, 1.17e-4), null, null);
+        Sun sun = new Sun(0, 2.321d, 2.904e-6, 0);
+        Planet earth = new Planet(3e-6, 0.021251398d, 7.292115e-5, Vector.of(496.6d, 0), Vector.of(0, 0), null, null);
+        Planet venus = new Planet(2.448e-6, 0.0202, 2.99246e-7, Vector.of(362.8d, 0), Vector.of(0, 0), null, null);
 
         Planet newtonEarth = new Planet(3e-6, 0.021251398d, 7.292115e-5, Vector.of(496.6d, 0), Vector.of(0, 9.93e-5), null, null);
         PlanetarySystem system = new PlanetarySystem(sun, venus, earth);

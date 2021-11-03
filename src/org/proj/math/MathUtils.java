@@ -1,9 +1,11 @@
 package org.proj.math;
 
 import org.proj.math.matrix.Matrix;
+import org.proj.math.numbers.Complex;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
+import java.util.Iterator;
 import java.util.PrimitiveIterator;
 import java.util.Spliterator;
 import java.util.Spliterators;
@@ -15,8 +17,12 @@ import java.util.stream.StreamSupport;
 public class MathUtils {
     final public static double PI_2 = 2 * Math.PI;
     final public static double PI2 = Math.PI * Math.PI;
-    final public static double HALF_PI = Math.PI / 2;
 
+    final public static double HALF_PI = Math.PI / 2;
+    final public static double QUART_PI = HALF_PI / 2;
+    final public static double PI_3_2 = 3 * Math.PI / 2;
+
+    final private static double ERF_ALPHA = 2 / Math.sqrt(Math.PI);
     final private static BigDecimal DOUBLE_DELTA = BigDecimal.ONE.scaleByPowerOfTen(-16);
 
     public static double sum (int size, IntToDoubleFunction function) {
@@ -35,7 +41,15 @@ public class MathUtils {
         return Math.min(max, Math.max(min, value));
     }
 
+    public static double integral (double from, double to, DoubleUnaryOperator function) {
+        return from > to ? -integral(to, from, function) : integral(from, to, Math.round((to - from) * 1e7), function);
+    }
+
     public static double integral (double from, double to, long epochs, DoubleUnaryOperator function) {
+        if (from > to) {
+            return -integral(to, from, epochs, function);
+        }
+
         double dist = to - from;
         double step = dist / epochs;
 
@@ -44,7 +58,7 @@ public class MathUtils {
 
             @Override
             public double nextDouble() {
-                return function.applyAsDouble(x++) * step;
+                return function.applyAsDouble(x++);
             }
 
             @Override
@@ -54,7 +68,14 @@ public class MathUtils {
         };
 
         Spliterator.OfDouble spliter = Spliterators.spliterator(iter, epochs, Spliterator.ORDERED);
-        return StreamSupport.doubleStream(spliter, true).sum();
+        return StreamSupport.doubleStream(spliter, true).sum() * step;
+    }
+
+    public static Complex integral (Complex from, Complex to, long epochs, UnaryOperator<Complex> function) {
+        Complex dist = to.subtr(from);
+        Complex step = dist.div(epochs);
+
+        return Range.ofLong(0, epochs, true).mapToObj(z -> function.apply(from.add(step.mul(z))).mul(step)).reduce(Complex::add).get();
     }
 
     public static float derivative (double x, DoubleUnaryOperator function) {
@@ -67,5 +88,21 @@ public class MathUtils {
 
     public static double derivative (double x, UnaryOperator<BigDecimal> function) {
         return derivative(BigDecimal.valueOf(x), function);
+    }
+
+    public static double erf (double value) {
+        return ERF_ALPHA * integral(0, value, Short.MAX_VALUE, (double t) -> Math.exp(-t * t));
+    }
+
+    public static Complex erf (Complex value) {
+        return integral(Complex.ZERO, value, Short.MAX_VALUE, t -> MathComplex.exp(t.square().negate())).mul(ERF_ALPHA);
+    }
+
+    public static Complex erfi (Complex value) {
+        return erf(value.mul(Complex.I)).mul(Complex.I).negate();
+    }
+
+    public static Complex erfi (double value) {
+        return erf(Complex.ofIm(value)).mul(Complex.I).negate();
     }
 }

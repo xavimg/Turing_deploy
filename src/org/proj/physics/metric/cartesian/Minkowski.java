@@ -12,7 +12,9 @@ import org.proj.physics.metric.MetricTensor;
 public class Minkowski extends MetricTensor {
     final public static Minkowski METRIC = new Minkowski();
 
-    private Minkowski() {}
+    private Minkowski() {
+        super(Double.POSITIVE_INFINITY);
+    }
 
     @Override
     final public CoordinateSystem getCoordinateSystem() {

@@ -1,9 +1,8 @@
 import org.junit.Assert;
 import org.junit.Test;
-import org.proj.math.Rand;
+import org.proj.math.RandUtils;
 import org.proj.math.Range;
 import org.proj.math.vector.Vector;
-import org.proj.physics.Constants;
 import org.proj.physics.metric.Kerr;
 
 public class KerrTest {
@@ -12,7 +11,7 @@ public class KerrTest {
     @Test
     public void coordinateTest() {
         Range.ofInt(0, Short.MAX_VALUE, true).forEach((i) -> {
-            Vector pos = Vector.of(Rand.nextDouble(-1000, 1000), Rand.nextDouble(-1000, 1000));
+            Vector pos = Vector.of(RandUtils.nextDouble(-1000, 1000), RandUtils.nextDouble(-1000, 1000));
             Vector kerr = earth.fromCartesianPosition(pos);
             Vector back = earth.toCartesianPosition(kerr);
 
@@ -23,8 +22,8 @@ public class KerrTest {
     @Test
     public void positionTest() {
         Range.ofInt(0, Short.MAX_VALUE, true).forEach(i -> {
-            Vector pos = Vector.of(Rand.nextDouble(-1000, 1000), Rand.nextDouble(-1000, 1000));
-            Vector vel = Vector.of(Rand.nextDouble(-1000, 1000), Rand.nextDouble(-1000, 1000));
+            Vector pos = Vector.of(RandUtils.nextDouble(-1000, 1000), RandUtils.nextDouble(-1000, 1000));
+            Vector vel = Vector.of(RandUtils.nextDouble(-1000, 1000), RandUtils.nextDouble(-1000, 1000));
 
             Vector kerrPos = earth.fromCartesianPosition(pos);
             Vector kerr = earth.fromCartesianVelocity(pos, vel);

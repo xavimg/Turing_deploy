@@ -2,28 +2,23 @@ package org.proj.physics.metric.cartesian;
 
 import org.proj.math.MathUtils;
 import org.proj.math.matrix.Matrix;
-import org.proj.math.matrix.special.DiagonalMatrix;
-import org.proj.math.matrix.special.ZeroMatrix;
-import org.proj.math.tensor.LazyTensor3D;
 import org.proj.math.tensor.Tensor3D;
-import org.proj.math.tensor.ZeroTensor;
 import org.proj.math.vector.Vector;
 import org.proj.physics.Constants;
 import org.proj.physics.Matter;
 import org.proj.physics.coordinate.CoordinateSystem;
 import org.proj.physics.metric.MetricTensor;
 import org.proj.physics.metric.Schwarzschild;
-import org.proj.utils.Couple;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
-import java.util.function.BiFunction;
 
 public class SchwarzschildCartesian extends MetricTensor {
     final public double mass;
     final private double rs;
 
     public SchwarzschildCartesian (double mass) {
+        super(6 * Constants.G * mass / Constants.C2);
         this.mass = mass;
         this.rs = Schwarzschild.radius(mass);
     }
@@ -56,6 +51,8 @@ public class SchwarzschildCartesian extends MetricTensor {
                 Vector.of(0, dxdy, -(y2 / alpha + x2 / r2))
         );
     }
+
+    // TODO MANUAL DERIVATIVE, THIS IS SUPER-INEFFICIENT
 
     @Override
     public Tensor3D getDerivative (Matter matter) {

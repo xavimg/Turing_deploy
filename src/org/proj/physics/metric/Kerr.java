@@ -238,4 +238,24 @@ public class Kerr extends MetricTensor implements CoordinateSystem {
     final public CoordinateSystem getCoordinateSystem() {
         return this;
     }
+
+    @Override
+    public double getIsco (Matter matter) {
+        double x = 2 * a / Schwarzschild.radius(mass);
+        double x2 = x * x;
+
+        double z0 = Math.cbrt(1 - x2);
+        double z1 = 1 + z0 * (Math.cbrt(1 + x2) + z0);
+        double z2 = Math.sqrt(3 * x2 + z1 * z1);
+
+        double alpha = Constants.C * this.mass / Constants.C2;
+        double beta = 3 + z2;
+        double gamma = Math.sqrt((3 - z1) * (3 + z1 + 2 * z2));
+
+        if (Math.signum(matter.angularVelocity()) == Math.signum(angularMomentum)) {
+            return alpha * (beta - gamma);
+        }
+
+        return alpha * (beta + gamma);
+    }
 }

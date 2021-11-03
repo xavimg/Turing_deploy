@@ -17,11 +17,18 @@ import java.math.MathContext;
 
 public class Schwarzschild extends MetricTensor {
     final public double mass;
+    final private double isco;
     final private double value;
 
     public Schwarzschild (double mass) {
         this.mass = mass;
         this.value = 2 * Constants.G * mass;
+        this.isco = 6 * Constants.G * mass / Constants.C2;
+    }
+
+    @Override
+    public double getIsco (Matter matter) {
+        return isco;
     }
 
     @Override
@@ -85,5 +92,9 @@ public class Schwarzschild extends MetricTensor {
 
     public static double radius (double mass) {
         return 2 * Constants.G * mass / Constants.C2;
+    }
+
+    public static double mass (double radius) {
+        return radius * Constants.C2 / (2 * Constants.G);
     }
 }

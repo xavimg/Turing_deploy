@@ -1,10 +1,7 @@
 package org.proj.game.factory;
 
-import org.apache.commons.math3.geometry.euclidean.threed.Plane;
 import org.proj.game.Planet;
 import org.proj.math.MathUtils;
-import org.proj.math.Rand;
-import org.proj.math.vector.Vector;
 import org.proj.physics.Constants;
 import org.proj.physics.metric.Schwarzschild;
 
