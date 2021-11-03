@@ -1,5 +1,3 @@
-import * as PIXI from 'pixi.js';
-
 const options = {
     width: window.innerWidth,
     height: window.innerHeight,
