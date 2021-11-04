@@ -3,7 +3,6 @@ package controllers
 import (
 	"authSystem/database"
 	"authSystem/models"
-	"errors"
 	"strconv"
 	"time"
 
@@ -14,27 +13,36 @@ import (
 
 const SecretKey = "secret"
 
-func Register(c *fiber.Ctx) error {
-	var data map[string]string
+// It will be used to check data in handlers.
+var user models.User
 
+func Register(c *fiber.Ctx) error {
+	// The body data
+	var data map[string]string
 	if err := c.BodyParser(&data); err != nil {
 		return err
 	}
-	var user models.User
 
-	database.DB.Where("email = ?", data["email"]).First(&user)
-
-	// Check if user exists in database
+	// Check if email already exists
 	if user.Email == data["email"] {
 		c.Status(fiber.StatusBadRequest)
 		return c.JSON(fiber.Map{
 			"message": "This email already exists",
 		})
 	}
-
-	// Check passwords
+	// Check if body-passwords are same
 	if data["password"] != data["password_confirm"] {
-		return errors.New("passwords do not match")
+		c.Status(fiber.StatusBadRequest)
+		return c.JSON(fiber.Map{
+			"message": "Passwords do not match",
+		})
+	}
+	// Check password length
+	if len(data["password"]) < 5 {
+		c.Status(fiber.StatusBadRequest)
+		return c.JSON(fiber.Map{
+			"message": "Password must be minimum 5 characters",
+		})
 	}
 
 	passwordHashed, _ := bcrypt.GenerateFromPassword([]byte(data["password"]), 14)
@@ -58,8 +66,6 @@ func Login(c *fiber.Ctx) error {
 		return err
 	}
 
-	var user models.User
-
 	database.DB.Where("email = ?", data["email"]).First(&user)
 
 	// Check if user exists in database
@@ -77,6 +83,7 @@ func Login(c *fiber.Ctx) error {
 		})
 	}
 
+	// Create JWT token
 	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
 		Issuer:    strconv.Itoa(int(user.Id)),
 		ExpiresAt: time.Now().Add(time.Hour * 24).Unix(), // 1 day
@@ -120,8 +127,6 @@ func User(c *fiber.Ctx) error {
 	}
 
 	claims := token.Claims.(*jwt.StandardClaims)
-
-	var user models.User
 
 	database.DB.Where("ID = ? ", claims.Issuer).First(&user)
 
