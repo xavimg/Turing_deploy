@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2021-11-07T11:03:34.459Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.1 Safari/605.1.15" etag="nXY4k3VtY1LBtdmlW5G3" version="15.7.0" type="github">
+<mxfile host="app.diagrams.net" modified="2021-11-07T11:03:59.220Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.1 Safari/605.1.15" etag="Fea1hmD36YZ6gNr0kvTq" version="15.7.0" type="github">
   <diagram id="C5RBs43oDa-KdzZeNtuy" name="Page-1">
     <mxGraphModel dx="1095" dy="728" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
       <root>
@@ -281,19 +281,19 @@
         <mxCell id="S08yd59PSp1er5tx0umT-118" value="Matrix add (Matrix other)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="S08yd59PSp1er5tx0umT-112">
           <mxGeometry y="130" width="250" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="S08yd59PSp1er5tx0umT-123" value="Matrix mul (double other)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="S08yd59PSp1er5tx0umT-112">
+        <mxCell id="S08yd59PSp1er5tx0umT-119" value="Matrix add (double other)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="S08yd59PSp1er5tx0umT-112">
           <mxGeometry y="156" width="250" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="S08yd59PSp1er5tx0umT-122" value="Matrix mul (Matrix other)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="S08yd59PSp1er5tx0umT-112">
+        <mxCell id="S08yd59PSp1er5tx0umT-120" value="Matrix subtr (Matrix other)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="S08yd59PSp1er5tx0umT-112">
           <mxGeometry y="182" width="250" height="26" as="geometry" />
         </mxCell>
         <mxCell id="S08yd59PSp1er5tx0umT-121" value="Matrix subtr (double other)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="S08yd59PSp1er5tx0umT-112">
           <mxGeometry y="208" width="250" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="S08yd59PSp1er5tx0umT-120" value="Matrix subtr (Matrix other)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="S08yd59PSp1er5tx0umT-112">
+        <mxCell id="S08yd59PSp1er5tx0umT-122" value="Matrix mul (Matrix other)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="S08yd59PSp1er5tx0umT-112">
           <mxGeometry y="234" width="250" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="S08yd59PSp1er5tx0umT-119" value="Matrix add (double other)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="S08yd59PSp1er5tx0umT-112">
+        <mxCell id="S08yd59PSp1er5tx0umT-123" value="Matrix mul (double other)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="S08yd59PSp1er5tx0umT-112">
           <mxGeometry y="260" width="250" height="26" as="geometry" />
         </mxCell>
       </root>
