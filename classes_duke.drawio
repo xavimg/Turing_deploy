@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2021-11-07T11:46:42.899Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.1 Safari/605.1.15" etag="orkJK-RPKnzbFOC3ULLc" version="15.7.0" type="github">
+<mxfile host="app.diagrams.net" modified="2021-11-07T11:47:05.148Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.1 Safari/605.1.15" etag="6EIJXjxGcBv7z-VnFl-M" version="15.7.0" type="github">
   <diagram id="C5RBs43oDa-KdzZeNtuy" name="Page-1">
     <mxGraphModel dx="1095" dy="728" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
       <root>
@@ -534,7 +534,7 @@
         <mxCell id="S08yd59PSp1er5tx0umT-214" value="final LazyTensor3D getChristoffel (matter)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="S08yd59PSp1er5tx0umT-191">
           <mxGeometry y="234" width="400" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="S08yd59PSp1er5tx0umT-215" value="final Vector getProperAcceleration (matter)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="S08yd59PSp1er5tx0umT-191">
+        <mxCell id="S08yd59PSp1er5tx0umT-215" value="final Vector getProperAcceleration (christoffel, vt, vel)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="S08yd59PSp1er5tx0umT-191">
           <mxGeometry y="260" width="400" height="26" as="geometry" />
         </mxCell>
         <mxCell id="S08yd59PSp1er5tx0umT-216" value="final Vector getProperAcceleration (matter)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="S08yd59PSp1er5tx0umT-191">
