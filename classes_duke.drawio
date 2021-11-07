@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2021-11-07T11:04:53.880Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.1 Safari/605.1.15" etag="oKE008pO_ubgsF-aWc_J" version="15.7.0" type="github">
+<mxfile host="app.diagrams.net" modified="2021-11-07T11:05:24.805Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.1 Safari/605.1.15" etag="JKbnNM_OLlOfdxRMaEhC" version="15.7.0" type="github">
   <diagram id="C5RBs43oDa-KdzZeNtuy" name="Page-1">
     <mxGraphModel dx="1095" dy="728" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
       <root>
@@ -298,6 +298,9 @@
         </mxCell>
         <mxCell id="S08yd59PSp1er5tx0umT-123" value="Matrix mul (double other)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="S08yd59PSp1er5tx0umT-112">
           <mxGeometry y="286" width="250" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="S08yd59PSp1er5tx0umT-125" value="Matrix div (double other)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="S08yd59PSp1er5tx0umT-112">
+          <mxGeometry y="312" width="250" height="26" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
