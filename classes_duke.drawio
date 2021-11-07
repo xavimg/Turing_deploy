@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2021-11-07T10:48:23.362Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.1 Safari/605.1.15" etag="MN4MMprdwlHebCHPBpC1" version="15.7.0" type="github">
+<mxfile host="app.diagrams.net" modified="2021-11-07T10:48:53.829Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.1 Safari/605.1.15" etag="SPcfbY6MiWYhTf76EwZA" version="15.7.0" type="github">
   <diagram id="C5RBs43oDa-KdzZeNtuy" name="Page-1">
     <mxGraphModel dx="721" dy="728" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
       <root>
@@ -180,6 +180,15 @@
         </mxCell>
         <mxCell id="S08yd59PSp1er5tx0umT-58" value="double dot (other)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="S08yd59PSp1er5tx0umT-36">
           <mxGeometry y="338" width="250" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="S08yd59PSp1er5tx0umT-59" value="double length2 ()" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="S08yd59PSp1er5tx0umT-36">
+          <mxGeometry y="364" width="250" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="S08yd59PSp1er5tx0umT-60" value="double length ()" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="S08yd59PSp1er5tx0umT-36">
+          <mxGeometry y="390" width="250" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="S08yd59PSp1er5tx0umT-61" value="Vector unit ()" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="S08yd59PSp1er5tx0umT-36">
+          <mxGeometry y="416" width="250" height="26" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
