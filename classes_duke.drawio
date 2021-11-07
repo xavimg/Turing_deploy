@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" modified="2021-11-07T10:24:34.236Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.1 Safari/605.1.15" etag="3-jDmEimmulSr1hUAp-j" version="15.7.0" type="github">
+<mxfile host="app.diagrams.net" modified="2021-11-07T10:26:40.638Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.1 Safari/605.1.15" etag="ios7oLQ22e6ytgiBC0BB" version="15.7.0" type="github">
   <diagram id="C5RBs43oDa-KdzZeNtuy" name="Page-1">
-    <mxGraphModel dx="684" dy="728" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="721" dy="728" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="WIyWlLk6GJQsqaUBKTNV-0" />
         <mxCell id="WIyWlLk6GJQsqaUBKTNV-1" parent="WIyWlLk6GJQsqaUBKTNV-0" />
@@ -70,6 +70,38 @@
         </mxCell>
         <mxCell id="x6n6AqPtrt-pmM5n0K3Q-3" value="&lt;font style=&quot;font-size: 15px&quot;&gt;&lt;b&gt;Default units&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;ul&gt;&lt;li&gt;&lt;b&gt;Time&lt;/b&gt;: Seconds (s)&lt;/li&gt;&lt;li&gt;&lt;b&gt;Distance&lt;/b&gt;: Light seconds (ls)&lt;/li&gt;&lt;li&gt;&lt;b&gt;Mass&lt;/b&gt;: Solar masses (M☉)&lt;/li&gt;&lt;li&gt;&lt;b&gt;Velocity&lt;/b&gt;: Light seconds per second (ls/s)&lt;/li&gt;&lt;li&gt;&lt;b&gt;Angular velocity&lt;/b&gt;: Radians per second (rad/s)&lt;/li&gt;&lt;li&gt;&lt;b&gt;Temperature&lt;/b&gt;: Kelvin (K)&lt;/li&gt;&lt;/ul&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
           <mxGeometry x="10" y="10" width="300" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="S08yd59PSp1er5tx0umT-5" value="SpaceBody" style="swimlane;fontStyle=0;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=1;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="570" y="157" width="220" height="263" as="geometry">
+            <mxRectangle x="130" y="380" width="160" height="26" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="S08yd59PSp1er5tx0umT-6" value="final private double restMass" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="S08yd59PSp1er5tx0umT-5">
+          <mxGeometry y="26" width="220" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="S08yd59PSp1er5tx0umT-7" value="final private double radius" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="S08yd59PSp1er5tx0umT-5">
+          <mxGeometry y="52" width="220" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="S08yd59PSp1er5tx0umT-8" value="final private double angularVelocity" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontStyle=0" vertex="1" parent="S08yd59PSp1er5tx0umT-5">
+          <mxGeometry y="78" width="220" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="S08yd59PSp1er5tx0umT-9" value="final private double inerta" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="S08yd59PSp1er5tx0umT-5">
+          <mxGeometry y="104" width="220" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="S08yd59PSp1er5tx0umT-10" value="final private double angularMomentum" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="S08yd59PSp1er5tx0umT-5">
+          <mxGeometry y="130" width="220" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="S08yd59PSp1er5tx0umT-11" value="private Vector position" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="S08yd59PSp1er5tx0umT-5">
+          <mxGeometry y="156" width="220" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="S08yd59PSp1er5tx0umT-12" value="private Vector velocity" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="S08yd59PSp1er5tx0umT-5">
+          <mxGeometry y="182" width="220" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="S08yd59PSp1er5tx0umT-13" value="final void addVelocity (delta)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="S08yd59PSp1er5tx0umT-5">
+          <mxGeometry y="208" width="220" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="S08yd59PSp1er5tx0umT-14" value="final void update (dt)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="S08yd59PSp1er5tx0umT-5">
+          <mxGeometry y="234" width="220" height="26" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
