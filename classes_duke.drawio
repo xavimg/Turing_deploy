@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" modified="2021-11-07T11:37:49.805Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.1 Safari/605.1.15" etag="sEp2eT4mDLxCL5OKLnmK" version="15.7.0" type="github">
+<mxfile host="app.diagrams.net" modified="2021-11-07T11:37:55.655Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.1 Safari/605.1.15" etag="36OW5BxHrC7N2JYWQ7hy" version="15.7.0" type="github">
   <diagram id="C5RBs43oDa-KdzZeNtuy" name="Page-1">
-    <mxGraphModel dx="1095" dy="1555" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+    <mxGraphModel dx="1552" dy="1032" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
       <root>
         <mxCell id="WIyWlLk6GJQsqaUBKTNV-0" />
         <mxCell id="WIyWlLk6GJQsqaUBKTNV-1" parent="WIyWlLk6GJQsqaUBKTNV-0" />
@@ -69,7 +69,7 @@
           </mxGeometry>
         </mxCell>
         <mxCell id="x6n6AqPtrt-pmM5n0K3Q-3" value="&lt;font style=&quot;font-size: 15px&quot;&gt;&lt;b&gt;Default units&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;ul&gt;&lt;li&gt;&lt;b&gt;Time&lt;/b&gt;: Seconds (s)&lt;/li&gt;&lt;li&gt;&lt;b&gt;Distance&lt;/b&gt;: Light seconds (ls)&lt;/li&gt;&lt;li&gt;&lt;b&gt;Mass&lt;/b&gt;: Solar masses (M☉)&lt;/li&gt;&lt;li&gt;&lt;b&gt;Velocity&lt;/b&gt;: Light seconds per second (ls/s)&lt;/li&gt;&lt;li&gt;&lt;b&gt;Angular velocity&lt;/b&gt;: Radians per second (rad/s)&lt;/li&gt;&lt;li&gt;&lt;b&gt;Temperature&lt;/b&gt;: Kelvin (K)&lt;/li&gt;&lt;/ul&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
-          <mxGeometry x="40" y="-50" width="300" height="120" as="geometry" />
+          <mxGeometry x="40" y="10" width="300" height="120" as="geometry" />
         </mxCell>
         <mxCell id="S08yd59PSp1er5tx0umT-16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1.001;entryY=0.206;entryDx=0;entryDy=0;entryPerimeter=0;endArrow=block;endFill=0;strokeWidth=1;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="S08yd59PSp1er5tx0umT-5" target="zkfFHV4jXpPFQw0GAbJ--8">
           <mxGeometry relative="1" as="geometry" />
