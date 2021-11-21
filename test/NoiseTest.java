@@ -1,12 +1,9 @@
 import org.junit.Test;
-import org.proj.math.Range;
+import org.proj.utils.Range;
 import org.proj.utils.PerlinNoise;
 
-import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 
 public class NoiseTest {
     @Test

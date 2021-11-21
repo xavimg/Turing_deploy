@@ -6,13 +6,11 @@ import org.proj.game.factory.PlanetFactory;
 import org.proj.game.factory.PlanetarySystemFactory;
 import org.proj.game.factory.SunFactory;
 import org.proj.game.factory.TextureFactory;
-import org.proj.math.MathUtils;
-import org.proj.math.Range;
+import org.proj.utils.Range;
 
 import java.awt.*;
 import java.util.Comparator;
 import java.util.List;
-import java.util.function.DoubleUnaryOperator;
 import java.util.stream.Collectors;
 
 public class FactoryTest {

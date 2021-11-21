@@ -1,6 +1,4 @@
-package org.proj.math;
-
-import org.proj.math.numbers.Complex;
+package org.proj.utils;
 
 import java.util.*;
 import java.util.function.*;
@@ -93,24 +91,5 @@ public class Range {
 
         Spliterator.OfDouble split = Spliterators.spliterator(iter, to - from, 0);
         return StreamSupport.doubleStream(split, true).sum();
-    }
-
-    public static Complex sum (int from, int to, Function<Integer, Complex> function) {
-        Iterator<Complex> iter = new Iterator<Complex>() {
-            int i = from;
-
-            @Override
-            public Complex next() {
-                return function.apply(i++);
-            }
-
-            @Override
-            public boolean hasNext() {
-                return i <= to;
-            }
-        };
-
-        Spliterator<Complex> split = Spliterators.spliterator(iter, to - from, 0);
-        return StreamSupport.stream(split, true).reduce(Complex::add).get();
     }
 }

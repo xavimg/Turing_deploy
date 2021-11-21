@@ -1,26 +1,24 @@
-package org.proj.physics.metric.cartesian;
+package org.proj.physics.metric;
 
+import org.proj.math.Mat3;
 import org.proj.math.MathUtils;
-import org.proj.math.matrix.Matrix;
-import org.proj.math.tensor.Tensor3D;
-import org.proj.math.vector.Vector;
+import org.proj.math.Tens3;
+import org.proj.math.vector.Vec3;
 import org.proj.physics.Constants;
 import org.proj.physics.Matter;
 import org.proj.physics.coordinate.CoordinateSystem;
-import org.proj.physics.metric.MetricTensor;
-import org.proj.physics.metric.Schwarzschild;
-
 import java.math.BigDecimal;
 import java.math.MathContext;
 
 public class SchwarzschildCartesian extends MetricTensor {
     final public double mass;
     final private double rs;
+    final private double isco;
 
     public SchwarzschildCartesian (double mass) {
-        super(6 * Constants.G * mass / Constants.C2);
         this.mass = mass;
         this.rs = Schwarzschild.radius(mass);
+        this.isco = 6 * Constants.G * mass / Constants.C2;
     }
 
     @Override
@@ -28,13 +26,18 @@ public class SchwarzschildCartesian extends MetricTensor {
         return CoordinateSystem.CARTESIAN;
     }
 
+    @Override
+    public double getIsco(Matter matter) {
+        return isco;
+    }
+
     /**
      * @see <a href="https://math.stackexchange.com/a/3719432">Metric tensor conversion</a>
      */
     @Override
-    public Matrix getMetric (Matter matter) {
-        double x = matter.getPosition().get(0);
-        double y = matter.getPosition().get(1);
+    public Mat3 getMetric (Matter matter) {
+        double x = matter.getPosition().x;
+        double y = matter.getPosition().y;
 
         double x2 = x * x;
         double y2 = y * y;
@@ -45,17 +48,17 @@ public class SchwarzschildCartesian extends MetricTensor {
         double alpha = r2 - r * rs;
         double dxdy = (2 * x * y) / (-alpha * r2);
 
-        return Matrix.of(
-                Vector.of(Constants.C2 * (1 - rs / r), 0, 0),
-                Vector.of(0, -(x2 / alpha + y2 / r2), dxdy),
-                Vector.of(0, dxdy, -(y2 / alpha + x2 / r2))
+        return new Mat3(
+                new Vec3(Constants.C2 * (1 - rs / r), 0, 0),
+                new Vec3(0, -(x2 / alpha + y2 / r2), dxdy),
+                new Vec3(0, dxdy, -(y2 / alpha + x2 / r2))
         );
     }
 
     // TODO MANUAL DERIVATIVE, THIS IS SUPER-INEFFICIENT
 
     @Override
-    public Tensor3D getDerivative (Matter matter) {
+    public Tens3 getDerivative (Matter matter) {
         final BigDecimal two = BigDecimal.valueOf(2);
         final BigDecimal rs = BigDecimal.valueOf(this.rs);
         final BigDecimal c2 = BigDecimal.valueOf(Constants.C2);
@@ -87,19 +90,16 @@ public class SchwarzschildCartesian extends MetricTensor {
             };
         };
 
-        BigDecimal X = BigDecimal.valueOf(matter.getPosition().get(0));
-        BigDecimal Y = BigDecimal.valueOf(matter.getPosition().get(1));
+        BigDecimal X = BigDecimal.valueOf(matter.getPosition().x);
+        BigDecimal Y = BigDecimal.valueOf(matter.getPosition().y);
 
-        return new Tensor3D (3, 3, 3) {
-            @Override
-            public double get (int i, int j, int k) {
-                return switch (i) {
-                    case 1 -> MathUtils.derivative(X, (BigDecimal x) -> func.apply(x, Y, j, k));
-                    case 2 -> MathUtils.derivative(Y, (BigDecimal y) -> func.apply(X, y, j, k));
-                    default -> 0;
-                };
-            }
-        }.toStatic();
+        return Tens3.of((i,j,k) -> {
+            return switch (i) {
+                case 1 -> MathUtils.derivative(X, (BigDecimal x) -> func.apply(x, Y, j, k));
+                case 2 -> MathUtils.derivative(Y, (BigDecimal y) -> func.apply(X, y, j, k));
+                default -> 0;
+            };
+        });
     }
 
     interface DerivateMetric {

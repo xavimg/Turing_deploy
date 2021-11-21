@@ -1,9 +1,8 @@
 import org.junit.Assert;
 import org.junit.Test;
 import org.proj.math.RandUtils;
-import org.proj.math.Range;
+import org.proj.utils.Range;
 import org.proj.math.vector.Vector;
-import org.proj.physics.metric.Kerr;
 
 public class KerrTest {
     Kerr earth = new Kerr(3e-6, 0.02128, 7.292115e-5); // EARTH

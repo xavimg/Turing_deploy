@@ -43,19 +43,14 @@ public class PlanetFactory implements Supplier<Planet> {
         return MathUtils.clamp(jupiter * 0.2385, min, max);
     }
 
-    private double getAngularVelocity (double max) {
-        return Math.min(max, random.nextGaussian(max / 2d, max / 8d));
-    }
-
     @Override
     public Planet get () {
         double mass = getRestMass(MIN_MASS, MAX_MASS);
         double radius = getRadius(Schwarzschild.radius(mass) + MIN_RADIUS, MAX_RADIUS);
-        double angularVelocity = getAngularVelocity(Constants.C / radius);
 
         Color color = new Color(random.nextInt()); // TODO TEMPORAL
         Image texture = this.texture.get(); // TODO TEMPORAL
 
-        return new Planet(mass, radius, angularVelocity, null, null, color, texture);
+        return new Planet(mass, radius, null, null, color, texture);
     }
 }

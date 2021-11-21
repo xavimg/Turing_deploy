@@ -1,6 +1,6 @@
 package org.proj.game.factory;
 
-import org.proj.math.Range;
+import org.proj.utils.Range;
 import org.proj.utils.PerlinNoise;
 
 import java.awt.*;

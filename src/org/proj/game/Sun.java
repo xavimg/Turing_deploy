@@ -1,14 +1,11 @@
 package org.proj.game;
 
+import org.proj.math.Mat3;
 import org.proj.math.MathUtils;
-import org.proj.math.matrix.Matrix;
-import org.proj.math.vector.Vector;
+import org.proj.math.vector.Vec2;
+import org.proj.math.vector.Vec3;
 import org.proj.physics.Constants;
-import org.proj.physics.Matter;
-import org.proj.physics.metric.Kerr;
-import org.proj.physics.metric.MetricTensor;
-import org.proj.physics.metric.Schwarzschild;
-import org.proj.physics.metric.cartesian.SchwarzschildCartesian;
+import org.proj.physics.metric.SchwarzschildCartesian;
 
 import java.awt.*;
 
@@ -16,26 +13,22 @@ public class Sun extends SpaceBody {
     final private static double nanoC = 2.998e17;
     final private static double nanoC2 = nanoC * nanoC;
 
-    final private static Matrix rgbMatrix = Matrix.of(
-            Vector.of(0.67, 0.33, 0),
-            Vector.of(0.21, 0.71, 0.08),
-            Vector.of(0.15, 0.06, 0.79)
-    ).transp().inverse();
-    final private static Vector whiteScale = Vector.of(0.3101, 0.3162, 0.3737);
+    final private static Mat3 rgbMatrix = new Mat3(
+            new Vec3(0.67, 0.21, 0.15),
+            new Vec3(0.33, 0.71, 0.06),
+            new Vec3(0, 0.08, 0.79)
+    ).inverse();
+    final private static Vec3 whiteScale = new Vec3(0.3101, 0.3162, 0.3737);
 
     final public double temperature; // in kelvin
 
-    public Sun (double restMass, double radius, double angularVelocity, double temperature) {
-        super(restMass, radius, angularVelocity, null, null, new SchwarzschildCartesian(restMass), getColor(temperature), null);
+    public Sun (double restMass, double radius, double temperature) {
+        super(restMass, radius, null, null, new SchwarzschildCartesian(restMass), getColor(temperature), null);
         this.temperature = temperature;
     }
 
-    public Sun (double temperature, double angularVelocity) {
-        this(0.513829 * Math.exp(0.000114646 * temperature), 0.725841 * Math.exp(0.000073683 * temperature) * 2.32061, angularVelocity, temperature);
-    }
-
-    public Sun (double temperature, double radius, double angularVelocity) {
-        this(0.513829 * Math.exp(0.000114646 * temperature), radius, angularVelocity, temperature);
+    public Sun (double temperature) {
+        this(0.513829 * Math.exp(0.000114646 * temperature), 0.725841 * Math.exp(0.000073683 * temperature) * 2.32061, temperature);
     }
 
     // PRIVATE STATIC
@@ -47,11 +40,11 @@ public class Sun extends SpaceBody {
         double Y = MathUtils.integral(380, 780, Integer.MAX_VALUE, x -> spectralRadiance(x, temperature) * yFunction(x));
         double Z = MathUtils.integral(380, 780, Integer.MAX_VALUE, x -> spectralRadiance(x, temperature) * zFunction(x));
 
-        Vector xyz = Vector.of(X, Y, Z);
+        Vec3 xyz = new Vec3(X, Y, Z);
         xyz = xyz.div(xyz.sum());
 
-        Vector rgb = rgbMatrix.mul(xyz).div(whiteScale);
-        return new Color(MathUtils.clamp((float) rgb.get(0), 0, 1), MathUtils.clamp((float) rgb.get(1), 0, 1), MathUtils.clamp((float) rgb.get(2), 0, 1));
+        Vec3 rgb = rgbMatrix.mul(xyz).div(whiteScale);
+        return new Color(MathUtils.clamp((float) rgb.x, 0, 1), MathUtils.clamp((float) rgb.y, 0, 1), MathUtils.clamp((float) rgb.z, 0, 1));
     }
 
     private static double spectralRadiance (double lambda, double T) {

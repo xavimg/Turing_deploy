@@ -2,8 +2,7 @@ package org.proj.game.factory;
 
 import org.proj.game.PlanetarySystem;
 import org.proj.game.SpaceBody;
-import org.proj.math.Range;
-import org.proj.math.vector.Vector;
+import org.proj.utils.Range;
 
 import java.util.Random;
 import java.util.function.Supplier;
@@ -37,13 +36,6 @@ public class PlanetarySystemFactory implements Supplier<PlanetarySystem> {
 
         Range.ofInt(0, n, true).forEach(i -> {
             SpaceBody body = this.spaceBody.get();
-            Vector position;
-
-            if (i == 0) {
-                position = Vector.of(0, 0);
-            } else {
-                position = Vector.of();
-            }
         });
 
         return null;

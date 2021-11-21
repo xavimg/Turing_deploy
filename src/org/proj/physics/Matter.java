@@ -1,10 +1,6 @@
 package org.proj.physics;
 
-import org.proj.math.vector.LazyVector;
-import org.proj.math.vector.Vector;
-import org.proj.physics.metric.Schwarzschild;
-
-import java.math.BigDecimal;
+import org.proj.math.vector.Vec2;
 
 public abstract class Matter {
     private Matter () {};
@@ -20,35 +16,16 @@ public abstract class Matter {
     public abstract double radius ();
 
     /**
-     * @return Angular velocity in radians per second
-     */
-    public abstract double angularVelocity ();
-
-    /**
      * @return Spacial position in light seconds relative to origin
      */
-    public abstract Vector getPosition ();
+    public abstract Vec2 getPosition ();
 
     /**
      * @return Spacial velocity in light seconds per second relative to origin
      */
-    public abstract Vector getVelocity ();
+    public abstract Vec2 getVelocity ();
 
-    /**
-     * @return Moment of inertia in M☉ * ls<sup>2</sup>
-     */
-    public double inertia () {
-        return radius() * radius() * restMass();
-    }
-
-    /**
-     * @return Angular momentum in M☉ * ls<sup>2</sup> * s<sup>-1</sup>
-     */
-    public double angularMomentum () {
-        return inertia() * angularVelocity();
-    }
-
-    public Matter delta (Vector pos, Vector vel) {
+    public Matter delta (Vec2 pos, Vec2 vel) {
         return new Matter() {
             @Override
             public double restMass() {
@@ -61,27 +38,12 @@ public abstract class Matter {
             }
 
             @Override
-            public double angularVelocity() {
-                return Matter.this.angularVelocity();
-            }
-
-            @Override
-            public double inertia() {
-                return Matter.this.inertia();
-            }
-
-            @Override
-            public double angularMomentum() {
-                return Matter.this.angularMomentum();
-            }
-
-            @Override
-            public Vector getPosition() {
+            public Vec2 getPosition() {
                 return pos;
             }
 
             @Override
-            public Vector getVelocity() {
+            public Vec2 getVelocity() {
                 return vel;
             }
         };
@@ -89,19 +51,14 @@ public abstract class Matter {
 
     // SUBCLASSES
     public static class Defined extends Matter {
-        final private double restMass, radius, angularVelocity;
-        final private double inertia, angularMomentum;
-        private Vector position, velocity;
+        final private double restMass, radius;
+        private Vec2 position, velocity;
 
-        public Defined (double restMass, double radius, double angularVelocity, Vector position, Vector velocity) {
+        public Defined (double restMass, double radius, Vec2 position, Vec2 velocity) {
             this.restMass = restMass;
             this.radius = radius;
-            this.angularVelocity = angularVelocity;
             this.position = position;
             this.velocity = velocity;
-
-            this.inertia = this.radius * this.radius * this.restMass;
-            this.angularMomentum = this.inertia * this.angularVelocity;
         }
 
         @Override
@@ -115,36 +72,21 @@ public abstract class Matter {
         }
 
         @Override
-        public double angularVelocity() {
-            return angularVelocity;
-        }
-
-        @Override
-        public double inertia() {
-            return inertia;
-        }
-
-        @Override
-        public double angularMomentum() {
-            return angularMomentum;
-        }
-
-        @Override
-        public Vector getPosition() {
+        public Vec2 getPosition() {
             return position;
         }
 
         @Override
-        public Vector getVelocity() {
+        public Vec2 getVelocity() {
             return velocity;
         }
 
-        final public void addVelocity (Vector vel) {
-            this.velocity = this.velocity.add(vel).toStatic();
+        final public void addVelocity (Vec2 vel) {
+            this.velocity = this.velocity.add(vel);
         }
 
         final public void update (double dt) {
-            this.position = this.position.add(velocity.mul(dt)).toStatic();
+            this.position = this.position.add(velocity.mul(dt));
         }
     }
 }

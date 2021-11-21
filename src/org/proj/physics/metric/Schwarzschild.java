@@ -1,19 +1,11 @@
 package org.proj.physics.metric;
 
-import org.proj.math.MathUtils;
-import org.proj.math.matrix.Matrix;
-import org.proj.math.matrix.special.DiagonalMatrix;
-import org.proj.math.matrix.special.ZeroMatrix;
-import org.proj.math.tensor.LazyTensor3D;
-import org.proj.math.tensor.Tensor3D;
-import org.proj.math.vector.Vector;
+import org.proj.math.Mat3;
+import org.proj.math.Tens3;
 import org.proj.physics.Constants;
 import org.proj.physics.Matter;
 import org.proj.physics.coordinate.CoordinateSystem;
 import org.proj.utils.Couple;
-
-import java.math.BigDecimal;
-import java.math.MathContext;
 
 public class Schwarzschild extends MetricTensor {
     final public double mass;
@@ -37,35 +29,31 @@ public class Schwarzschild extends MetricTensor {
     }
 
     @Override
-    public Couple<DiagonalMatrix, Tensor3D> calculateMetric (Matter matter) {
-        double r = matter.getPosition().get(0);
+    public Couple<Mat3, Tens3> calculateMetric (Matter matter) {
+        double r = matter.getPosition().x;
         double _alpha = value / r;
 
-        DiagonalMatrix metric = new DiagonalMatrix(
+        Mat3 metric = new Mat3(
                 Constants.C2 - _alpha,
                 -1d / (1 - (_alpha / Constants.C2)),
                 -(r * r)
         );
 
-        Tensor3D deriv = new LazyTensor3D.OfMatrix (3, 3, 3) {
-            @Override
-            public Matrix compute (int i) {
-                return switch (i) {
-                    case 1 -> new DiagonalMatrix(Vector.of(_alpha / r, value * Constants.C2 / Math.pow(Constants.C2 * r - _alpha, 2), -2 * r));
-                    default -> new ZeroMatrix(3, 3);
-                };
-            }
-        };
+        Tens3 deriv = new Tens3(
+                Mat3.ZERO,
+                new Mat3(_alpha / r, value * Constants.C2 / Math.pow(Constants.C2 * r - _alpha, 2), -2 * r),
+                Mat3.ZERO
+        );
 
         return new Couple<>(metric, deriv);
     }
 
     @Override
-    public DiagonalMatrix getMetric (Matter matter) {
-        double r = matter.getPosition().get(0);
+    public Mat3 getMetric (Matter matter) {
+        double r = matter.getPosition().x;
         double _alpha = value / r;
 
-        return new DiagonalMatrix(
+        return new Mat3(
                 Constants.C2 - _alpha,
                 -1d / (1 - (_alpha / Constants.C2)),
                 -(r * r)
@@ -73,19 +61,15 @@ public class Schwarzschild extends MetricTensor {
     }
 
     @Override
-    public Tensor3D getDerivative (Matter matter) {
-        double r = matter.getPosition().get(0);
+    public Tens3 getDerivative (Matter matter) {
+        double r = matter.getPosition().x;
         double _alpha = value / r;
 
-        Tensor3D deriv = new LazyTensor3D.OfMatrix (3, 3, 3) {
-            @Override
-            public Matrix compute (int i) {
-                return switch (i) {
-                    case 1 -> new DiagonalMatrix(Vector.of(_alpha / r, value * Constants.C2 / Math.pow(Constants.C2 * r - _alpha, 2), -2 * r));
-                    default -> new ZeroMatrix(3, 3);
-                };
-            }
-        };
+        Tens3 deriv = new Tens3(
+                Mat3.ZERO,
+                new Mat3(_alpha / r, value * Constants.C2 / Math.pow(Constants.C2 * r - _alpha, 2), -2 * r),
+                Mat3.ZERO
+        );
 
         return deriv;
     }

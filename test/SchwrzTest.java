@@ -1,16 +1,12 @@
-import org.proj.math.MathUtils;
 import org.proj.math.vector.Vector;
 import org.proj.physics.Constants;
 import org.proj.physics.Matter;
 import org.proj.physics.coordinate.CoordinateSystem;
-import org.proj.physics.metric.Kerr;
 import org.proj.physics.metric.Schwarzschild;
 import org.proj.utils.ThreadUtils;
 
 import javax.swing.*;
 import java.awt.*;
-import java.math.BigDecimal;
-import java.math.MathContext;
 
 public class SchwrzTest {
     public static void main (String... args) {

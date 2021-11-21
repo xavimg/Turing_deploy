@@ -1,11 +1,10 @@
 package org.proj.math;
 
-import org.proj.math.matrix.Matrix;
 import org.proj.math.numbers.Complex;
+import org.proj.utils.Range;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
-import java.util.Iterator;
 import java.util.PrimitiveIterator;
 import java.util.Spliterator;
 import java.util.Spliterators;
@@ -71,13 +70,6 @@ public class MathUtils {
         return StreamSupport.doubleStream(spliter, true).sum() * step;
     }
 
-    public static Complex integral (Complex from, Complex to, long epochs, UnaryOperator<Complex> function) {
-        Complex dist = to.subtr(from);
-        Complex step = dist.div(epochs);
-
-        return Range.ofLong(0, epochs, true).mapToObj(z -> function.apply(from.add(step.mul(z))).mul(step)).reduce(Complex::add).get();
-    }
-
     public static float derivative (double x, DoubleUnaryOperator function) {
         return (float) ((function.applyAsDouble(x + 1e-7) - function.applyAsDouble(x)) / 1e-7d);
     }
@@ -92,17 +84,5 @@ public class MathUtils {
 
     public static double erf (double value) {
         return ERF_ALPHA * integral(0, value, Short.MAX_VALUE, (double t) -> Math.exp(-t * t));
-    }
-
-    public static Complex erf (Complex value) {
-        return integral(Complex.ZERO, value, Short.MAX_VALUE, t -> MathComplex.exp(t.square().negate())).mul(ERF_ALPHA);
-    }
-
-    public static Complex erfi (Complex value) {
-        return erf(value.mul(Complex.I)).mul(Complex.I).negate();
-    }
-
-    public static Complex erfi (double value) {
-        return erf(Complex.ofIm(value)).mul(Complex.I).negate();
     }
 }
