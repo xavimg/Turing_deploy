@@ -6,6 +6,7 @@ import org.bson.codecs.Codec;
 import org.bson.codecs.DecoderContext;
 import org.bson.codecs.EncoderContext;
 import org.proj.db.codecs.pseudo.SpaceBodyCodec;
+import org.proj.game.SpaceBody;
 import org.proj.game.Sun;
 
 public class SunCodec implements Codec<Sun> {
@@ -14,7 +15,13 @@ public class SunCodec implements Codec<Sun> {
 
     @Override
     public Sun decode (BsonReader reader, DecoderContext decoderContext) {
-        return null; // TODO
+        reader.readStartDocument();
+
+        SpaceBody decode = SpaceBodyCodec.decode(reader, decoderContext);
+        double temp = reader.readDouble("temperature");
+
+        reader.readEndDocument();
+        return new Sun(decode.restMass(), decode.radius(), decode.getPosition(), decode.getVelocity(), decode.color, null, temp);
     }
 
     @Override

@@ -10,9 +10,12 @@ import org.bson.codecs.Codec;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.proj.db.codecs.PlanetarySystemCodec;
+import org.proj.db.codecs.primitive.PrimitiveProvider;
 import org.proj.game.PlanetarySystem;
 
 public class Database {
+    final private static CodecRegistry PRIMITIVES = CodecRegistries.fromProviders(PrimitiveProvider.INSTANCE);
+
     final public static MongoDatabase DB = initialize();
     final public static MongoCollection<PlanetarySystem> SYSTEMS = initializeSystems();
 
@@ -29,7 +32,7 @@ public class Database {
     }
 
     private static CodecRegistry getRegistry (Codec codec) {
-        return CodecRegistries.fromCodecs(codec);
+        return CodecRegistries.fromRegistries(PRIMITIVES, CodecRegistries.fromCodecs(codec));
     }
 
     private static MongoCollection<PlanetarySystem> initializeSystems () {

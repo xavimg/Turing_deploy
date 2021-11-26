@@ -2,8 +2,10 @@ package org.proj.game;
 
 import org.proj.math.matrix.Mat3;
 import org.proj.math.MathUtils;
+import org.proj.math.vector.Vec2;
 import org.proj.math.vector.Vec3;
 import org.proj.physics.Constants;
+import org.proj.physics.metric.MetricTensor;
 import org.proj.physics.metric.SchwarzschildCartesian;
 
 import java.awt.*;
@@ -20,6 +22,11 @@ public class Sun extends SpaceBody {
     final private static Vec3 whiteScale = new Vec3(0.3101, 0.3162, 0.3737);
 
     final public double temperature; // in kelvin
+
+    public Sun (double restMass, double radius, Vec2 position, Vec2 velocity, Color color, Image texture, double temperature) {
+        super(restMass, radius, position, velocity, new SchwarzschildCartesian(restMass), color, texture);
+        this.temperature = temperature;
+    }
 
     public Sun (double restMass, double radius, double temperature) {
         super(restMass, radius, null, null, new SchwarzschildCartesian(restMass), getColor(temperature), null);

@@ -22,14 +22,15 @@ public class ArrayCodec<T> implements Codec<T[]> {
     @Override
     public T[] decode (BsonReader reader, DecoderContext decoderContext) {
         ArrayList<T> list = new ArrayList<>();
-        reader.readStartArray();
 
+        reader.readStartArray();
         while (reader.getCurrentBsonType() != BsonType.END_OF_DOCUMENT) {
             list.add(codec.decode(reader, decoderContext));
         }
-
         reader.readEndArray();
-        return (T[]) list.toArray();
+
+        T[] target = (T[]) Array.newInstance(codec.getEncoderClass(), list.size());
+        return list.toArray(target);
     }
 
     @Override
@@ -38,7 +39,6 @@ public class ArrayCodec<T> implements Codec<T[]> {
         for (T elem: value) {
             codec.encode(writer, elem, encoderContext);
         }
-
         writer.writeEndArray();
     }
 
