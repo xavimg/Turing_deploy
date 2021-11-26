@@ -7,6 +7,7 @@ import org.bson.codecs.DecoderContext;
 import org.bson.codecs.EncoderContext;
 import org.proj.db.codecs.pseudo.SpaceBodyCodec;
 import org.proj.game.Planet;
+import org.proj.game.SpaceBody;
 import org.proj.game.Sun;
 
 public class PlanetCodec implements Codec<Planet> {
@@ -15,7 +16,11 @@ public class PlanetCodec implements Codec<Planet> {
 
     @Override
     public Planet decode (BsonReader reader, DecoderContext decoderContext) {
-        return null; // TODO
+        reader.readStartDocument();
+        SpaceBody decode = SpaceBodyCodec.decode(reader, decoderContext);
+        reader.readEndDocument();
+
+        return new Planet(decode.restMass(), decode.radius(), decode.getPosition(), decode.getVelocity(), decode.color, null);
     }
 
     @Override
