@@ -1,6 +1,6 @@
 package org.proj.physics.metric;
 
-import org.proj.math.Mat3;
+import org.proj.math.matrix.Mat3;
 import org.proj.math.MathUtils;
 import org.proj.math.Tens3;
 import org.proj.math.vector.Vec3;

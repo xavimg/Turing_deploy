@@ -2,6 +2,7 @@ package org.proj.game.factory;
 
 import org.proj.game.Planet;
 import org.proj.math.MathUtils;
+import org.proj.math.RandUtils;
 import org.proj.physics.Constants;
 import org.proj.physics.metric.Schwarzschild;
 
@@ -34,12 +35,12 @@ public class PlanetFactory implements Supplier<Planet> {
     }
 
     private double getRestMass (double min, double max) {
-        double jupiter = random.nextGaussian(1.81770640331076d, 4.01265200872978d);
+        double jupiter = RandUtils.nextGaussian(random, 1.81770640331076d, 4.01265200872978d);
         return MathUtils.clamp(jupiter * 9.55e-4, min, max);
     }
 
     private double getRadius (double min, double max) {
-        double jupiter = random.nextGaussian(205.53565090755600d, 181.28364133659100d);
+        double jupiter = RandUtils.nextGaussian(random, 205.53565090755600d, 181.28364133659100d);
         return MathUtils.clamp(jupiter * 0.2385, min, max);
     }
 

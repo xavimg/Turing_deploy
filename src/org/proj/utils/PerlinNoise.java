@@ -1,12 +1,10 @@
 package org.proj.utils;
 
-import org.proj.math.matrix.Matrix;
-import org.proj.math.tensor.Tensor3D;
-import org.proj.math.vector.Vector;
+import org.proj.math.matrix.Mat2;
+import org.proj.math.vector.Vec2;
+import org.proj.math.vector.Vec3;
 
 import java.util.Random;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.random.RandomGenerator;
 
 /**
  * Perlin noise adaptation to Java
@@ -23,16 +21,17 @@ public class PerlinNoise {
     final private static int NM = 0xfff;
 
     final private int[] p;
-    final private Vector g1;
-    final private Matrix g2, g3;
+    final private double[] g1;
+    final private Vec2[] g2;
+    final private Vec3[] g3;
 
     public PerlinNoise (Random random) {
         // INITIALIZE VARIABLES
         int lambda = B + B + 2;
         this.p = new int[lambda];
-        double[] g1 = new double[lambda];
-        double[][] g2 = new double[lambda][2];
-        double[][] g3 = new double[lambda][3];
+        this.g1 = new double[lambda];
+        this.g2 = new Vec2[lambda];
+        this.g3 = new Vec3[lambda];
 
         // INITIALIZE VALUES
         int i, j, k;
@@ -40,13 +39,13 @@ public class PerlinNoise {
         for (i=0;i<B;i++) {
             p[i] = i;
             g1[i] = random(random);
-            g2[i] = Vector.of(random(random), random(random)).unit().toArray();
-            g3[i] = Vector.of(random(random), random(random), random(random)).unit().toArray();
+            g2[i] = new Vec2(random(random), random(random)).unit();
+            g3[i] = new Vec3(random(random), random(random), random(random)).unit();
         }
 
         while (--i >= 0) {
             k = p[i];
-            p[i] = p[j = (int) (random.nextLong(0, 2147483647) % B)];
+            p[i] = p[j = random.nextInt() % B];
             p[j] = k;
         }
 
@@ -55,19 +54,9 @@ public class PerlinNoise {
 
             p[lambda] = p[i];
             g1[lambda] = g1[i];
-
-            g2[lambda][0] = g2[i][0];
-            g2[lambda][1] = g2[i][1];
-
-            g3[lambda][0] = g3[i][0];
-            g3[lambda][1] = g3[i][1];
-            g3[lambda][2] = g3[i][2];
+            g2[lambda] = g2[i];
+            g3[lambda] = g3[i];
         }
-
-        // SET VARIABLES
-        this.g1 = Vector.of(g1);
-        this.g2 = Matrix.of(g2);
-        this.g3 = Matrix.of(g3);
     }
 
     public PerlinNoise (long seed) {
@@ -79,28 +68,27 @@ public class PerlinNoise {
     }
 
     public double noise1 (double arg) {
-        Vector vec = Vector.of(arg);
-        var setup = this.setup(vec, 0);
+        var setup = this.setup(arg);
 
         int[] bx = setup.first;
-        Vector rx = setup.last;
+        Vec2 rx = setup.last;
 
         double sx = sCurve(setup.last.get(0));
-        double u = rx.get(0) * g1.get(p[bx[0]]);
-        double v = rx.get(1) * g1.get(p[bx[1]]);
+        double u = rx.x * g1[p[bx[0]]];
+        double v = rx.y * g1[p[bx[1]]];
 
         return lerp(sx, u, v);
     }
 
-    public double noise2 (Vector vec) {
-        var setup0 = setup(vec, 0);
-        var setup1 = setup(vec, 1);
+    public double noise2 (Vec2 vec) {
+        var setup0 = setup(vec.x);
+        var setup1 = setup(vec.y);
 
         int[] bx = setup0.first;
         int[] by = setup1.first;
 
-        Vector rx = setup0.last;
-        Vector ry = setup1.last;
+        Vec2 rx = setup0.last;
+        Vec2 ry = setup1.last;
 
         int i = p[bx[0]];
         int j = p[bx[1]];
@@ -110,24 +98,18 @@ public class PerlinNoise {
                 { p[j + by[0]], p[j + by[1]] }
         };
 
-        double sx = sCurve(rx.get(0));
-        double sy = sCurve(ry.get(0));
+        double sx = sCurve(rx.x);
+        double sy = sCurve(ry.x);
 
-        Matrix UV = new Matrix (2, 2) {
-            @Override
-            public double get (int i, int j) {
-                return at2(rx.get(i), ry.get(j), g2.get(b[i][j]));
-            }
-        };
-
-        double A = lerp(sx, UV.get(0, 0), UV.get(1, 0));
-        double B = lerp(sx, UV.get(0, 1), UV.get(1, 1));
+        Mat2 UV = Mat2.of((x, y) -> at2(rx.get(x), ry.get(y), g2[b[x][y]]));
+        double A = lerp(sx, UV.x.x, UV.y.x);
+        double B = lerp(sx, UV.x.y, UV.y.y);
 
         return lerp(sy, A, B);
     }
 
     public double noise2 (double x, double y) {
-        return noise2(Vector.of(x, y));
+        return noise2(new Vec2(x, y));
     }
 
     // PRIVATE
@@ -139,12 +121,12 @@ public class PerlinNoise {
         return a + t * (b - a);
     }
 
-    private static double at2 (double rx, double ry, Vector q) {
+    private static double at2 (double rx, double ry, Vec2 q) {
         return rx * q.get(0) + ry * q.get(1);
     }
 
-    private Couple<int[], Vector> setup (Vector vec, int i) {
-        double t = vec.get(i) + N;
+    private Couple<int[], Vec2> setup (double t) {
+        t += N;
         int intT = (int) t;
 
         int b0 = intT & BM;
@@ -153,10 +135,10 @@ public class PerlinNoise {
         double r0 = t - intT;
         double r1 = r0 - 1;
 
-        return new Couple<>(new int[]{ b0, b1 }, Vector.of(r0, r1));
+        return new Couple<>(new int[]{ b0, b1 }, new Vec2(r0, r1));
     }
 
     private static double random (Random random) {
-        return (double) ((random.nextLong(0, 2147483647) % (B + B)) - B) / B;
+        return (double) (((long) random.nextInt() % (B + B)) - B) / B;
     }
 }

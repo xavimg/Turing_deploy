@@ -1,6 +1,5 @@
 package org.proj.math;
 
-import org.proj.math.numbers.Complex;
 import org.proj.utils.Range;
 
 import java.math.BigDecimal;

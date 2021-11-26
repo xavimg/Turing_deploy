@@ -1,8 +1,7 @@
 package org.proj.game;
 
-import org.proj.math.Mat3;
+import org.proj.math.matrix.Mat3;
 import org.proj.math.MathUtils;
-import org.proj.math.vector.Vec2;
 import org.proj.math.vector.Vec3;
 import org.proj.physics.Constants;
 import org.proj.physics.metric.SchwarzschildCartesian;

@@ -2,6 +2,7 @@ package org.proj.game.factory;
 
 import org.proj.game.PlanetarySystem;
 import org.proj.game.SpaceBody;
+import org.proj.math.RandUtils;
 import org.proj.utils.Range;
 
 import java.util.Random;
@@ -25,7 +26,7 @@ public class PlanetarySystemFactory implements Supplier<PlanetarySystem> {
     }
 
     private int getPlanetCount () {
-        double n = random.nextGaussian(3.44274809160305, 0.974172620904933);
+        double n = RandUtils.nextGaussian(random, 3.44274809160305, 0.974172620904933);
         return Math.max(1, (int) Math.round(n));
     }
 

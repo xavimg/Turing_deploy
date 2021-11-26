@@ -1,0 +1,30 @@
+package org.proj.db;
+
+import com.mongodb.MongoClientSettings;
+import com.mongodb.MongoCredential;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import org.proj.game.PlanetarySystem;
+
+public class Database {
+    final public static MongoDatabase DB = initialize();
+    final public static MongoCollection<PlanetarySystem> SYSTEMS = initializeSystems();
+
+    private static MongoDatabase initialize () {
+        String username = System.getenv("TURING_USERNAME");
+        String database = System.getenv("TURING_DATABASE");
+        String password = System.getenv("TURING_PASSWORD");
+
+        MongoCredential credential = MongoCredential.createCredential(username, database, password.toCharArray());
+        MongoClientSettings settings = MongoClientSettings.builder().credential(credential).build();
+        MongoClient client = MongoClients.create(settings);
+
+        return client.getDatabase(database);
+    }
+
+    private static MongoCollection<PlanetarySystem> initializeSystems () {
+
+    }
+}

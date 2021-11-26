@@ -1,10 +1,10 @@
 package org.proj.math;
 
+import org.proj.math.matrix.Mat3;
 import org.proj.math.vector.Vec3;
 
 import java.util.function.BiFunction;
 import java.util.function.IntFunction;
-import java.util.function.ToDoubleBiFunction;
 
 public class Tens3 {
     final public Mat3 x, y, z;

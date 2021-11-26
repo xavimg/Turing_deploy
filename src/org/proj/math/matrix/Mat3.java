@@ -1,4 +1,4 @@
-package org.proj.math;
+package org.proj.math.matrix;
 
 import org.proj.math.vector.Vec3;
 import org.proj.utils.Lazy;
