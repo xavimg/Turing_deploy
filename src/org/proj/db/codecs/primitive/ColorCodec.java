@@ -5,6 +5,7 @@ import org.bson.BsonWriter;
 import org.bson.codecs.Codec;
 import org.bson.codecs.DecoderContext;
 import org.bson.codecs.EncoderContext;
+import org.proj.db.codecs.pseudo.NullCodec;
 
 import java.awt.*;
 
@@ -14,11 +15,13 @@ public class ColorCodec implements Codec<Color> {
 
     @Override
     public Color decode (BsonReader reader, DecoderContext decoderContext) {
+        if (NullCodec.decode(reader)) return null;
         return new Color(reader.readInt32(), true);
     }
 
     @Override
     public void encode (BsonWriter writer, Color value, EncoderContext encoderContext) {
+        if (NullCodec.encode(writer, value)) return;
         writer.writeInt32(value.getRGB());
     }
 

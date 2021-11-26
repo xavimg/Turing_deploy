@@ -8,7 +8,12 @@ import org.bson.codecs.EncoderContext;
 
 public class NullCodec {
     public static boolean decode (BsonReader reader) {
-        return reader.getCurrentBsonType() == BsonType.NULL;
+        boolean res = reader.getCurrentBsonType() == BsonType.NULL;
+        if (res) {
+            reader.skipValue();
+        }
+
+        return res;
     }
 
     public static boolean encode (BsonWriter writer, Object value) {

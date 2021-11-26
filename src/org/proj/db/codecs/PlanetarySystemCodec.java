@@ -5,6 +5,7 @@ import org.bson.BsonWriter;
 import org.bson.codecs.Codec;
 import org.bson.codecs.DecoderContext;
 import org.bson.codecs.EncoderContext;
+import org.proj.game.Planet;
 import org.proj.game.PlanetarySystem;
 import org.proj.game.Sun;
 
@@ -14,19 +15,25 @@ public class PlanetarySystemCodec implements Codec<PlanetarySystem> {
 
     @Override
     public PlanetarySystem decode (BsonReader reader, DecoderContext decoderContext) {
-        return null;
+        return null; // TODO
     }
 
     @Override
     public void encode (BsonWriter writer, PlanetarySystem value, EncoderContext encoderContext) {
         writer.writeStartDocument();
-        writer.writeStartArray("suns");
 
+        writer.writeStartArray("suns");
         for (Sun sun: value.getSuns()) {
             SunCodec.INSTANCE.encode(writer, sun, encoderContext);
         }
-
         writer.writeEndArray();
+
+        writer.writeStartArray("planets");
+        for (Planet planet: value.getPlanets()) {
+            PlanetCodec.INSTANCE.encode(writer, planet, encoderContext);
+        }
+        writer.writeEndArray();
+
         writer.writeEndDocument();
     }
 
