@@ -10,5 +10,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="mongodb.mongo.java.driver" level="project" />
+    <orderEntry type="library" name="ReadOnlyList" level="project" />
   </component>
 </module>

@@ -33,7 +33,6 @@ public class PlanetarySystemFactory implements Supplier<PlanetarySystem> {
     @Override
     public PlanetarySystem get () {
         int n = getPlanetCount();
-        SpaceBody[] bodies = new SpaceBody[n];
 
         Range.ofInt(0, n, true).forEach(i -> {
             SpaceBody body = this.spaceBody.get();

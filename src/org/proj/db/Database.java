@@ -6,6 +6,10 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import org.bson.codecs.Codec;
+import org.bson.codecs.configuration.CodecRegistries;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.proj.db.codecs.PlanetarySystemCodec;
 import org.proj.game.PlanetarySystem;
 
 public class Database {
@@ -24,7 +28,12 @@ public class Database {
         return client.getDatabase(database);
     }
 
-    private static MongoCollection<PlanetarySystem> initializeSystems () {
+    private static CodecRegistry getRegistry (Codec codec) {
+        return CodecRegistries.fromCodecs(codec);
+    }
 
+    private static MongoCollection<PlanetarySystem> initializeSystems () {
+        return DB.getCollection("system", PlanetarySystem.class)
+                .withCodecRegistry(getRegistry(PlanetarySystemCodec.INSTANCE));
     }
 }

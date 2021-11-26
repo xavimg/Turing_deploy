@@ -7,8 +7,8 @@ import org.proj.physics.metric.MetricTensor;
 import java.awt.*;
 
 public class SpaceBody extends Matter.Defined {
-    private Color color;
-    private Image texture;
+    final public Color color;
+    final public Image texture;
     final public MetricTensor metric;
 
     public SpaceBody (double restMass, double radius, Vec2 position, Vec2 velocity, MetricTensor metric, Color color, Image texture) {

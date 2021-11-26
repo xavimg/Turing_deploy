@@ -45,7 +45,7 @@ public class PerlinNoise {
 
         while (--i >= 0) {
             k = p[i];
-            p[i] = p[j = random.nextInt() % B];
+            p[i] = p[j = (int) (Integer.toUnsignedLong(random.nextInt()) % B)];
             p[j] = k;
         }
 

@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="ReadOnlyList">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/ReadOnlyList.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
