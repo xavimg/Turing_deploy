@@ -1,6 +1,7 @@
 package org.proj.data.json;
 
 import com.mongodb.util.JSON;
+import org.proj.utils.ListUtils;
 import org.proj.utils.Range;
 import org.proj.utils.SafeReader;
 
@@ -167,27 +168,67 @@ public class JSONObject {
     }
 
     public boolean[] getBoolArray (String name) {
-        return (boolean[]) getArray(name).array;
+        ArrayWrapper<?> wrapper = getArray(name);
+        if (wrapper.type == Boolean.TYPE) {
+            return (boolean[]) wrapper.array;
+        } else if (wrapper.type == Boolean.class) {
+            return ListUtils.toBoolArray((List<Boolean>) wrapper);
+        }
+
+        throw new RuntimeException();
     }
 
     public int[] getIntArray (String name) {
-        return (int[]) getArray(name).array;
+        ArrayWrapper<?> wrapper = getArray(name);
+        if (wrapper.type == Integer.TYPE) {
+            return (int[]) wrapper.array;
+        } else if (Number.class.isAssignableFrom(wrapper.type)) {
+            return ListUtils.toIntArray((List<Number>) wrapper);
+        }
+
+        throw new NumberFormatException();
     }
 
     public long[] getLongArray (String name) {
-        return (long[]) getArray(name).array;
+        ArrayWrapper<?> wrapper = getArray(name);
+        if (wrapper.type == Long.TYPE) {
+            return (long[]) wrapper.array;
+        } else if (Number.class.isAssignableFrom(wrapper.type)) {
+            return ListUtils.toLongArray((List<Number>) wrapper);
+        }
+
+        throw new NumberFormatException();
     }
 
     public float[] getFloatArray (String name) {
-        return (float[]) getArray(name).array;
+        ArrayWrapper<?> wrapper = getArray(name);
+        if (wrapper.type == Float.TYPE) {
+            return (float[]) wrapper.array;
+        } else if (Number.class.isAssignableFrom(wrapper.type)) {
+            return ListUtils.toFloatArray((List<Number>) wrapper);
+        }
+
+        throw new NumberFormatException();
     }
 
     public double[] getDoubleArray (String name) {
-        return (double[]) getArray(name).array;
+        ArrayWrapper<?> wrapper = getArray(name);
+        if (wrapper.type == Double.TYPE) {
+            return (double[]) wrapper.array;
+        } else if (Number.class.isAssignableFrom(wrapper.type)) {
+            return ListUtils.toDoubleArray((List<Number>) wrapper);
+        }
+
+        throw new NumberFormatException();
     }
 
     public String[] getStringArray (String name) {
-        return (String[]) getArray(name).array;
+        ArrayWrapper<?> wrapper = getArray(name);
+        if (wrapper.type == String.class) {
+            return (String[]) wrapper.array;
+        }
+
+        return wrapper.stream().map(x -> x.toString()).toArray(String[]::new);
     }
 
     public JSONObject[] getObjectArray (String name) {
@@ -332,7 +373,7 @@ public class JSONObject {
         }
     }
 
-    private static class ArrayWrapper<T> implements Iterable<T> {
+    private static class ArrayWrapper<T> extends AbstractList<T> {
         Class<T> type;
         Object array;
 
@@ -342,25 +383,13 @@ public class JSONObject {
         }
 
         @Override
-        public Iterator<T> iterator() {
-            return new Iterator<T>() {
-                int i = 0;
-
-                @Override
-                public boolean hasNext () {
-                    return i < Array.getLength(array);
-                }
-
-                @Override
-                public T next() {
-                    return (T) Array.get(array, i++);
-                }
-            };
+        public T get (int index) {
+            return (T) Array.get(array, index);
         }
 
         @Override
-        public Spliterator<T> spliterator() {
-            return Spliterators.spliterator(this.iterator(), Array.getLength(array), 0);
+        public int size() {
+            return Array.getLength(array);
         }
     }
 }

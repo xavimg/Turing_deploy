@@ -2,6 +2,10 @@ package org.proj.data.cross.write;
 
 import org.bson.BsonWriter;
 import org.bson.codecs.EncoderContext;
+import org.proj.data.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.Optional;
 
 public interface CrossWriter {
     void writeKey (String name);
@@ -82,7 +86,7 @@ public interface CrossWriter {
         return new BsonWrapper(writer, context);
     }
 
-    /* static CrossWriter fromJson (JSONWriter writer) {
+    /*static CrossWriter fromJson (JSONObject writer) {
         return new JsonWrapper(writer);
     }*/
 
@@ -169,70 +173,93 @@ public interface CrossWriter {
 
     /*
     class JsonWrapper implements CrossWriter {
-        final private JSONWriter parent;
+        final private JSONObject parent;
+        private Optional<String> cacheKey;
 
-        public JsonWrapper (JSONWriter parent) {
+        private Optional<ArrayList<Object>> array;
+
+        public JsonWrapper (JSONObject parent) {
             this.parent = parent;
+            this.cacheKey = Optional.empty();
+            this.array = Optional.empty();
         }
 
         @Override
         public void writeKey (String name) {
-            this.parent.writeKey(name);
+            if (cacheKey.isPresent()) {
+                throw new UnsupportedOperationException();
+            }
+
+            cacheKey = Optional.of(name);
         }
 
         @Override
         public void writeNull() {
-            this.parent.writeNull();
+            String key = cacheKey.get();
+            cacheKey = Optional.empty();
+            this.parent.putNull(key);
         }
 
         @Override
         public void writeUndefined() {
-            this.parent.writeNull();
+            writeNull();
         }
 
         @Override
         public void writeString(String value) {
-            this.parent.writeString(value);
+            String key = cacheKey.get();
+            cacheKey = Optional.empty();
+            this.parent.put(key, value);
         }
 
         @Override
         public void writeSymbol(String value) {
-            this.parent.writeString(value);
+            writeString(value);
         }
 
         @Override
         public void writeBool(boolean value) {
-            this.parent.writeBool(value);
+            String key = cacheKey.get();
+            cacheKey = Optional.empty();
+            this.parent.put(key, value);
         }
 
         @Override
         public void writeInt(int value) {
-            this.parent.writeInt(value);
+            String key = cacheKey.get();
+            cacheKey = Optional.empty();
+            this.parent.put(key, value);
         }
 
         @Override
         public void writeLong(long value) {
-            this.parent.writeLong(value);
+            String key = cacheKey.get();
+            cacheKey = Optional.empty();
+            this.parent.put(key, value);
         }
 
         @Override
         public void writeFloat(float value) {
-            this.parent.writeFloat(value);
+            String key = cacheKey.get();
+            cacheKey = Optional.empty();
+            this.parent.put(key, value);
         }
 
         @Override
         public void writeDouble(double value) {
-            this.parent.writeDouble(value);
+            String key = cacheKey.get();
+            cacheKey = Optional.empty();
+            this.parent.put(key, value);
         }
 
         @Override
         public void writeStartArray() {
-            this.parent.startArray();
+            this.array = Optional.of(new ArrayList<>());
         }
 
         @Override
         public void writeStartDocument() {
-            this.parent.startObject();
+            this.parent.put();
         }
 
         @Override
