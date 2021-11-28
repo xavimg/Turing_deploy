@@ -1,14 +1,12 @@
 package org.proj.db.codecs.pseudo;
 
-import org.bson.BsonReader;
-import org.bson.BsonType;
-import org.bson.BsonWriter;
-import org.bson.codecs.DecoderContext;
-import org.bson.codecs.EncoderContext;
+import org.proj.data.cross.read.CrossReader;
+import org.proj.data.cross.read.ValueType;
+import org.proj.data.cross.write.CrossWriter;
 
 public class NullCodec {
-    public static boolean decode (BsonReader reader) {
-        boolean res = reader.getCurrentBsonType() == BsonType.NULL;
+    public static boolean decode (CrossReader reader) {
+        boolean res = reader.nextValueType() == ValueType.NULL;
         if (res) {
             reader.skipValue();
         }
@@ -16,7 +14,7 @@ public class NullCodec {
         return res;
     }
 
-    public static boolean encode (BsonWriter writer, Object value) {
+    public static boolean encode (CrossWriter writer, Object value) {
         boolean res = value == null;
         if (res) {
             writer.writeNull();

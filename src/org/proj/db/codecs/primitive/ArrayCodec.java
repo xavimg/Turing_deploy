@@ -1,31 +1,27 @@
 package org.proj.db.codecs.primitive;
 
-import org.bson.BsonReader;
-import org.bson.BsonType;
-import org.bson.BsonWriter;
-import org.bson.codecs.Codec;
-import org.bson.codecs.DecoderContext;
-import org.bson.codecs.EncoderContext;
+import org.proj.data.cross.CrossCodec;
+import org.proj.data.cross.read.CrossReader;
+import org.proj.data.cross.read.ValueType;
+import org.proj.data.cross.write.CrossWriter;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
-public class ArrayCodec<T> implements Codec<T[]> {
-    final private Codec<T> codec;
+public class ArrayCodec<T> implements CrossCodec<T[]> {
+    final private CrossCodec<T> codec;
 
-    public ArrayCodec (Codec<T> codec) {
+    public ArrayCodec (CrossCodec<T> codec) {
         this.codec = codec;
     }
 
     @Override
-    public T[] decode (BsonReader reader, DecoderContext decoderContext) {
+    public T[] decode (CrossReader reader) {
         ArrayList<T> list = new ArrayList<>();
 
         reader.readStartArray();
-        while (reader.getCurrentBsonType() != BsonType.END_OF_DOCUMENT) {
-            list.add(codec.decode(reader, decoderContext));
+        while (reader.nextValueType() != ValueType.END) {
+            list.add(codec.decode(reader));
         }
         reader.readEndArray();
 
@@ -34,10 +30,10 @@ public class ArrayCodec<T> implements Codec<T[]> {
     }
 
     @Override
-    public void encode (BsonWriter writer, T[] value, EncoderContext encoderContext) {
+    public void encode (CrossWriter writer, T[] value) {
         writer.writeStartArray();
         for (T elem: value) {
-            codec.encode(writer, elem, encoderContext);
+            codec.encode(writer, elem);
         }
         writer.writeEndArray();
     }

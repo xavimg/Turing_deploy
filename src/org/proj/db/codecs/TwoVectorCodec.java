@@ -1,19 +1,17 @@
 package org.proj.db.codecs;
 
-import org.bson.BsonReader;
-import org.bson.BsonWriter;
-import org.bson.codecs.Codec;
-import org.bson.codecs.DecoderContext;
-import org.bson.codecs.EncoderContext;
+import org.proj.data.cross.CrossCodec;
+import org.proj.data.cross.read.CrossReader;
+import org.proj.data.cross.write.CrossWriter;
 import org.proj.db.codecs.pseudo.NullCodec;
 import org.proj.math.vector.Vec2;
 
-public class TwoVectorCodec implements Codec<Vec2> {
+public class TwoVectorCodec implements CrossCodec<Vec2> {
     final public static TwoVectorCodec INSTANCE = new TwoVectorCodec();
     private TwoVectorCodec () {}
 
     @Override
-    public Vec2 decode (BsonReader reader, DecoderContext decoderContext) {
+    public Vec2 decode (CrossReader reader) {
         if (NullCodec.decode(reader)) return null;
 
         reader.readStartDocument();
@@ -25,7 +23,7 @@ public class TwoVectorCodec implements Codec<Vec2> {
     }
 
     @Override
-    public void encode (BsonWriter writer, Vec2 value, EncoderContext encoderContext) {
+    public void encode (CrossWriter writer, Vec2 value) {
         if (NullCodec.encode(writer, value)) return;
 
         writer.writeStartDocument();

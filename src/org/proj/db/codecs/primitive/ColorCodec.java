@@ -1,28 +1,26 @@
 package org.proj.db.codecs.primitive;
 
-import org.bson.BsonReader;
-import org.bson.BsonWriter;
-import org.bson.codecs.Codec;
-import org.bson.codecs.DecoderContext;
-import org.bson.codecs.EncoderContext;
+import org.proj.data.cross.CrossCodec;
+import org.proj.data.cross.read.CrossReader;
+import org.proj.data.cross.write.CrossWriter;
 import org.proj.db.codecs.pseudo.NullCodec;
 
 import java.awt.*;
 
-public class ColorCodec implements Codec<Color> {
+public class ColorCodec implements CrossCodec<Color> {
     final public static ColorCodec INSTANCE = new ColorCodec();
     private ColorCodec () {}
 
     @Override
-    public Color decode (BsonReader reader, DecoderContext decoderContext) {
+    public Color decode (CrossReader reader) {
         if (NullCodec.decode(reader)) return null;
-        return new Color(reader.readInt32(), true);
+        return new Color(reader.readInt(), true);
     }
 
     @Override
-    public void encode (BsonWriter writer, Color value, EncoderContext encoderContext) {
+    public void encode (CrossWriter writer, Color value) {
         if (NullCodec.encode(writer, value)) return;
-        writer.writeInt32(value.getRGB());
+        writer.writeInt(value.getRGB());
     }
 
     @Override

@@ -1,32 +1,29 @@
 package org.proj.db.codecs;
 
-import org.bson.BsonReader;
-import org.bson.BsonWriter;
-import org.bson.codecs.Codec;
-import org.bson.codecs.DecoderContext;
-import org.bson.codecs.EncoderContext;
+import org.proj.data.cross.CrossCodec;
+import org.proj.data.cross.read.CrossReader;
+import org.proj.data.cross.write.CrossWriter;
 import org.proj.db.codecs.pseudo.SpaceBodyCodec;
 import org.proj.game.Planet;
 import org.proj.game.SpaceBody;
-import org.proj.game.Sun;
 
-public class PlanetCodec implements Codec<Planet> {
+public class PlanetCodec implements CrossCodec<Planet> {
     final public static PlanetCodec INSTANCE = new PlanetCodec();
     private PlanetCodec() {}
 
     @Override
-    public Planet decode (BsonReader reader, DecoderContext decoderContext) {
+    public Planet decode (CrossReader reader) {
         reader.readStartDocument();
-        SpaceBody decode = SpaceBodyCodec.decode(reader, decoderContext);
+        SpaceBody decode = SpaceBodyCodec.decode(reader);
         reader.readEndDocument();
 
         return new Planet(decode.restMass(), decode.radius(), decode.getPosition(), decode.getVelocity(), decode.color, null);
     }
 
     @Override
-    public void encode (BsonWriter writer, Planet value, EncoderContext encoderContext) {
+    public void encode (CrossWriter writer, Planet value) {
         writer.writeStartDocument();
-        SpaceBodyCodec.encode(writer, value, encoderContext);
+        SpaceBodyCodec.encode(writer, value);
         writer.writeEndDocument();
     }
 

@@ -1,23 +1,21 @@
 package org.proj.db.codecs;
 
-import org.bson.BsonReader;
-import org.bson.BsonWriter;
-import org.bson.codecs.Codec;
-import org.bson.codecs.DecoderContext;
-import org.bson.codecs.EncoderContext;
+import org.proj.data.cross.CrossCodec;
+import org.proj.data.cross.read.CrossReader;
+import org.proj.data.cross.write.CrossWriter;
 import org.proj.db.codecs.pseudo.SpaceBodyCodec;
 import org.proj.game.SpaceBody;
 import org.proj.game.Sun;
 
-public class SunCodec implements Codec<Sun> {
+public class SunCodec implements CrossCodec<Sun> {
     final public static SunCodec INSTANCE = new SunCodec();
     private SunCodec () {}
 
     @Override
-    public Sun decode (BsonReader reader, DecoderContext decoderContext) {
+    public Sun decode (CrossReader reader) {
         reader.readStartDocument();
 
-        SpaceBody decode = SpaceBodyCodec.decode(reader, decoderContext);
+        SpaceBody decode = SpaceBodyCodec.decode(reader);
         double temp = reader.readDouble("temperature");
 
         reader.readEndDocument();
@@ -25,9 +23,9 @@ public class SunCodec implements Codec<Sun> {
     }
 
     @Override
-    public void encode (BsonWriter writer, Sun value, EncoderContext encoderContext) {
+    public void encode (CrossWriter writer, Sun value) {
         writer.writeStartDocument();
-        SpaceBodyCodec.encode(writer, value, encoderContext);
+        SpaceBodyCodec.encode(writer, value);
         writer.writeDouble("temperature", value.temperature);
         writer.writeEndDocument();
     }
