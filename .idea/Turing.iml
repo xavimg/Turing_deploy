@@ -13,6 +13,7 @@
     <orderEntry type="library" name="ReadOnlyList" level="project" />
     <orderEntry type="library" name="SimpleJSONReader" level="project" />
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
-    <orderEntry type="library" name="javax.websocket.api" level="project" />
+    <orderEntry type="library" name="java.websocket.Java.WebSocket" level="project" />
+    <orderEntry type="library" name="slf4j.simple" level="project" />
   </component>
 </module>
