@@ -8,6 +8,7 @@ final public class Lazy<T> {
     final private Supplier<T> supplier;
 
     public Lazy (Supplier<T> supplier) {
+        Objects.requireNonNull(supplier);
         this.value = null;
         this.supplier = supplier;
     }
@@ -24,6 +25,7 @@ final public class Lazy<T> {
 
     public T get () {
         if (value == null) {
+            assert supplier != null;
             value = supplier.get();
             Objects.requireNonNull(value);
         }

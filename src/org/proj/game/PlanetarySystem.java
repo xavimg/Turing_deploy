@@ -1,5 +1,8 @@
 package org.proj.game;
 
+import org.proj.game.body.Planet;
+import org.proj.game.body.SpaceBody;
+import org.proj.game.body.Sun;
 import org.proj.math.vector.Vec2;
 import org.proj.utils.Range;
 import org.rol.ReadOnlyList;

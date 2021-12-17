@@ -1,13 +1,27 @@
 package org.proj.api;
 
 import com.sun.net.httpserver.HttpExchange;
-import org.proj.data.json.JSONObject;
+import org.proj.json.JSONObject;
+import org.rol.ReadOnlyMap;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 
 public class ApiUtils {
+    public static ReadOnlyMap<String, String> getQuery (HttpExchange exchange) {
+        HashMap<String, String> map = new HashMap<>();
+        String[] query = exchange.getRequestURI().getQuery().split("&");
+
+        for (String element: query) {
+            String[] pair = element.split("=");
+            map.put(pair[0], pair[1]);
+        }
+
+        return ReadOnlyMap.ofMap(map);
+    }
+
     public static void sendResponse (HttpExchange exchange, int code, byte... response) throws IOException {
         exchange.sendResponseHeaders(code, response.length);
         OutputStream os = exchange.getResponseBody();

@@ -1,14 +1,16 @@
 package org.proj.db.codecs;
 
-import org.proj.data.cross.CrossCodec;
-import org.proj.data.cross.read.CrossReader;
-import org.proj.data.cross.write.CrossWriter;
+import org.bson.BsonReader;
+import org.bson.BsonWriter;
+import org.bson.codecs.Codec;
+import org.bson.codecs.DecoderContext;
+import org.bson.codecs.EncoderContext;
 import org.proj.db.codecs.primitive.ArrayCodec;
-import org.proj.game.Planet;
+import org.proj.game.body.Planet;
 import org.proj.game.PlanetarySystem;
-import org.proj.game.Sun;
+import org.proj.game.body.Sun;
 
-public class PlanetarySystemCodec implements CrossCodec<PlanetarySystem> {
+public class PlanetarySystemCodec implements Codec<PlanetarySystem> {
     final public static PlanetarySystemCodec INSTANCE = new PlanetarySystemCodec();
 
     final private ArrayCodec<Sun> SUN = new ArrayCodec<>(SunCodec.INSTANCE);
@@ -17,29 +19,29 @@ public class PlanetarySystemCodec implements CrossCodec<PlanetarySystem> {
     private PlanetarySystemCodec () {}
 
     @Override
-    public PlanetarySystem decode (CrossReader reader) {
+    public PlanetarySystem decode (BsonReader reader, DecoderContext context) {
         reader.readStartDocument();
-        /*reader.readBsonType();*/ reader.skipKey(); reader.skipValue();
+        reader.readBsonType(); reader.skipName(); reader.skipValue();
 
-        reader.readKey("suns");
-        Sun[] suns = SUN.decode(reader);
+        reader.readName("suns");
+        Sun[] suns = SUN.decode(reader, context);
 
-        reader.readKey("planets");
-        Planet[] planets = PLANET.decode(reader);
+        reader.readName("planets");
+        Planet[] planets = PLANET.decode(reader, context);
 
         reader.readEndDocument();
         return new PlanetarySystem(suns, planets);
     }
 
     @Override
-    public void encode (CrossWriter writer, PlanetarySystem value) {
+    public void encode (BsonWriter writer, PlanetarySystem value, EncoderContext context) {
         writer.writeStartDocument();
 
-        writer.writeKey("suns");
-        SUN.encode(writer, value.getSuns());
+        writer.writeName("suns");
+        SUN.encode(writer, value.getSuns(), context);
 
-        writer.writeKey("planets");
-        PLANET.encode(writer, value.getPlanets());
+        writer.writeName("planets");
+        PLANET.encode(writer, value.getPlanets(), context);
 
         writer.writeEndDocument();
     }

@@ -1,4 +1,4 @@
-import org.proj.game.Planet;
+import org.proj.game.body.Planet;
 import org.proj.math.vector.Vec2;
 import org.proj.physics.Constants;
 import org.proj.physics.metric.SchwarzschildCartesian;

@@ -38,6 +38,11 @@ public class Constants {
      */
     final public static double K = 1.381e-23;
 
+    /**
+     * Avogadro's constant
+     */
+    final public static double NA = 6.02214076e23;
+
     final public static double C2 = C * C;
     final public static double C4 = C2 * C2;
 }
