@@ -1,7 +1,6 @@
 package org.proj.api
 
-import com.mongodb.DB
-import org.proj.db.Database
+import org.proj.api.rest.ApiUtils
 import org.proj.json.JSONObject
 
 fun main (args: Array<String>) {

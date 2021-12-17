@@ -2,6 +2,7 @@ package org.proj.api
 
 import com.sun.net.httpserver.HttpHandler
 import com.sun.net.httpserver.HttpServer
+import org.proj.api.rest.ApiUtils
 import org.proj.json.JSONObject
 import java.net.InetSocketAddress
 import java.util.*

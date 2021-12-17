@@ -1,4 +1,4 @@
-package org.proj.api;
+package org.proj.api.rest;
 
 import com.sun.net.httpserver.HttpExchange;
 import org.proj.json.JSONObject;
