@@ -4,7 +4,7 @@
     "port": "3307",
     "username": "root",
     "password": "",
-    "database": "usersbackend",
+    "database": "test",
     "entities": ["dist/entity/**/*.js"],
     "logging": false,
     "synchronize": true

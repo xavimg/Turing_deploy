@@ -1,7 +1,8 @@
+import { hash } from 'bcrypt';
 import { Request, Response } from 'express';
 import { getRepository } from 'typeorm';
 import { User } from '../entity/User';
-
+const bcrypt = require('bcrypt');
 
 
 const userControllers = { 
@@ -19,11 +20,12 @@ const userControllers = {
 
         // Cojemos el body.
         const newUser = getRepository(User).create(req.body);
-        const { nombre, email, password, passwordConfirm } = req.body;
-
-        // Comprobaciones en el body.
-        if ( !nombre || !email || !password || !passwordConfirm) {
-
+        // Los nombres han de ser igual que en la DB.
+        let { name, email, password, passwordConfirm, permission } = req.body;
+        
+        // Comprobaciones en el body. 
+        if ( name == null || email == null || password == null || passwordConfirm == null || permission ==  null) {
+            
             return res.status(400).json( { message: "You must complete all camps !"});
 
         } else if (password !== passwordConfirm) {
@@ -31,19 +33,16 @@ const userControllers = {
             return res.status(400).json( { message: "Passwords do not match !"});
         }
 
-        // Comprobar si el mail existe en la DB.
+        // Comprobar si el email existe en la DB.
         const check = await getRepository(User).findOne(
             { where: 
                 { email }
             }
         );
+
         if (check) {
-
             return res.status(400).json({message: "This email already exist"})
-
-        }
-
-        //TO-DO [ hash password]
+        }    
 
         getRepository(User).save(newUser);
         return res.status(200).json({message: "Succesfully registered !"})
@@ -51,20 +50,30 @@ const userControllers = {
     },
 
     login: async (req: Request, res: Response) => {
-
+        
         const { email, password } = req.body;
 
-        const credentials = await getRepository(User).findOne(
+        let checkUser = await getRepository(User).findOne(
             { where: 
-                { email, password }
+                { email}
             }
         );
 
-        if (credentials) {
-            return res.status(200).json({message: "Logged succesfully", token: "token"})
-        }
+        const check = await bcrypt.compare(password, checkUser?.password);
 
-    }
+        // const token = jwt.generate(credentials)
+
+        if (check && checkUser?.active) {
+
+            return res.status(200).send({
+                "message": "Logged succesfully",
+                "token": "token"})
+        } else {
+            return res.status(400).send({
+                "message": "Your account has been banned"
+                })
+            }
+        }
 }
 
 export default userControllers;

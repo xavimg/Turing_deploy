@@ -1,13 +1,14 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { hash } from 'bcrypt';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, BeforeInsert } from 'typeorm';
 
 @Entity()
 export class User {
-
+    
     @PrimaryGeneratedColumn()
     id: number;
 
     @Column()
-    nombre: string;
+    name: string;
 
     @Column()
     email: string;
@@ -17,4 +18,16 @@ export class User {
 
     @Column()
     passwordConfirm: string;
+
+    @Column()
+    active: boolean;
+    static password: String;
+
+    @BeforeInsert()
+    async hashPassword(): Promise<void> {
+        this.password = await hash(this.password, 10);
+        this.passwordConfirm = this.password;
+    }
+
+    
 }
