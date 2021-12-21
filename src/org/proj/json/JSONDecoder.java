@@ -1,10 +1,7 @@
 package org.proj.json;
 
-public interface JSONDecoder<T> {
-    T decode (JSONObject json);
-    Class<T> getTransformClass ();
+import org.sjr.JSONObjectWrapper;
 
-    default T get (JSONObject json, String name) {
-        return json.get(name, this);
-    }
+public interface JSONDecoder<T> {
+    T decode (JSONObjectWrapper json);
 }

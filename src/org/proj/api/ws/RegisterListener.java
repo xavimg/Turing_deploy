@@ -27,6 +27,7 @@ public class RegisterListener extends WebSocketServer {
     @Override
     public void onMessage (WebSocket webSocket, String s) {
         System.out.println("Server: " + s);
+        webSocket.send("Hola bb ;)");
     }
 
     @Override
@@ -39,26 +40,20 @@ public class RegisterListener extends WebSocketServer {
         System.out.println("Server started");
     }
 
-    public static void main (String... args) throws InterruptedException {
-        var client = new TestingClient(9000);
-        var server = new RegisterListener(9000);
-
+    public static void main (String... args) {
+        var server = new RegisterListener(1234);
         server.start();
-
-        Thread.sleep(1000);
-        client.connect();
     }
 }
 
 class TestingClient extends WebSocketClient {
-    public TestingClient (int port) {
-        super(URI.create("ws://localhost:" + port));
+    public TestingClient (String path) {
+        super(URI.create("ws://" + path));
     }
 
     @Override
     public void onOpen (ServerHandshake serverHandshake) {
         System.out.println("Client opened");
-        send("Connected!!!");
     }
 
     @Override

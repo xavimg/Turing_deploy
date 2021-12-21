@@ -1,14 +1,14 @@
 package org.proj.math.matrix;
 
+import kotlin.Lazy;
 import org.proj.math.vector.Vec3;
-import org.proj.utils.Lazy;
+import org.proj.utils.JavaLazy;
 
 import java.util.function.IntFunction;
 import java.util.function.ToDoubleBiFunction;
 
 public class Mat3 {
     final public static Mat3 ZERO = new Mat3(Vec3.ZER0, Vec3.ZER0, Vec3.ZER0);
-
     final public Vec3 x, y, z;
     final private Lazy<Boolean> diagonal;
 
@@ -17,7 +17,7 @@ public class Mat3 {
         this.y = y;
         this.z = z;
 
-        this.diagonal = new Lazy<>(() -> this.x.y == 0 & this.x.z == 0 & this.y.x == 0 & this.y.z == 0 & this.z.x == 0 & this.z.y == 0);
+        this.diagonal = new JavaLazy<>(() -> this.x.y == 0 & this.x.z == 0 & this.y.x == 0 & this.y.z == 0 & this.z.x == 0 & this.z.y == 0);
     }
 
     public Mat3 (double x, double y, double z) {
@@ -25,7 +25,7 @@ public class Mat3 {
         this.y = new Vec3(0, y, 0);
         this.z = new Vec3(0, 0, z);
 
-        this.diagonal = new Lazy<>(true);
+        this.diagonal = new JavaLazy<>(true);
     }
 
     public Mat3 (double xx, double xy, double xz, double yx, double yy, double yz, double zx, double zy, double zz) {
@@ -102,7 +102,7 @@ public class Mat3 {
     }
 
     public boolean isDiagonal () {
-        return this.diagonal.get();
+        return this.diagonal.getValue();
     }
 
     public Mat3 inverse () {

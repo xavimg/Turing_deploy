@@ -1,8 +1,8 @@
 package org.proj.math.matrix;
 
+import kotlin.Lazy;
 import org.proj.math.vector.Vec2;
-import org.proj.math.vector.Vec3;
-import org.proj.utils.Lazy;
+import org.proj.utils.JavaLazy;
 
 import java.util.function.IntFunction;
 import java.util.function.ToDoubleBiFunction;
@@ -17,14 +17,14 @@ public class Mat2 {
         this.x = x;
         this.y = y;
 
-        this.diagonal = new Lazy<>(() -> this.x.y == 0 && this.y.x == 0);
+        this.diagonal = new JavaLazy<>(() -> this.x.y == 0 && this.y.x == 0);
     }
 
     public Mat2(double x, double y) {
         this.x = new Vec2(x, 0);
         this.y = new Vec2(0, y);
 
-        this.diagonal = new Lazy<>(true);
+        this.diagonal = new JavaLazy<>(true);
     }
 
     public Mat2(double xx, double xy, double yx, double yy) {
@@ -93,7 +93,7 @@ public class Mat2 {
     }
 
     public boolean isDiagonal () {
-        return this.diagonal.get();
+        return this.diagonal.getValue();
     }
 
     public double det () {

@@ -1,7 +1,8 @@
 package org.proj.json.codec.primitive;
 
-import org.proj.json.JSONObject;
+import org.json.simple.JSONObject;
 import org.proj.json.JSONCodec;
+import org.sjr.JSONObjectWrapper;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,11 +28,12 @@ public class MapCodec<K,V> implements JSONCodec<Map<K,V>> {
     }
 
     @Override
-    public Map<K, V> decode (JSONObject json) {
+    public Map<K, V> decode (JSONObjectWrapper json) {
         HashMap<K, V> map = new HashMap<>();
-        for (Map.Entry<String, Object> entry: json.entrySet()) {
-            K key = keyDecoder.apply(entry.getKey());
-            V value = valueCodec.decode((JSONObject) entry.getValue());
+        for (Object _entry: json.object.entrySet()) {
+            var entry = (Map.Entry) _entry;
+            K key = keyDecoder.apply(entry.getKey().toString());
+            V value = valueCodec.decode(new JSONObjectWrapper((JSONObject) entry.getValue()));
             map.put(key, value);
         }
 
@@ -41,17 +43,12 @@ public class MapCodec<K,V> implements JSONCodec<Map<K,V>> {
     @Override
     public JSONObject encode(Map<K,V> value) {
         JSONObject json = new JSONObject();
-        for (Map.Entry<K,V> entry: value.entrySet()) {
+        for (Map.Entry<K, V> entry : value.entrySet()) {
             String key = keyEncoder.apply(entry.getKey());
             JSONObject val = valueCodec.encode(entry.getValue());
             json.put(key, val);
         }
 
         return json;
-    }
-
-    @Override
-    public Class<Map<K, V>> getTransformClass() {
-        return (Class<Map<K, V>>) Map.of().getClass();
     }
 }

@@ -1,8 +1,9 @@
 package org.proj.json.codec;
 
+import org.json.simple.JSONObject;
 import org.proj.json.JSONCodec;
-import org.proj.json.JSONObject;
 import org.proj.math.vector.Vec2;
+import org.sjr.JSONObjectWrapper;
 
 public class JTwoVectorCodec implements JSONCodec<Vec2> {
     final public static JTwoVectorCodec INSTANCE = new JTwoVectorCodec();
@@ -18,12 +19,7 @@ public class JTwoVectorCodec implements JSONCodec<Vec2> {
     }
 
     @Override
-    public Vec2 decode (JSONObject json) {
-        return new Vec2(json.getDouble("x"), json.getDouble("y"));
-    }
-
-    @Override
-    public Class<Vec2> getTransformClass() {
-        return Vec2.class;
+    public Vec2 decode (JSONObjectWrapper json) {
+        return new Vec2(json.getDouble("x").getAsDouble(), json.getDouble("y").getAsDouble());
     }
 }

@@ -2,8 +2,8 @@ package org.proj.api
 
 import com.sun.net.httpserver.HttpHandler
 import com.sun.net.httpserver.HttpServer
+import org.json.simple.JSONObject
 import org.proj.api.rest.ApiUtils
-import org.proj.json.JSONObject
 import java.net.InetSocketAddress
 import java.util.*
 import kotlin.collections.HashMap
@@ -37,7 +37,7 @@ class RestManager (var server: HttpServer): Thread() {
                 for (type in handler.value) {
                     if (type.key.name == e.requestMethod) {
                         type.value.handle(e)
-                        break
+                        return@createContext
                     }
                 }
 
