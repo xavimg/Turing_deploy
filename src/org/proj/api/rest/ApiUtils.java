@@ -1,8 +1,8 @@
 package org.proj.api.rest;
 
 import com.sun.net.httpserver.HttpExchange;
-import org.json.simple.JSONObject;
 import org.rol.ReadOnlyMap;
+import org.sjr.JSONObj;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -33,7 +33,7 @@ public class ApiUtils {
         sendResponse(exchange, code, response.getBytes(StandardCharsets.UTF_8));
     }
 
-    public static void sendResponse (HttpExchange exchange, int code, JSONObject json) throws IOException {
+    public static void sendResponse (HttpExchange exchange, int code, JSONObj json) throws IOException {
         exchange.getResponseHeaders().set("Content-Type", "application/json");
         sendResponse(exchange, code, json.toJSONString());
     }

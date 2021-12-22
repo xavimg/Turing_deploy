@@ -1,23 +1,27 @@
-package org.proj.json.codec;
+package org.proj.json;
 
-import org.json.simple.JSONObject;
 import org.proj.game.body.Planet;
 import org.proj.game.body.SpaceBody;
-import org.proj.json.JSONCodec;
-import org.sjr.JSONObjectWrapper;
+import org.sjr.JSONObj;
+import org.sjr.codec.JSONCodec;
 
 public class JPlanetCodec implements JSONCodec<Planet> {
     final public static JPlanetCodec INSTANCE = new JPlanetCodec();
     private JPlanetCodec() {}
 
     @Override
-    public JSONObject encode (Planet value) {
+    public JSONObj encode (Planet value) {
         return JSpaceBodyCodec.INSTANCE.encode(value);
     }
 
     @Override
-    public Planet decode (JSONObjectWrapper json) {
+    public Planet decode (JSONObj json) {
         SpaceBody body = JSpaceBodyCodec.INSTANCE.decode(json);
         return new Planet(body.restMass(), body.radius(), body.getPosition(), body.getVelocity(), body.color, null);
+    }
+
+    @Override
+    public Class<Planet> getTargetClass() {
+        return Planet.class;
     }
 }

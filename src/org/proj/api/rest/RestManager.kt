@@ -4,6 +4,7 @@ import com.sun.net.httpserver.HttpHandler
 import com.sun.net.httpserver.HttpServer
 import org.json.simple.JSONObject
 import org.proj.api.rest.ApiUtils
+import org.sjr.JSONObj
 import java.net.InetSocketAddress
 import java.util.*
 import kotlin.collections.HashMap
@@ -41,7 +42,7 @@ class RestManager (var server: HttpServer): Thread() {
                     }
                 }
 
-                var error = JSONObject()
+                var error = JSONObj()
                 error.put("error", "Invalid request");
                 ApiUtils.sendResponse(e, 200, error)
             }

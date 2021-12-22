@@ -1,17 +1,19 @@
-package org.proj.json.codec;
+package org.proj.json;
 
 import org.json.simple.JSONObject;
 import org.proj.game.resource.PTElement;
-import org.proj.json.JSONEncoder;
+import org.sjr.JSONObj;
+import org.sjr.codec.JSONEncoder;
 
 public class PTElementEncoder implements JSONEncoder<PTElement> {
     final public static PTElementEncoder INSTANCE = new PTElementEncoder();
     private PTElementEncoder () {}
 
     @Override
-    public JSONObject encode (PTElement value) {
-        JSONObject resp = new JSONObject();
+    public JSONObj encode (PTElement value) {
+        JSONObj resp = new JSONObj();
         resp.put("name", value.getName());
-        return null;
+
+        return resp;
     }
 }
