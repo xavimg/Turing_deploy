@@ -19,7 +19,7 @@ public class JTwoVectorCodec implements JSONCodec<Vec2> {
 
     @Override
     public Vec2 decode (JSONObj json) {
-        return new Vec2(json.getDouble("x").getAsDouble(), json.getDouble("y").getAsDouble());
+        return new Vec2(json.getDouble("x").get(), json.getDouble("y").get());
     }
 
     @Override

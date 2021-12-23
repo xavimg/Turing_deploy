@@ -6,12 +6,16 @@ import java.io.*
 import java.lang.Exception
 import kotlin.system.exitProcess
 
-class PTElement (private val _name: Lazy<String>) {
+class PTElement (
+    val number: Int,
+    val name: String,
+    val mass: Float
+) {
     companion object {
-        @JvmStatic
-        val ELEMENTS : ReadOnlyList<PTElement> = PTElement.initElements()
+        const val URL = "https://raw.githubusercontent.com/Bowserinator/Periodic-Table-JSON/master/PeriodicTableJSON.json"
 
-        private const val URL = "https://raw.githubusercontent.com/Bowserinator/Periodic-Table-JSON/master/PeriodicTableJSON.json"
+        @JvmStatic
+        val ELEMENTS : ReadOnlyList<PTElement> = initElements()
 
         private fun getReader () : InputStreamReader {
             val url = java.net.URL(URL)
@@ -26,11 +30,11 @@ class PTElement (private val _name: Lazy<String>) {
         }
 
         private fun initElement (obj: JSONObj) : PTElement {
-            val name = lazy { obj.getString("name").get() }
-            return PTElement(name)
+            val number = obj.getInt("number").get()
+            val name = obj.getString("name").get()
+            val mass = obj.getFloat("atomic_mass").get()
+
+            return PTElement(number, name, mass)
         }
     }
-
-    val name : String
-        get () { return _name.value }
 }

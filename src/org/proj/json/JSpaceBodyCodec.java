@@ -13,11 +13,11 @@ public class JSpaceBodyCodec implements JSONCodec<SpaceBody>{
 
     @Override
     public SpaceBody decode (JSONObj json) {
-        double restMass = json.getDouble("rest_mass").getAsDouble();
-        double radius = json.getDouble("radius").getAsDouble();
+        double restMass = json.getDouble("rest_mass").get();
+        double radius = json.getDouble("radius").get();
         Vec2 position = json.getDecodable("position", JTwoVectorCodec.INSTANCE).get();
         Vec2 velocity = json.getDecodable("velocity", JTwoVectorCodec.INSTANCE).get();
-        Color color = new Color(json.getInt("position").getAsInt(), true);
+        Color color = new Color(json.getInt("position").get(), true);
 
         return new SpaceBody(restMass, radius, position, velocity, null, color, null);
     }

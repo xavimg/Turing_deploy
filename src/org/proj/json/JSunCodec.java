@@ -20,7 +20,7 @@ public class JSunCodec implements JSONCodec<Sun> {
     @Override
     public Sun decode (JSONObj json) {
         SpaceBody body = JSpaceBodyCodec.INSTANCE.decode(json);
-        double temperature = json.getDouble("temperature").getAsDouble();
+        double temperature = json.getDouble("temperature").get();
 
         return new Sun(body.restMass(), body.radius(), body.getPosition(), body.getVelocity(), body.color, null, temperature);
     }
