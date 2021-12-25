@@ -1,15 +1,11 @@
 package org.proj.api.rest
 
 import org.proj.api.RestManager
-import org.proj.game.resource.PTElement
-import org.proj.json.PTElementEncoder
-import org.rol.ReadOnlyList
+import org.proj.game.Aliment
+import org.proj.game.RawElement
+import org.proj.game.Resource
+import org.proj.json.resource.JAlimentEncoder
 import org.sjr.JSONObj
-import org.sjr.Result
-import java.io.InputStreamReader
-import java.lang.Exception
-import java.net.URL
-import java.util.*
 
 fun main (args: Array<String>) {
     var port = args[0].toInt();
@@ -22,13 +18,13 @@ fun main (args: Array<String>) {
     }
 
     server.get("/resource") { e ->
-        var response = JSONObj()
-        response.put("elements", PTElementEncoder.INSTANCE, PTElement.ELEMENTS);
+        var response = JSONObj();
+        response.put("aliments", JAlimentEncoder.INSTANCE, *Aliment.values())
         ApiUtils.sendResponse(e, 200, response)
     }
 
-    server.run()
-    /*var response = JSONObj()
-    response.put("elements", PTElementEncoder.INSTANCE, PTElement.ELEMENTS);
-    println(response.toJSONString())*/
+    println("Server open!!")
+    //server.run()
+
+    println(Resource.ALL.sortedBy { x -> x.value } .map { x -> Pair(x.name, x.value) })
 }

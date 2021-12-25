@@ -23,14 +23,14 @@ for element in elements:
             if pt['name'] == name:
                 value = str(pct.text[:-1])
                 if value == "N/":
-                    del pt
+                    data.remove(pt)
                     break
 
                 value = value.split("×", 1)
                 if len(value) == 1:
-                    value = float(value[0]) / 100
+                    value = float(value[0])
                 else:
-                    value = float(value[0]) / int(100 * value[1][3:])
+                    value = float(value[0]) / pow(10, int(value[1][3:]))
 
                 pt["abundance"] = value
                 print(name, value)
@@ -38,7 +38,7 @@ for element in elements:
 
 for pt in data:
     if "abundance" not in pt:
-        del pt
+        data.remove(pt)
 
 json.dump({ "elements": data }, open("utils/periodic_table.json", "w"))
 print("\nDone!")
