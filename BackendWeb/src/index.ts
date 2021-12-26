@@ -43,20 +43,20 @@ app.listen(3000);
 //     ws.send('connected')
 // });
 
-const connection = new WebSocket("ws://192.168.233.195:1234");
+// const connection = new WebSocket("ws://192.168.233.195:1234");
 
 
 
-connection.onopen = () => {
+// connection.onopen = () => {
     
-    console.log("Socked has been opened !");
-    connection.send("Ping..");
+//     console.log("Socked has been opened !");
+//     connection.send("Ping..");
     
 
-};
+// };
 
-connection.on('message', (msg: any) => {
+// connection.on('message', (msg: any) => {
 
-    console.log("Message received !", msg.toString());
+//     console.log("Message received !", msg.toString());
     
-})
+// })

@@ -8,6 +8,9 @@ export class User {
     id: number;
 
     @Column()
+    role: string;
+    
+    @Column()
     name: string;
 
     @Column()
@@ -22,6 +25,12 @@ export class User {
     @Column()
     active: boolean;
     static password: String;
+    static id: any;
+
+    @BeforeInsert()
+    async roleDefault(): Promise<void> {
+        this.role = 'user';
+    }
 
     @BeforeInsert()
     async hashPassword(): Promise<void> {

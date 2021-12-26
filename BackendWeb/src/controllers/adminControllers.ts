@@ -1,11 +1,17 @@
-import { hash } from 'bcrypt';
 import { Request, Response } from 'express';
 import { getRepository } from 'typeorm';
 import { User } from '../entity/User';
-const bcrypt = require('bcrypt');
 
 
 const adminControllers = { 
+
+    getUsers: async (req: Request, res: Response) => {
+
+        const users = await getRepository(User).find();
+
+        return res.json(users);
+
+    },
     
     deleteUser: async (req: Request, res: Response) => {
 
