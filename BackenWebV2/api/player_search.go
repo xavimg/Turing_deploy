@@ -1,17 +1,20 @@
 package api
 
-import "time"
+import (
+	"github.com/xavimg/Turing/BackenWebV2/internal/database"
+	"github.com/xavimg/Turing/BackenWebV2/internal/logs"
+)
 
 type PlayerFilter struct {
 	Username string `json:"username"`
-	Score    int    `json:"score"`
+	Level    string `json:"level"`
 }
 
 type Player struct {
-	Username  string    `json:"username"`
-	Level     string    `json:"level"`
-	Score     int       `json:"score"`
-	CreatedAt time.Time `json:"created"`
+	Id       int    `json:"id"`
+	Username string `json:"username"`
+	Level    string `json:"level"`
+	Score    int    `json:"score"`
 }
 
 type PlayerSearch interface {
@@ -19,28 +22,34 @@ type PlayerSearch interface {
 }
 
 type PlayerService struct {
+	*database.MySqlClient
 }
 
 func (p *PlayerService) Search(filter PlayerFilter) ([]Player, error) {
-	p1 := Player{
-		Username:  "Werlyb",
-		Level:     "Advanzed",
-		Score:     5000,
-		CreatedAt: time.Now(),
+	tx, err := p.Begin()
+	if err != nil {
+		logs.Error("cannot create transaction")
+		return nil, err
 	}
 
-	p2 := Player{
-		Username:  "Razork",
-		Level:     "Medium",
-		Score:     100,
-		CreatedAt: time.Now(),
+	rows, err := tx.Query(getPlayersQuery(filter))
+	if err != nil {
+		logs.Error("cannot read players" + err.Error())
+		_ = tx.Rollback()
+		return nil, err
 	}
 
 	var _players []Player
+	for rows.Next() {
+		var player Player
+		err := rows.Scan(&player.Id, &player.Username, &player.Level, &player.Score)
+		if err != nil {
+			logs.Error("cannot read players " + err.Error())
+		}
+		_players = append(_players, player)
+	}
+	_ = tx.Commit()
 
-	_players = append(_players, p1)
-	_players = append(_players, p2)
-
+	logs.Info("DB Query")
 	return _players, nil
-
 }

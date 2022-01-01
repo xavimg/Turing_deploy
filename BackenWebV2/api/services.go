@@ -1,19 +1,24 @@
 package api
 
+import "github.com/xavimg/Turing/BackenWebV2/internal/database"
+
 type Services struct {
 	search PlayerSearch
+	users  UserGateway
 }
 
 func NewServices() Services {
+	client := database.NewMySQLClient()
 	return Services{
-		search: &PlayerService{},
+		search: &PlayerService{client},
+		users:  &UserService{client},
 	}
 }
 
 type WebServices struct {
-	s Services
+	Services
 }
 
 func start() *WebServices {
-	return &WebServices{s: NewServices()}
+	return &WebServices{NewServices()}
 }
