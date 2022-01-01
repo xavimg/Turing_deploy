@@ -1,10 +1,9 @@
 package org.proj.api.rest
 
 import org.proj.api.RestManager
-import org.proj.game.Aliment
-import org.proj.game.RawElement
 import org.proj.game.Resource
-import org.proj.json.resource.JAlimentEncoder
+import org.proj.json.resource.JResourceEncoderSupplier
+import org.sjr.ExceptionEncoder
 import org.sjr.JSONObj
 
 fun main (args: Array<String>) {
@@ -17,14 +16,22 @@ fun main (args: Array<String>) {
         ApiUtils.sendResponse(e, 200, response)
     }
 
-    server.get("/resource") { e ->
-        var response = JSONObj();
-        response.put("aliments", JAlimentEncoder.INSTANCE, *Aliment.values())
+    server.get("/resources") { e ->
+        var response = JSONObj()
+        var test = response.put("resources", JResourceEncoderSupplier, Resource.ALL)
+
+        if (test.isPresent) {
+            test.get().printStackTrace()
+
+            var error = JSONObj()
+            error.put("error", test.get().message)
+            ApiUtils.sendResponse(e, 500, error)
+            return@get
+        }
+
         ApiUtils.sendResponse(e, 200, response)
     }
 
     println("Server open!!")
-    //server.run()
-
-    println(Resource.ALL.sortedBy { x -> x.value } .map { x -> Pair(x.name, x.value) })
+    server.run()
 }
