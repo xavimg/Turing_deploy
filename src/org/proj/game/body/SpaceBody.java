@@ -5,6 +5,7 @@ import org.proj.physics.Matter;
 import org.proj.physics.metric.MetricTensor;
 
 import java.awt.*;
+import java.util.Objects;
 
 public class SpaceBody extends Matter.Defined {
     final public Color color;
