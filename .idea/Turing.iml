@@ -22,5 +22,6 @@
     <orderEntry type="library" name="SimpleJSONReader" level="project" />
     <orderEntry type="library" name="Python 3.9 (Turing) interpreter library" level="application" />
     <orderEntry type="library" name="ReadOnlyList" level="project" />
+    <orderEntry type="library" name="io.github.cdimascio.java.dotenv" level="project" />
   </component>
 </module>
