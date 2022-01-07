@@ -1,65 +1,42 @@
-package org.proj.db;
+package org.proj.db
 
-import com.mongodb.MongoClientSettings;
-import com.mongodb.MongoCredential;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import io.github.cdimascio.dotenv.Dotenv;
-import org.bson.BsonDocument;
-import org.bson.BsonInt64;
-import org.bson.codecs.Codec;
-import org.bson.codecs.configuration.CodecRegistries;
-import org.bson.codecs.configuration.CodecRegistry;
-import org.proj.db.codecs.PlanetarySystemCodec;
-import org.proj.db.codecs.primitive.PrimitiveProvider;
-import org.proj.game.PlanetarySystem;
+import org.bson.codecs.configuration.CodecRegistry
+import org.bson.codecs.configuration.CodecRegistries
+import org.proj.db.codecs.primitive.PrimitiveProvider
+import com.mongodb.client.MongoDatabase
+import com.mongodb.client.MongoCollection
+import org.proj.game.PlanetarySystem
+import io.github.cdimascio.dotenv.Dotenv
+import com.mongodb.client.MongoClients
+import org.bson.BsonDocument
+import org.bson.BsonElement
+import org.bson.BsonInt64
+import org.bson.codecs.Codec
+import org.proj.db.codecs.PlanetarySystemCodec
 
-import java.util.Objects;
+object Database {
+    private val primitives = CodecRegistries.fromProviders(PrimitiveProvider.INSTANCE)
+    val client : MongoDatabase
+    val systems : MongoCollection<PlanetarySystem>
 
-public class Database {
-    final private static CodecRegistry PRIMITIVES = CodecRegistries.fromProviders(PrimitiveProvider.INSTANCE);
+    init {
+        val env = Dotenv.configure().load()
+        val username = env["TURING_USERNAME"]!!
+        val database = env["TURING_DATABASE"]!!
+        val password = env["TURING_PASSWORD"]!!
 
-    final public static MongoDatabase DB = initialize();
-    final public static MongoCollection<PlanetarySystem> SYSTEMS = initializeSystems();
-
-    public static void forceInit () {
-        var a = DB;
+        val client = MongoClients.create("mongodb://$username:$password@127.0.0.1:27017/?authSource=admin&readPreference=primary&directConnection=true&ssl=false")
+        this.client = client.getDatabase(database)
+        this.systems = this.client.getCollection("system", PlanetarySystem::class.java)
+            .withCodecRegistry(getRegistry(PlanetarySystemCodec.INSTANCE))
     }
 
-    private static MongoDatabase initialize () {
-        Dotenv env = Dotenv.configure().load();
-
-        String username = env.get("TURING_USERNAME");
-        String database = env.get("TURING_DATABASE");
-        String password = env.get("TURING_PASSWORD");
-
-        Objects.requireNonNull(username, "No username found");
-        Objects.requireNonNull(database, "No database found");
-        Objects.requireNonNull(password, "No password found");
-
-        MongoCredential credential = MongoCredential.createCredential(username, database, password.toCharArray());
-        MongoClientSettings settings = MongoClientSettings.builder().credential(credential).build();
-        MongoClient client = MongoClients.create(settings);
-
-        MongoDatabase db = client.getDatabase(database);
-        try {
-            db.runCommand(new BsonDocument("ping", new BsonInt64(1)));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-
-        return db;
+    fun ping (): Boolean {
+        val response = this.client.runCommand(BsonDocument("ping", BsonInt64(1)))
+        return response.getDouble("ok") == 1.0
     }
 
-    private static CodecRegistry getRegistry (Codec codec) {
-        return CodecRegistries.fromRegistries(PRIMITIVES, CodecRegistries.fromCodecs(codec));
-    }
-
-    private static MongoCollection<PlanetarySystem> initializeSystems () {
-        return DB.getCollection("system", PlanetarySystem.class)
-                .withCodecRegistry(getRegistry(PlanetarySystemCodec.INSTANCE));
+    private fun getRegistry(codec: Codec<*>): CodecRegistry {
+        return CodecRegistries.fromRegistries(primitives, CodecRegistries.fromCodecs(codec))
     }
 }
