@@ -3,13 +3,13 @@ package repository
 import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
-	"github.com/xavimg/Turing/APIrest/entity"
+	"github.com/xavimg/Turing/APIrest/api/entity"
 )
 
 type PlayerRepository interface {
-	Save(video entity.Player)
-	Update(video entity.Player)
-	Delete(video entity.Player)
+	Save(player entity.Player)
+	Update(player entity.Player)
+	Delete(player entity.Player)
 	FindAll() []entity.Player
 	CloseDB()
 }
@@ -19,7 +19,7 @@ type database struct {
 }
 
 func NewConstructorRepository() PlayerRepository {
-	db, err := gorm.Open("mysql", "apiweb.db")
+	db, err := gorm.Open("mysql", "root:@(localhost:3307)/webapi")
 	if err != nil {
 		panic("Failed to connect database")
 	}

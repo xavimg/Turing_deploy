@@ -1,26 +1,38 @@
 package service
 
-import "github.com/xavimg/Turing/APIrest/entity"
+import (
+	"github.com/xavimg/Turing/APIrest/api/entity"
+	"github.com/xavimg/Turing/APIrest/api/repository"
+)
 
 type PlayerService interface {
 	Save(entity.Player) entity.Player
+	Update(entity.Player)
+	Delete(entity.Player)
 	FindAll() []entity.Player
 }
 
 type playerService struct {
-	players []entity.Player
+	playerRepository repository.PlayerRepository
 }
 
-func NewConstructorService() PlayerService {
+func NewConstructorService(repo repository.PlayerRepository) PlayerService {
 	return &playerService{
-		players: []entity.Player{},
+		playerRepository: repo,
 	}
 }
 
 func (p *playerService) Save(player entity.Player) entity.Player {
-	p.players = append(p.players, player)
+	p.playerRepository.Save(player)
 	return player
 }
 func (p *playerService) FindAll() []entity.Player {
-	return p.players
+	return p.playerRepository.FindAll()
+}
+
+func (p *playerService) Update(player entity.Player) {
+	p.playerRepository.Update(player)
+}
+func (p *playerService) Delete(player entity.Player) {
+	p.playerRepository.Delete(player)
 }

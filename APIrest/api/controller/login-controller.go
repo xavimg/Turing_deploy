@@ -2,8 +2,8 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/xavimg/Turing/APIrest/dto"
-	"github.com/xavimg/Turing/APIrest/service"
+	"github.com/xavimg/Turing/APIrest/api/dto"
+	"github.com/xavimg/Turing/APIrest/api/service"
 )
 
 type LoginController interface {
