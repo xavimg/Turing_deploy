@@ -9,7 +9,9 @@ flat_mod!(utils, elements, consts, api, db);
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    insert_sun().await;
+    //insert_sun().await;
+    let get = get_system().await;
+    println!("{:?}", get);
     panic!("Done!");
 
     HttpServer::new(|| {
@@ -30,5 +32,13 @@ async fn insert_sun () {
     match systems.insert_one(&test, None).await {
         Err(x) => panic!("{x:?}"),
         Ok(x) => println!("{x:?}")
+    }
+}
+
+async fn get_system () -> Option<PlanetSystem> {
+    let systems = PLANET_SYSTEM.get().await;
+    match systems.find_one(None, None).await {
+        Err(x) => panic!("{x:?}"),
+        Ok(x) => x
     }
 }
