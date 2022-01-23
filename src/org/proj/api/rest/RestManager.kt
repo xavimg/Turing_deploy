@@ -37,7 +37,12 @@ class RestManager (var server: HttpServer): Thread() {
             this.server.createContext(handler.key) { e ->
                 for (type in handler.value) {
                     if (type.key.name == e.requestMethod) {
-                        type.value.handle(e)
+                        try {
+                            type.value.handle(e)
+                        } catch (er: Exception) {
+                            ApiUtils.sendResponse(e, 500)
+                        }
+
                         return@createContext
                     }
                 }

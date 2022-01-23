@@ -10,6 +10,13 @@ interface Resource {
             Railgun,
             Bullet, Niter, Gunpowder
         )
+
+        fun valueOf (name: String): Resource? {
+            return this.ALL.stream()
+                    .filter { x -> x.name == name }
+                    .findAny()
+                    .orElse(null)
+        }
     }
 
     val name : String
