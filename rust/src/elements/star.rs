@@ -1,18 +1,15 @@
-use std::{time::Duration, collections::HashMap, intrinsics::transmute, sync::{Arc, Mutex}};
+use std::{time::Duration, intrinsics::transmute};
 use lazy_static::lazy_static;
 use llml::{vec::{EucVecd2, EucVecd3}, mat::Matd3};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use serde::{Serialize, Deserialize};
-use crate::{utils::Color, integrate, H, K};
-use super::Body;
+use crate::{utils::Color, H, K};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Star {
     color: Color,
     temperature: f64,
-    mass: f64,
-    position: EucVecd2,
-    velocity: EucVecd2
+    mass: f64
 }
 
 const nanoC : f64 = 2.998e17;
@@ -31,8 +28,8 @@ lazy_static! {
 }
 
 impl Star {
-    pub fn new (color: Color, temperature: f64, mass: f64, position: EucVecd2, velocity: EucVecd2) -> Self {
-        Self { color, temperature, mass, position, velocity }
+    pub fn new (temperature: f64, mass: f64) -> Self {
+        Self { color: Self::calc_color::<{(u16::MAX as usize) * 2}>(temperature), temperature, mass}
     }
 
     pub fn get_color (&self) -> &Color {
@@ -41,6 +38,10 @@ impl Star {
 
     pub fn get_temp (&self) -> f64 {
         self.temperature
+    }
+
+    pub fn get_mass (&self) -> f64 {
+        self.mass
     }
 
     // PRIVATE
@@ -106,28 +107,6 @@ impl Star {
             Self::gaussian_func(lambda, 437., 11.8, 36.),
             Self::gaussian_func(lambda, 459., 26., 13.8)
         ]))
-    }
-}
-
-impl Body for Star {
-    fn get_mass (&self) -> f64 {
-        self.mass
-    }
-
-    fn get_pos (&self) -> EucVecd2 {
-        self.position
-    }
-
-    fn get_vel (&self) -> EucVecd2 {
-        self.velocity
-    }
-
-    fn accelerate (&mut self, acc: EucVecd2, dt: Duration) {
-        self.velocity += acc * dt.as_secs_f64()
-    }
-
-    fn travel(&mut self, dt: Duration) {
-        self.position += self.velocity * dt.as_secs_f64()
     }
 }
 

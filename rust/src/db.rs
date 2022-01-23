@@ -1,10 +1,16 @@
 use async_once::AsyncOnce;
 use lazy_static::lazy_static;
-use mongodb::Database;
+use mongodb::{Database, Collection};
 use mongodb::{options::ClientOptions, Client};
+
+use crate::PlanetSystem;
 
 lazy_static! {
     pub static ref DATABASE: AsyncOnce<Database> = AsyncOnce::new(initialize());
+    pub static ref PLANET_SYSTEM: AsyncOnce<Collection<PlanetSystem>> = AsyncOnce::new(async {
+        let db = DATABASE.get().await;
+        db.collection("system")
+    });
 }
 
 pub async fn initialize () -> Database {

@@ -1,9 +1,7 @@
 use std::time::Duration;
-
 use llml::vec::{EucVecd2};
 use serde::{Serialize, Deserialize};
-use crate::utils::Color;
-use super::Body;
+use crate::{utils::Color, G};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Planet {
@@ -21,26 +19,38 @@ impl Planet {
     pub fn get_color (&self) -> &Color {
         &self.color
     }
-}
 
-impl Body for Planet {
-    fn get_mass (&self) -> f64 {
+    pub fn get_mass (&self) -> f64 {
         self.mass
     }
 
-    fn get_pos (&self) -> EucVecd2 {
+    pub fn get_pos (&self) -> EucVecd2 {
         self.position
     }
 
-    fn get_vel (&self) -> EucVecd2 {
+    pub fn get_vel (&self) -> EucVecd2 {
         self.velocity
     }
 
-    fn accelerate (&mut self, acc: EucVecd2, dt: Duration) {
+    pub fn accelerate (&mut self, acc: EucVecd2, dt: Duration) {
         self.velocity += acc * dt.as_secs_f64()
     }
 
-    fn travel(&mut self, dt: Duration) {
+    pub fn travel (&mut self, dt: Duration) {
         self.position += self.velocity * dt.as_secs_f64()
+    }
+
+    fn accelerate_and_travel (&mut self, acc: EucVecd2, dt: Duration) {
+        self.accelerate(acc, dt);
+        self.travel(dt)
+    }
+
+    /// Returns the acceleration for each element and the direction from ```self```to ```other```
+    /// in ```([acc_self, acc_other], dir)```
+    fn calc_acc (&self, other: &Self) -> (EucVecd2, EucVecd2) {
+        let dist = other.get_pos() - self.get_pos();
+        let r2 = dist.dot(dist);
+
+        (G * EucVecd2::new([other.get_mass(), self.get_mass()]) / r2, dist.unit())
     }
 }

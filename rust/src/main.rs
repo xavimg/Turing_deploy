@@ -1,11 +1,17 @@
 #![feature(once_cell, const_fn_floating_point_arithmetic)]
+use core::panic;
+
 use actix_web::{HttpServer, App, web};
+use llml::vec::EucVecd2;
 
 include!("macros.rs");
 flat_mod!(utils, elements, consts, api, db);
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    insert_sun().await;
+    panic!("Done!");
+
     HttpServer::new(|| {
         App::new()
             .route("/status", web::get().to(status))
@@ -13,4 +19,16 @@ async fn main() -> std::io::Result<()> {
     .bind(("127.0.0.1", 8080))?
     .run()
     .await
+}
+
+async fn insert_sun () {
+    let systems = PLANET_SYSTEM.get().await;
+    let sun = Star::new(5772., 1048.);
+    let earth = Planet::new(Color::BLUE, 0.003146, EucVecd2::new([1., 0.]), EucVecd2::new([0., 2e-7]));
+
+    let test = PlanetSystem::new(sun, vec![earth]);
+    match systems.insert_one(&test, None).await {
+        Err(x) => panic!("{x:?}"),
+        Ok(x) => println!("{x:?}")
+    }
 }
