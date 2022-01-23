@@ -1,4 +1,4 @@
-#![feature(generic_const_exprs, once_cell)]
+#![feature(once_cell, const_fn_floating_point_arithmetic)]
 use actix_web::{HttpServer, App, web};
 
 include!("macros.rs");
