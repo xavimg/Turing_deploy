@@ -3,6 +3,8 @@ package service
 import (
 	"log"
 
+	"github.com/mashingan/smapping"
+	"github.com/xavimg/Turing/apituringserver/dto"
 	"github.com/xavimg/Turing/apituringserver/entity"
 	"github.com/xavimg/Turing/apituringserver/repository"
 	"golang.org/x/crypto/bcrypt"
@@ -10,9 +12,9 @@ import (
 
 type AuthService interface {
 	VerifyCredential(email, password string) interface{}
-	// CreateUser(user dto.RegisterDTO) entity.User
+	CreateUser(user dto.RegisterDTO) entity.User
 	// FindByUsername(username string) entity.User
-	// IsDuplcatedEmail(email string) bool
+	IsDuplicateEmail(email string) bool
 }
 
 type authService struct {
@@ -39,6 +41,26 @@ func (service *authService) VerifyCredential(email, password string) interface{}
 	}
 
 	return false
+}
+
+func (service *authService) CreateUser(user dto.RegisterDTO) entity.User {
+	userToCreate := entity.User{}
+
+	err := smapping.FillStruct(&userToCreate, smapping.MapFields(&user))
+
+	if err != nil {
+		log.Fatalf("Failed map %v", err)
+	}
+
+	res := service.userRepository.InsertUser(userToCreate)
+
+	return res
+}
+
+func (service *authService) IsDuplicateEmail(email string) bool {
+	res := service.userRepository.IsDuplicateEmail(email)
+
+	return !(res.Error == nil)
 }
 
 func comparePassword(hashedPwd string, plainPassword []byte) bool {

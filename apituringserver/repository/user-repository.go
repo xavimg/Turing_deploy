@@ -13,9 +13,9 @@ type UserRepository interface {
 	InsertUser(user entity.User) entity.User
 	// UpdateUser(user entity.User, path string) entity.User
 	VerifyCredential(email, password string) interface{}
-	// IsDuplcatedEmail(email string) (ctx *gorm.DB)
+	IsDuplicateEmail(email string) (ctx *gorm.DB)
 	// FindByUsername(username string) entity.User
-	// ProfileUser(userID string) entity.User
+	ProfileUser(userID string) entity.User
 }
 
 type userConnection struct {
@@ -58,4 +58,18 @@ func (db *userConnection) VerifyCredential(email string, password string) interf
 	}
 
 	return res
+}
+
+func (db *userConnection) IsDuplicateEmail(email string) (tx *gorm.DB) {
+	var user entity.User
+
+	return db.connection.Where("email = ?", email).Take(&user)
+}
+
+func (db *userConnection) ProfileUser(userID string) entity.User {
+	var user entity.User
+
+	db.connection.Find(&user, userID)
+
+	return user
 }
