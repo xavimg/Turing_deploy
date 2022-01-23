@@ -44,6 +44,7 @@ impl Star {
     }
 
     // PRIVATE
+    // It's preatty bad, but I belive that's because the integral doesn't have enough accuracy
     pub fn calc_color<const N: usize> (temp: f64) -> Color {
         let xyz = Self::integrate::<N>(temp);
         let xyz = xyz / xyz.sum();
@@ -106,27 +107,6 @@ impl Star {
             Self::gaussian_func(lambda, 459., 26., 13.8)
         ]))
     }
-
-    /*
-    private static double gaussianFunc (double x, double mu, double gamma1, double gamma2) {
-        return Math.exp(-Math.pow(x - mu, 2) / (2 * Math.pow(x < mu ? gamma1 : gamma2, 2)));
-    }
-
-    private static double xFunction (double lambda) {
-        return 1.056 * gaussianFunc(lambda, 599.8, 37.9, 31)
-                + 0.362 * gaussianFunc(lambda, 442, 16, 26.7)
-                - 0.065 * gaussianFunc(lambda, 501.1, 20.4, 26.2);
-    }
-
-    private static double yFunction (double lambda) {
-        return 0.821 * gaussianFunc(lambda, 568.8, 46.9, 40.5)
-                + 0.286 * gaussianFunc(lambda, 530.9, 16.3, 31.1);
-    }
-
-    private static double zFunction (double lambda) {
-        return 1.217 * gaussianFunc(lambda, 437, 11.8, 36)
-                + 0.681 * gaussianFunc(lambda, 459, 26, 13.8);
-    }*/
 }
 
 impl Body for Star {
