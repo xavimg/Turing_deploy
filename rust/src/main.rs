@@ -1,7 +1,8 @@
+#![feature(generic_const_exprs, once_cell)]
 use actix_web::{HttpServer, App, web};
 
 include!("macros.rs");
-flat_mod!(utils, elements, consts, api);
+flat_mod!(utils, elements, consts, api, db);
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {

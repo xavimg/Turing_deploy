@@ -1,1 +1,1 @@
-flat_mod!(color);
+flat_mod!(color, seq_await);
