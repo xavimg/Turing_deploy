@@ -107,3 +107,7 @@ dist
 
 # TernJS port file
 .tern-port
+
+# Rust
+rust/Cargo.lock
+rust/target/

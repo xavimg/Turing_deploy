@@ -15,7 +15,6 @@ import org.proj.game.PlanetarySystem;
 
 public class Database {
     final private static CodecRegistry PRIMITIVES = CodecRegistries.fromProviders(PrimitiveProvider.INSTANCE);
-
     final public static MongoDatabase DB = initialize();
     final public static MongoCollection<PlanetarySystem> SYSTEMS = initializeSystems();
 

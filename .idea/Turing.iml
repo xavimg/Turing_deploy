@@ -12,6 +12,13 @@
       <sourceFolder url="file://$MODULE_DIR$/test" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/test/garbagio" />
       <excludeFolder url="file://$MODULE_DIR$/venv" />
+      <excludeFolder url="file://$MODULE_DIR$/rust/target/debug/build/proc-macro2-16fe8ecc42488dbd/out" />
+      <excludeFolder url="file://$MODULE_DIR$/rust/target/debug/build/serde-a07525eb4950521a/out" />
+      <excludeFolder url="file://$MODULE_DIR$/rust/target/debug/build/serde_derive-c0888d65777efc6f/out" />
+      <excludeFolder url="file://$MODULE_DIR$/rust/target/debug/build/syn-18c4ca9e6e6a8631/out" />
+      <excludeFolder url="file://$MODULE_DIR$/rust/target/debug/incremental/rust-1hlzq1kmxvui2/s-g6cusi69gq-71zdl2-3mqlneq2ubrl8" />
+      <excludeFolder url="file://$MODULE_DIR$/rust/target/debug/incremental/rust-35s4741lwmzto/s-g6cusi6rg6-9qm15y-1c9ohdqv70542" />
+      <excludeFolder url="file://$MODULE_DIR$/rust/target/debug/examples" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

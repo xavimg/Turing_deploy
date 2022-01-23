@@ -35,9 +35,9 @@ dependencies = [
 
 [[package]]
 name = "llml"
-version = "0.2.0"
+version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "da9d836583ab28525861bc6ededf891562ca986464a86c9fd533dd3f9dc68c57"
+checksum = "7ed0ef8976da555d2e963d86278a941f08b82d952a470d14270c83c9bc211efc"
 dependencies = [
  "bytemuck",
  "cfg-if",

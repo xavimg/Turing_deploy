@@ -1,3 +1,4 @@
+use std::time::Duration;
 use llml::vec::{EucVecd2};
 use serde::{Serialize, Deserialize};
 use crate::utils::Color;
@@ -37,5 +38,13 @@ impl Body for Star {
 
     fn get_vel (&self) -> EucVecd2 {
         self.velocity
+    }
+
+    fn accelerate (&mut self, acc: EucVecd2, dt: Duration) {
+        self.velocity += acc * dt.as_secs_f64()
+    }
+
+    fn travel(&mut self, dt: Duration) {
+        self.position += self.velocity * dt.as_secs_f64()
     }
 }
