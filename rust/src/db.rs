@@ -3,13 +3,19 @@ use lazy_static::lazy_static;
 use mongodb::{Database, Collection};
 use mongodb::{options::ClientOptions, Client};
 
-use crate::PlanetSystem;
+use crate::{PlanetSystem, Player};
 
 lazy_static! {
     pub static ref DATABASE: AsyncOnce<Database> = AsyncOnce::new(initialize());
-    pub static ref PLANET_SYSTEM: AsyncOnce<Collection<PlanetSystem>> = AsyncOnce::new(async {
+
+    pub static ref PLANET_SYSTEMS: AsyncOnce<Collection<PlanetSystem>> = AsyncOnce::new(async {
         let db = DATABASE.get().await;
         db.collection("system")
+    });
+
+    pub static ref PLAYERS: AsyncOnce<Collection<Player>> = AsyncOnce::new(async {
+        let db = DATABASE.get().await;
+        db.collection("player")
     });
 }
 

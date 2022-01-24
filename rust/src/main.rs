@@ -24,7 +24,7 @@ async fn main() -> std::io::Result<()> {
 }
 
 async fn insert_sun () {
-    let systems = PLANET_SYSTEM.get().await;
+    let systems = PLANET_SYSTEMS.get().await;
     let sun = Star::new(5772., 1048.);
     let earth = Planet::new(Color::BLUE, 0.003146, EucVecd2::new([1., 0.]), EucVecd2::new([0., 2e-7]));
 
@@ -36,7 +36,7 @@ async fn insert_sun () {
 }
 
 async fn get_system () -> Option<PlanetSystem> {
-    let systems = PLANET_SYSTEM.get().await;
+    let systems = PLANET_SYSTEMS.get().await;
     match systems.find_one(None, None).await {
         Err(x) => panic!("{x:?}"),
         Ok(x) => x

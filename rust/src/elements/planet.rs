@@ -1,10 +1,13 @@
 use std::time::Duration;
+use bson::oid::ObjectId;
 use llml::vec::{EucVecd2};
 use serde::{Serialize, Deserialize};
 use crate::{utils::Color, G};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Planet {
+    #[serde(rename = "_id")]
+    id: ObjectId,
     color: Color,
     mass: f64,
     position: EucVecd2,
@@ -13,7 +16,7 @@ pub struct Planet {
 
 impl Planet {
     pub fn new (color: Color, mass: f64, position: EucVecd2, velocity: EucVecd2) -> Self {
-        Self { color, mass, position, velocity }
+        Self { id: ObjectId::new(), color, mass, position, velocity }
     }
 
     pub fn get_color (&self) -> &Color {
@@ -50,7 +53,6 @@ impl Planet {
     fn calc_acc (&self, other: &Self) -> (EucVecd2, EucVecd2) {
         let dist = other.get_pos() - self.get_pos();
         let r2 = dist.dot(dist);
-
         (G * EucVecd2::new([other.get_mass(), self.get_mass()]) / r2, dist.unit())
     }
 }

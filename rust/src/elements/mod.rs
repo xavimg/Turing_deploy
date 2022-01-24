@@ -1,1 +1,1 @@
-flat_mod!(planet, star, system);
+flat_mod!(planet, star, system, player);

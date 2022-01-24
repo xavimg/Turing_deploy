@@ -1,4 +1,5 @@
-use std::{time::Duration, intrinsics::transmute};
+use std::{intrinsics::transmute};
+use bson::oid::ObjectId;
 use lazy_static::lazy_static;
 use llml::{vec::{EucVecd2, EucVecd3}, mat::Matd3};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
@@ -7,6 +8,8 @@ use crate::{utils::Color, H, K};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Star {
+    #[serde(rename = "_id")]
+    id: ObjectId,
     color: Color,
     temperature: f64,
     mass: f64
@@ -29,7 +32,7 @@ lazy_static! {
 
 impl Star {
     pub fn new (temperature: f64, mass: f64) -> Self {
-        Self { color: Self::calc_color::<{(u16::MAX as usize) * 2}>(temperature), temperature, mass}
+        Self { id: ObjectId::new(), color: Self::calc_color::<{(u16::MAX as usize) * 2}>(temperature), temperature, mass}
     }
 
     pub fn get_color (&self) -> &Color {
@@ -81,6 +84,9 @@ impl Star {
     #[cfg(target_feature = "neon")]
     const X_VEC : EucVecd3 = unsafe { transmute([1.056, 0.362, 0.065, 0.]) };
 
+    #[cfg(target_feature = "sse")]
+    const X_VEC : EucVecd3 = unsafe { transmute([0.065, 0.362, 1.056, 0.]) };
+
     fn x_func (lambda: f64) -> f64 {
         Self::X_VEC.dot(EucVecd3::new([
             Self::gaussian_func(lambda, 599.8, 37.9, 31.),
@@ -92,6 +98,9 @@ impl Star {
     #[cfg(target_feature = "neon")]
     const Y_VEC : EucVecd2 = unsafe { transmute([0.821, 0.286]) };
 
+    #[cfg(target_feature = "sse")]
+    const Y_VEC : EucVecd2 = unsafe { transmute([0.286, 0.821]) };
+
     fn y_func (lambda: f64) -> f64 {
         Self::Y_VEC.dot(EucVecd2::new([
             Self::gaussian_func(lambda, 568.8, 46.9, 40.5),
@@ -101,6 +110,9 @@ impl Star {
     
     #[cfg(target_feature = "neon")]
     const Z_VEC : EucVecd2 = unsafe { transmute([1.217, 0.681]) };
+
+    #[cfg(target_feature = "sse")]
+    const Z_VEC : EucVecd2 = unsafe { transmute([0.681, 1.217]) };
 
     fn z_func (lambda: f64) -> f64 {
         Self::Z_VEC.dot(EucVecd2::new([
