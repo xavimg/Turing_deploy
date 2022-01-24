@@ -9,11 +9,6 @@ flat_mod!(utils, elements, consts, api, db);
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    //insert_sun().await;
-    let get = get_system().await;
-    println!("{:?}", get);
-    panic!("Done!");
-
     HttpServer::new(|| {
         App::new()
             .route("/status", web::get().to(status))
@@ -21,6 +16,12 @@ async fn main() -> std::io::Result<()> {
     .bind(("127.0.0.1", 8080))?
     .run()
     .await
+}
+
+#[test]
+fn pasre_resource () {
+    let resource = serde_json::to_string(&Iron).unwrap();
+    println!("{resource}")
 }
 
 async fn insert_sun () {
