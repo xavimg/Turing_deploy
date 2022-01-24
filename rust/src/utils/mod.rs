@@ -1,1 +1,1 @@
-flat_mod!(color, seq_await, math);
+flat_mod!(color, seq_await, math, serdex);

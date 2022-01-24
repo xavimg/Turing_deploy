@@ -16,3 +16,4 @@ mongodb = "2.1.0"
 async_once = "0.2.6"
 lazy_static = "1.4.0"
 bson = "2.1.0"
+strum = { version = "0.23.0", features = ["derive"] }

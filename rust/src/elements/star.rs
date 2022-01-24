@@ -8,8 +8,6 @@ use crate::{utils::Color, H, K};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Star {
-    #[serde(rename = "_id")]
-    id: ObjectId,
     color: Color,
     temperature: f64,
     mass: f64
@@ -32,7 +30,7 @@ lazy_static! {
 
 impl Star {
     pub fn new (temperature: f64, mass: f64) -> Self {
-        Self { id: ObjectId::new(), color: Self::calc_color::<{(u16::MAX as usize) * 2}>(temperature), temperature, mass}
+        Self { color: Self::calc_color::<{(u16::MAX as usize) * 2}>(temperature), temperature, mass}
     }
 
     pub fn get_color (&self) -> &Color {

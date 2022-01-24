@@ -6,8 +6,6 @@ use crate::{utils::Color, G};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Planet {
-    #[serde(rename = "_id")]
-    id: ObjectId,
     color: Color,
     mass: f64,
     position: EucVecd2,
@@ -16,7 +14,7 @@ pub struct Planet {
 
 impl Planet {
     pub fn new (color: Color, mass: f64, position: EucVecd2, velocity: EucVecd2) -> Self {
-        Self { id: ObjectId::new(), color, mass, position, velocity }
+        Self { color, mass, position, velocity }
     }
 
     pub fn get_color (&self) -> &Color {

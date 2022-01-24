@@ -1,6 +1,8 @@
+use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
+use crate::Resource;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Default, Serialize, Deserialize)]
 pub struct Inventory {
-    max_capacity: usize
+    contents: HashMap<Resource, u32>
 }
