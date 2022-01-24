@@ -1,6 +1,11 @@
 package controller
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"io"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -9,6 +14,10 @@ import (
 	"github.com/xavimg/Turing/apituringserver/helper"
 	"github.com/xavimg/Turing/apituringserver/service"
 )
+
+type JsonAndreba struct {
+	Isvalid bool `json:"isvalid"`
+}
 
 // AuthController interface is a contract what this controller can do
 type AuthController interface {
@@ -46,10 +55,33 @@ func (c *authController) Register(context *gin.Context) {
 		response := helper.BuildErrorResponse("User register failed", "Duplicate email", helper.EmptyObj{})
 		context.JSON(http.StatusConflict, response)
 	} else {
+
 		createdUser := c.authService.CreateUser(registerDTO)
-		token := c.jwtService.GenerateToken(strconv.FormatUint(createdUser.ID, 10))
+
+		json_data, err := json.Marshal(createdUser.ID)
+		if err != nil {
+			return
+		}
+
+		fmt.Println(json_data)
+
+		resp, err := http.Post("http://192.168.139.195:8080/internal/user", "application/json", bytes.NewReader(json_data))
+		if err != nil {
+			log.Fatal("nil1", err)
+		}
+		defer resp.Body.Close()
+
+		bodyBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			log.Fatal("nil2", err)
+		}
+		bodyString := string(bodyBytes)
+		fmt.Println("debug", bodyString)
+
+		token := c.jwtService.GenerateToken(strconv.FormatUint(uint64(createdUser.ID), 10))
 		createdUser.Token = token
 		response := helper.BuildResponse(true, "User register successfully", createdUser)
-		context.JSON(http.StatusCreated, response)
+
+		context.JSON(http.StatusCreated, response.Data)
 	}
 }

@@ -11,8 +11,8 @@ import (
 )
 
 type AuthService interface {
-	VerifyCredential(email, password string) interface{}
 	CreateUser(user dto.RegisterDTO) entity.User
+	VerifyCredential(email, password string) interface{}
 	// FindByUsername(username string) entity.User
 	IsDuplicateEmail(email string) bool
 }
@@ -25,6 +25,20 @@ func NewAuthService(userRepo repository.UserRepository) AuthService {
 	return &authService{
 		userRepository: userRepo,
 	}
+}
+
+
+func (service *authService) CreateUser(user dto.RegisterDTO) entity.User {
+	userToCreate := entity.User{}
+
+	err := smapping.FillStruct(&userToCreate, smapping.MapFields(&user))
+	if err != nil {
+		log.Fatalf("Failed map %v", err)
+	}
+
+	res := service.userRepository.InsertUser(userToCreate)
+
+	return res
 }
 
 func (service *authService) VerifyCredential(email, password string) interface{} {
@@ -43,19 +57,6 @@ func (service *authService) VerifyCredential(email, password string) interface{}
 	return false
 }
 
-func (service *authService) CreateUser(user dto.RegisterDTO) entity.User {
-	userToCreate := entity.User{}
-
-	err := smapping.FillStruct(&userToCreate, smapping.MapFields(&user))
-
-	if err != nil {
-		log.Fatalf("Failed map %v", err)
-	}
-
-	res := service.userRepository.InsertUser(userToCreate)
-
-	return res
-}
 
 func (service *authService) IsDuplicateEmail(email string) bool {
 	res := service.userRepository.IsDuplicateEmail(email)

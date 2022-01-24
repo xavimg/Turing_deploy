@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/xavimg/Turing/apituringserver/config"
 	"github.com/xavimg/Turing/apituringserver/controller"
+	"github.com/xavimg/Turing/apituringserver/middleware"
 	"github.com/xavimg/Turing/apituringserver/repository"
 	"github.com/xavimg/Turing/apituringserver/service"
 	"gorm.io/gorm"
@@ -18,7 +19,7 @@ var (
 
 	authService    service.AuthService       = service.NewAuthService(userRepository)
 	authController controller.AuthController = controller.NewAuthController(authService, jwtService)
-	// userController controller.UserController = controller.NewUserController(userService, jwtService)
+	userController controller.UserController = controller.NewUserController(userService, jwtService)
 )
 
 func main() {
@@ -29,6 +30,11 @@ func main() {
 	authRoutes := r.Group("api/auth")
 	{
 		authRoutes.POST("/register", authController.Register)
+	}
+
+	userRoutes := r.Group("api/user", middleware.AuthorizeJWT(jwtService))
+	{
+		userRoutes.GET("/profile", userController.Profile)
 	}
 
 	r.Run()

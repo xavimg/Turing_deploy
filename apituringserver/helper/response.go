@@ -26,6 +26,15 @@ func BuildResponse(status bool, message string, data interface{}) Response {
 	return res
 }
 
+// func AlexResponse() Response {
+// 	res := Response{
+// 		Message,
+// 		Status,
+// 	}
+
+// 	return res
+// }
+
 // BuildErrorResponse method is to inject data value to dynamic failed response
 func BuildErrorResponse(message string, err string, data interface{}) Response {
 	splittedError := strings.Split(err, "\n")
