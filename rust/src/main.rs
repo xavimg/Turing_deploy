@@ -1,25 +1,16 @@
-#![feature(once_cell, const_fn_floating_point_arithmetic, const_mut_refs)]
+#![feature(once_cell, const_fn_floating_point_arithmetic, const_mut_refs, const_for)]
 use core::panic;
-use actix_web::{HttpServer, App, web};
+use actix_web::{HttpServer, App};
 use llml::vec::EucVecd2;
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 include!("macros.rs");
 flat_mod!(utils, elements, consts, api, db);
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {    
-    HttpServer::new(|| {
-        App::new()
-            .route("/status", web::get().to(status))
-            .route("/resources", web::get().to(resources))
-
-            .service(new_user)
-    })
-    .bind(("0.0.0.0", 8080))?
-    .run()
-    .await
-
-    // 192.168.139.195
+    let server = create_http!(status, resources, new_user, random_system);  
+    server.bind(("0.0.0.0", 8080))?.run().await
 }
 
 async fn insert_system () {

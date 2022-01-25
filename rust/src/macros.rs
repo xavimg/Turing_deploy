@@ -6,3 +6,14 @@ macro_rules! flat_mod {
         )*
     };
 }
+
+macro_rules! create_http {
+    ($($service:expr),+) => {
+        HttpServer::new(|| {
+            App::new()
+            $(
+                .service($service)
+            )*
+        })
+    }
+}

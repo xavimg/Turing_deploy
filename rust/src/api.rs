@@ -1,11 +1,13 @@
-use actix_web::{Responder, web, HttpRequest, post, HttpResponse};
+use actix_web::{Responder, web, HttpRequest, post, get};
+use llml::mat::Matd3;
 use mongodb::{bson::{doc}};
-use serde::{Serialize, Deserialize};
 use serde_json::{json, Value};
 use strum::IntoEnumIterator;
-use crate::{DATABASE, Resource, PLAYERS, Player};
+use crate::{DATABASE, Resource, PLAYERS, Player, Gaussian, PlanetSystem};
+use rand::{random, thread_rng, prelude::Distribution};
 
 // OUT API
+#[get("/status")]
 pub async fn status () -> impl Responder {
     let db = DATABASE.get().await;    
     let ping = match db.run_command(doc! { "ping": 1u32 }, None).await {
@@ -18,12 +20,18 @@ pub async fn status () -> impl Responder {
 
     let json = json!({
         "running": true,
-        "database": ping
+        "database": ping,
+        "random": {
+            "bool": random::<bool>(),
+            "float": random::<f32>(),
+            "mat3": random::<Matd3>()
+        }
     });
 
     web::Json(json)
 }
 
+#[get("/resources")]
 pub async fn resources () -> impl Responder {
     let resources : Vec<Value> = Resource::iter()
         .map(|x: Resource| json!({
@@ -50,4 +58,11 @@ pub async fn new_user (_: HttpRequest, body: web::Json<u64>) -> impl Responder {
     };
 
     web::Json(json!({ "valid": valid }))
+}
+
+#[get("/internal/test/system")]
+pub async fn random_system () -> impl Responder {
+    let gaussian : Gaussian<f64> = Gaussian::new();
+    let system : PlanetSystem = gaussian.sample(&mut thread_rng());
+    web::Json(system)
 }

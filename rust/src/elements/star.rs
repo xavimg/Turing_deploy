@@ -8,9 +8,9 @@ use crate::{utils::Color, H, K};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Star {
-    color: Color,
-    temperature: f64,
-    mass: f64
+    pub color: Color,
+    pub temperature: f64,
+    pub mass: f64
 }
 
 const nanoC : f64 = 2.998e17;
@@ -30,19 +30,7 @@ lazy_static! {
 
 impl Star {
     pub fn new (temperature: f64, mass: f64) -> Self {
-        Self { color: Self::calc_color::<{(u16::MAX as usize) * 2}>(temperature), temperature, mass}
-    }
-
-    pub fn get_color (&self) -> &Color {
-        &self.color
-    }
-
-    pub fn get_temp (&self) -> f64 {
-        self.temperature
-    }
-
-    pub fn get_mass (&self) -> f64 {
-        self.mass
+        Self { color: Self::calc_color::<500>(temperature), temperature, mass}
     }
 
     // PRIVATE
@@ -57,7 +45,7 @@ impl Star {
 
     fn integrate<const N: usize> (temp: f64) -> EucVecd3 {
         // from 380 to 780
-        let delta : f64 = 400. / (N as f64);
+        let delta : f64 = 400. / ((N + 1) as f64);
 
         let xyz = (0..=N).into_par_iter()
             .map(|i| {
@@ -86,6 +74,7 @@ impl Star {
     const X_VEC : EucVecd3 = unsafe { transmute([0.065, 0.362, 1.056, 0.]) };
 
     fn x_func (lambda: f64) -> f64 {
+        let x = Self::X_VEC;
         Self::X_VEC.dot(EucVecd3::new([
             Self::gaussian_func(lambda, 599.8, 37.9, 31.),
             Self::gaussian_func(lambda, 442., 16., 26.7),

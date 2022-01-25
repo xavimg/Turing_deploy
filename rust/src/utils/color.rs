@@ -1,7 +1,8 @@
+use randerive::Rand;
 use serde::{Serialize, Deserialize};
 
 #[derive(Debug)]
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Rand)]
 pub struct Color {
     pub r: u8,
     pub g: u8,
