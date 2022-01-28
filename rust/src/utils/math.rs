@@ -1,6 +1,5 @@
 use rayon::iter::{ParallelBridge, ParallelIterator};
 
-
 struct LinearSpace {
     at: f64,
     to: f64,

@@ -1,5 +1,4 @@
 use std::{intrinsics::transmute};
-use bson::oid::ObjectId;
 use lazy_static::lazy_static;
 use llml::{vec::{EucVecd2, EucVecd3}, mat::Matd3};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
@@ -71,10 +70,9 @@ impl Star {
     const X_VEC : EucVecd3 = unsafe { transmute([1.056, 0.362, 0.065, 0.]) };
 
     #[cfg(target_feature = "sse")]
-    const X_VEC : EucVecd3 = unsafe { transmute([0.065, 0.362, 1.056, 0.]) };
+    const X_VEC : EucVecd3 = unsafe { transmute([0., 0.065, 0.362, 1.056]) };
 
     fn x_func (lambda: f64) -> f64 {
-        let x = Self::X_VEC;
         Self::X_VEC.dot(EucVecd3::new([
             Self::gaussian_func(lambda, 599.8, 37.9, 31.),
             Self::gaussian_func(lambda, 442., 16., 26.7),

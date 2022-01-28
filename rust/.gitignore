@@ -1,2 +1,5 @@
 Cargo.lock
 /target
+
+/lib/*/Cargo.lock
+/lib/*/target

@@ -56,9 +56,7 @@ macro_rules! impl_gaussian {
                     loop {
                         let vec = $vec::new([self.1.sample(rng), self.1.sample(rng)]);
                         let s = vec.dot(vec);
-                        if s >= 1. || s == 0. {
-                            continue
-                        }
+                        if s >= 1. || s == 0. { continue }
 
                         let mul = <$ty>::sqrt(-2. * s.ln() / s);
                         let vec = vec * mul;
