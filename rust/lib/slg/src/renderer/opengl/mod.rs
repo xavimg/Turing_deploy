@@ -1,0 +1,1 @@
+flat_mod!(instance, renderer, shader, uniform);
