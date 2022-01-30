@@ -7,8 +7,8 @@ import (
 
 // UserService is a contract about something that this service can do
 type UserService interface {
-	// Update(user dto.RegisterDTO, path string) entity.User
 	Profile(userID string) entity.User
+	// Update(user dto.UserUpdateDTO, path string) entity.User
 }
 
 type userService struct {
@@ -20,6 +20,10 @@ func NewUserService(userRepo repository.UserRepository) UserService {
 	return &userService{
 		userRepository: userRepo,
 	}
+}
+
+func (service *userService) Profile(userID string) entity.User {
+	return service.userRepository.ProfileUser(userID)
 }
 
 // func (service *userService) Update(user dto.UserUpdateDTO, path string) entity.User {
@@ -35,7 +39,3 @@ func NewUserService(userRepo repository.UserRepository) UserService {
 
 // 	return updatedUser
 // }
-
-func (service *userService) Profile(userID string) entity.User {
-	return service.userRepository.ProfileUser(userID)
-}

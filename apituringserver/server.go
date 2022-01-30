@@ -27,16 +27,19 @@ func main() {
 
 	r.MaxMultipartMemory = 8 << 20
 
+	// public routes
 	authRoutes := r.Group("api/auth")
 	{
+		authRoutes.POST("/login", authController.Login)
 		authRoutes.POST("/register", authController.Register)
 	}
 
+	// private/tokenized routes
 	userRoutes := r.Group("api/user", middleware.AuthorizeJWT(jwtService))
 	{
 		userRoutes.GET("/profile", userController.Profile)
 	}
 
-	r.Run()
+	r.Run(":3000")
 
 }

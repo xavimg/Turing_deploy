@@ -12,6 +12,7 @@ import (
 
 type UserController interface {
 	Profile(context *gin.Context)
+	// Update(context *gin.Context)
 }
 
 type userController struct {
@@ -26,8 +27,8 @@ func NewUserController(userService service.UserService, jwtService service.JWTSe
 	}
 }
 
-func (c *userController) Profile(context *gin.Context) {
-	authHeader := context.GetHeader("Authorization")
+func (c *userController) Profile(ctx *gin.Context) {
+	authHeader := ctx.GetHeader("Authorization")
 	token, err := c.jwtService.ValidateToken(authHeader)
 	if err != nil {
 		panic(err.Error())
@@ -41,5 +42,10 @@ func (c *userController) Profile(context *gin.Context) {
 
 	// response
 	res := helper.BuildResponse(true, "Get user profile successfully", user)
-	context.JSON(http.StatusOK, res)
+	ctx.JSON(http.StatusOK, res)
 }
+
+// func (c *userController) Update(ctx *gin.Context) {
+// 	var userUpdateDTO dto.UserUpdateDTO
+
+// }

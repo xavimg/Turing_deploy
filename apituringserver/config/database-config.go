@@ -1,12 +1,9 @@
 package config
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/joho/godotenv"
 	"github.com/xavimg/Turing/apituringserver/entity"
-	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
@@ -18,14 +15,14 @@ func SetupDatabaseConnection() *gorm.DB {
 		panic("Failed to load env file")
 	}
 
-	dbUser := os.Getenv("DB_USER")
-	dbPass := os.Getenv("DB_PASS")
-	dbHost := os.Getenv("DB_HOST")
-	dbName := os.Getenv("DB_NAME")
+	// dbUser := os.Getenv("DB_USER")
+	// dbPass := os.Getenv("DB_PASS")
+	// dbHost := os.Getenv("DB_HOST")
+	// dbName := os.Getenv("DB_NAME")
 
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:3307)/%s?charset=utf8&parseTime=True&loc=Local", dbUser, dbPass, dbHost, dbName)
+	dsn := "host=localhost user=postgres password=v6vpxdkd dbname=alanturing port=5432 sslmode=disable"
 
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 	if err != nil {
 		panic("Failed to create a connection to database")
