@@ -5,6 +5,9 @@ use crate::Uniformable;
 pub struct Color([f32;3]);
 
 impl Color {
+    pub const WHITE : Color = Color([1., 1., 1.]);
+    pub const BLACK : Color = Color([0., 0., 0.]);
+
     pub fn new (r: u8, g: u8, b: u8) -> Self {
         let vec = EucVecf3::new([
             r as f32,
@@ -29,7 +32,7 @@ impl Color {
 }
 
 impl Uniformable for Color {
-    fn set_value<R: crate::Renderer, U: crate::Uniform<R>> (&self, target: &mut U) -> Result<(), R::Error> {
+    fn set_value<R: crate::Renderer, U: crate::Uniform<R>> (&self, target: &mut U) -> Result<(), String> {
         target.set_vec3f(EucVecf3::new(self.0))
     }
 }

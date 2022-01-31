@@ -3,7 +3,7 @@ use llml::vec::EucVecf2;
 use crate::{Renderer, RenderShader};
 use super::Color;
 
-pub trait RenderElement<R: Renderer> {
+pub trait RenderElement<R: Renderer>: Send + Sync {
     fn get_shader (&self) -> &Arc<R::Shader>;
     fn get_shader_mut (&mut self) -> &mut Arc<R::Shader>;
 
@@ -14,7 +14,7 @@ pub trait RenderElement<R: Renderer> {
     fn get_size (&self) -> EucVecf2;
     fn get_color (&self) -> &Color;
 
-    fn render (&self) -> Result<(), R::Error> {
+    fn render (&self) -> Result<(), String> {
         let shader = self.get_shader();
         shader.bind()?;
         shader.set_uniform("aspectRatio", &1f32)?; // TODO
@@ -44,7 +44,7 @@ impl<R: Renderer> Circle<R> {
     }
 }
 
-impl<R: Renderer> RenderElement<R> for Circle<R> {
+impl<R: Renderer> RenderElement<R> for Circle<R> where Self: Send + Sync {
     fn get_shader (&self) -> &Arc<R::Shader> {
         &self.shader
     }

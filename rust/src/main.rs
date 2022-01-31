@@ -2,7 +2,6 @@
 mod tests;
 
 use core::panic;
-use std::{time::Duration, thread::sleep};
 use actix_web::{HttpServer, App};
 use llml::vec::EucVecd2;
 use rand::{prelude::Distribution, thread_rng};
@@ -13,6 +12,8 @@ flat_mod!(utils, elements, consts, api, db);
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {    
+    simulate_system();
+
     let server = create_http!(status, resources, new_user, random_system);  
     server.bind(("0.0.0.0", 8080))?.run().await
 }

@@ -1,29 +1,28 @@
-use std::{sync::{Arc, Mutex}, num::NonZeroU32, mem::{size_of_val, size_of}, lazy::Lazy};
+use std::{sync::{Arc, Mutex, RwLock}, num::NonZeroU32, mem::{size_of_val, size_of}, lazy::Lazy, ops::Deref};
 use glutin::{event_loop::{EventLoop, ControlFlow}, window::WindowBuilder, dpi::LogicalSize, ContextBuilder, event::{Event, WindowEvent}, GlRequest, Api, platform::run_return::EventLoopExtRunReturn};
 use gl33::{global_loader::{load_global_gl, glCreateShader, glShaderSource, glCompileShader, glGetShaderiv, glGetShaderInfoLog, glCreateProgram, glAttachShader, glGetProgramiv, glLinkProgram, glGetProgramInfoLog, glDetachShader, glValidateProgram, glGenVertexArrays, glBindVertexArray, glGenBuffers, glBindBuffer, glBufferData, glVertexAttribPointer, glEnableVertexAttribArray, glClear, glEnable, glBlendFunc}, GL_COMPILE_STATUS, GL_LINK_STATUS, ProgramPropertyARB, GL_VALIDATE_STATUS, GL_ARRAY_BUFFER, GL_STATIC_DRAW, GL_FLOAT, ShaderType, GL_VERTEX_SHADER, GL_FRAGMENT_SHADER, GL_DEPTH_BUFFER_BIT, GL_COLOR_BUFFER_BIT, GL_BLEND, GL_ONE};
-use crate::{Renderer, RenderInstance};
+use crate::{Renderer, Threadly, RenderInstance};
 use super::{GlInstance, GlShader, GlUniform};
 
 pub struct OpenGl {
-    pub(super) el: Mutex<EventLoop<()>>,
-    insts: Mutex<Vec<Arc<Mutex<GlInstance>>>>,
+    pub(super) el: RwLock<EventLoop<()>>,
+    insts: RwLock<Vec<Threadly<GlInstance>>>,
 }
 
 impl Renderer for OpenGl {
-    type Error = String;
     type Instance = GlInstance;
     type Shader = GlShader;
     type Uniform = GlUniform;
 
     #[inline(always)]
-    fn new() -> Result<Self, Self::Error> {
+    fn new() -> Result<Self, String> {
         Ok(Self {
-            el: Mutex::new(EventLoop::new()),
-            insts: Mutex::new(Vec::with_capacity(1))
+            el: RwLock::new(EventLoop::new()),
+            insts: RwLock::new(Vec::with_capacity(1))
         })
     }
 
-    fn create_instance (self: &Arc<Self>, title: impl Into<String>, width: impl Into<u32>, height: impl Into<u32>) -> Result<Arc<Mutex<Self::Instance>>, Self::Error> {
+    fn create_instance (self: &Arc<Self>, title: impl Into<String>, width: impl Into<u32>, height: impl Into<u32>) -> Result<Threadly<Self::Instance>, String> {
         let title = title.into();
 
         let builder = WindowBuilder::new()
@@ -33,7 +32,7 @@ impl Renderer for OpenGl {
         let context = ContextBuilder::new()
             .with_gl(GlRequest::Specific(Api::OpenGl, (3, 3)))
             .with_vsync(true)
-            .build_windowed(builder, &*self.el.lock().unwrap())
+            .build_windowed(builder, self.el.read().unwrap().deref())
             .map_err(|e| e.to_string())?;
 
         let current = unsafe { context
@@ -52,13 +51,13 @@ impl Renderer for OpenGl {
             glBlendFunc(GL_ONE, GL_ONE)
         }
 
-        let instance = Arc::new(Mutex::new(GlInstance::new(self.clone(), title, current)?));
-        let mut lock = self.insts.lock().map_err(|e| e.to_string())?;
+        let instance = Arc::new(RwLock::new(GlInstance::new(self.clone(), title, current)?));
+        let mut lock = self.insts.write().map_err(|e| e.to_string())?;
         lock.push(instance.clone());
         Ok(instance)
     }
 
-    fn create_shader(&self, code: &str) -> Result<Arc<Self::Shader>, Self::Error> {
+    fn create_shader(&self, code: &str) -> Result<Arc<Self::Shader>, String> {
         // PROGRAM
         let program = NonZeroU32::try_from(glCreateProgram())
             .map_err(|e| e.to_string())?;
@@ -82,17 +81,17 @@ impl Renderer for OpenGl {
         GlShader::new(program, vertex, fragment)
     }
 
-    fn listen_events(&self) -> Result<(), Self::Error> {
-        let mut el = self.el.lock().map_err(|e| e.to_string())?;
+    fn listen_events(&self) -> Result<(), String> {
+        let mut el = self.el.write().map_err(|e| e.to_string())?;
         el.run_return(|ev, _, cf| {
             *cf = ControlFlow::Wait;
     
             match ev {
                 Event::LoopDestroyed => return,
                 Event::WindowEvent { window_id, event, .. } => {
-                    let insts = self.insts.lock().unwrap();
-                    let window = if insts.len() == 1 { &insts[0] } else { insts.iter().find(|x| x.lock().unwrap().context.window().id() == window_id).unwrap() };
-                    let window = window.lock().unwrap();
+                    let insts = self.insts.read().unwrap();
+                    let window = if insts.len() == 1 { &insts[0] } else { insts.iter().find(|x| x.read().unwrap().context.window().id() == window_id).unwrap() };
+                    let window = window.read().unwrap();
 
                     match event {
                         WindowEvent::Resized(physical_size) => window.context.resize(physical_size),
@@ -102,15 +101,14 @@ impl Renderer for OpenGl {
                 },
 
                 Event::RedrawRequested(id) => {
-                    let insts = self.insts.lock().expect("Instance poisoned");
-                    let window = if insts.len() == 1 { &insts[0] } else { insts.iter().find(|x| x.lock().unwrap().context.window().id() == id).unwrap() };
-                    let window = window.lock().unwrap();
+                    let insts = self.insts.read().expect("Instance poisoned");
+                    let window = if insts.len() == 1 { &insts[0] } else { insts.iter().find(|x| x.read().unwrap().context.window().id() == id).unwrap() };
+                    let window = window.read().unwrap();
 
                     unsafe { glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); }
-
                     window.get_children().into_iter()
                         .for_each(|x| {
-                            match x.lock().map(|x| x.render()) {
+                            match x.read().map(|x| x.render()) {
                                 Err(x) => { eprintln!("{x}"); *cf = ControlFlow::Exit; },
                                 Ok(_) => {}
                             }
@@ -123,9 +121,9 @@ impl Renderer for OpenGl {
                 },
 
                 Event::MainEventsCleared => {
-                    let insts = self.insts.lock().unwrap();
+                    let insts = self.insts.read().unwrap();
                     insts.iter().for_each(|x| {
-                        let lock = x.lock().unwrap();
+                        let lock = x.read().unwrap();
                         let context = &lock.context;
                         if context.is_current() { context.window().request_redraw(); }
                     });

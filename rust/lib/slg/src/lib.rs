@@ -1,4 +1,5 @@
 #![feature(once_cell, generic_associated_types, result_flattening)]
+use std::sync::{Arc, RwLock};
 
 macro_rules! flat_mod {
     ($($i:ident),+) => {
@@ -8,6 +9,8 @@ macro_rules! flat_mod {
         )*
     };
 }
+
+pub type Threadly<T> = Arc<RwLock<T>>;
 
 pub mod renderer;
 pub mod generics;

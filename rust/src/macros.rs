@@ -18,6 +18,20 @@ macro_rules! create_http {
     }
 }
 
+macro_rules! get_env {
+    ($key:expr) => {
+        {
+            match option_env!($key) {
+                Some(x) => x.to_string(),
+                None => match std::env::var($key) {
+                    Err(x) => panic!("{x}"),
+                    Ok(x) => x
+                }
+            }
+        }
+    };
+}
+
 macro_rules! count {
     () => { 0usize };
     ($a:expr, $($b:expr),*) => { 1usize + count!($($b,)*) };

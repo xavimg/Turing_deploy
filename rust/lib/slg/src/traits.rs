@@ -1,17 +1,16 @@
-use std::{sync::{Arc, Mutex}, time::Duration};
+use std::{sync::{Arc, Mutex}};
 use llml::vec::EucVecf2;
-use crate::{Uniform, Uniformable, generics::{Color, Circle, RenderElement}};
+use crate::{Uniform, Uniformable, generics::{Color, Circle, RenderElement}, Threadly};
 
 pub trait Renderer where Self: Sized {
-    type Error;
     type Instance: RenderInstance<Self>;
     type Shader: RenderShader<Self>; 
     type Uniform: Uniform<Self>;
 
-    fn new () -> Result<Self, Self::Error>;
-    fn create_instance (self: &Arc<Self>, title: impl Into<String>, width: impl Into<u32>, height: impl Into<u32>) -> Result<Arc<Mutex<Self::Instance>>, Self::Error>;
-    fn create_shader (&self, code: &str) -> Result<Arc<Self::Shader>, Self::Error>;
-    fn listen_events (&self) -> Result<(), Self::Error>;
+    fn new () -> Result<Self, String>;
+    fn create_instance (self: &Arc<Self>, title: impl Into<String>, width: impl Into<u32>, height: impl Into<u32>) -> Result<Threadly<Self::Instance>, String>;
+    fn create_shader (&self, code: &str) -> Result<Arc<Self::Shader>, String>;
+    fn listen_events (&self) -> Result<(), String>;
 }
 
 pub trait RenderInstance<R: Renderer> {
@@ -28,14 +27,14 @@ pub trait RenderInstance<R: Renderer> {
         (width as f32) / (height as f32)
     }
 
-    fn get_children (&self) -> &Vec<Arc<Mutex<dyn RenderElement<R>>>>;
-    fn create_circle (&mut self, at: EucVecf2, radius: f32, color: Color) -> Result<Arc<Mutex<Circle<R>>>, R::Error>;
+    fn get_children (&self) -> &Vec<Threadly<dyn RenderElement<R>>>;
+    fn create_circle (&mut self, at: EucVecf2, radius: f32, color: Color) -> Result<Threadly<Circle<R>>, String>;
 }
 
 pub trait RenderShader<R: Renderer> {
-    fn set_uniform<T: Uniformable> (self: &Arc<Self>, key: impl Into<String>, value: &T) -> Result<(), R::Error>;
-    fn draw (&self) -> Result<(), R::Error>;
+    fn set_uniform<T: Uniformable> (self: &Arc<Self>, key: impl Into<String>, value: &T) -> Result<(), String>;
+    fn draw (&self) -> Result<(), String>;
 
-    fn bind (&self) -> Result<(), R::Error>;
-    fn unbind (&self) -> Result<(), R::Error>;
+    fn bind (&self) -> Result<(), String>;
+    fn unbind (&self) -> Result<(), String>;
 }

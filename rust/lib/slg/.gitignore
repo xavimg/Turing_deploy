@@ -3,3 +3,6 @@ Cargo.lock
 
 /exec/target
 /exec/Cargo.lock
+
+/slg_proc/target
+/slg_proc/Cargo.lock

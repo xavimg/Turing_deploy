@@ -1,4 +1,4 @@
-use std::{num::NonZeroU32, str::FromStr, sync::{Arc, Mutex}, time::Duration};
+use std::{num::NonZeroU32, sync::{Arc, Mutex}};
 use gl33::{global_loader::{glDeleteProgram, glDeleteShader, glUseProgram, glBindVertexArray, glDrawArrays}, GL_TRIANGLES};
 use crate::{RenderShader, UniformMap, Uniform};
 use super::{OpenGl, GlUniform};
@@ -54,17 +54,17 @@ impl RenderShader<OpenGl> for GlShader {
         }
     }
     
-    fn bind (&self) -> Result<(), <OpenGl as crate::Renderer>::Error> {
+    fn bind (&self) -> Result<(), String> {
         glUseProgram(self.program.into());
         Ok(())
     }
 
-    fn unbind (&self) -> Result<(), <OpenGl as crate::Renderer>::Error> {
+    fn unbind (&self) -> Result<(), String> {
         glUseProgram(0);
         Ok(())
     }
 
-    fn draw (&self) -> Result<(), <OpenGl as crate::Renderer>::Error> {
+    fn draw (&self) -> Result<(), String> {
         self.bind()?;
 
         glBindVertexArray(OpenGl::FILLER_MESH.get());

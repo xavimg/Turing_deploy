@@ -1,14 +1,14 @@
-use std::{lazy::Lazy, num::NonZeroU32, sync::{Arc, Mutex}};
+use std::{lazy::Lazy, num::NonZeroU32, sync::{Arc, Mutex, RwLock}};
 use glutin::{window::Window, ContextWrapper, PossiblyCurrent};
 use llml::vec::EucVecf2;
-use crate::{RenderInstance, generics::{Color, Circle, RenderElement}, Renderer};
+use crate::{RenderInstance, generics::{Color, Circle, RenderElement}, Renderer, Threadly};
 use super::{OpenGl};
 
 pub struct GlInstance {
     pub(super) context: ContextWrapper<PossiblyCurrent, Window>,
     pub(super) title: String,
     parent: Arc<OpenGl>,
-    children: Vec<Arc<Mutex<dyn RenderElement<OpenGl>>>>
+    children: Vec<Threadly<dyn RenderElement<OpenGl>>>
 }
 
 impl GlInstance {
@@ -40,13 +40,13 @@ impl RenderInstance<OpenGl> for GlInstance {
         self.context.window().inner_size().into()
     }
 
-    fn get_children(&self) -> &Vec<Arc<Mutex<dyn RenderElement<OpenGl>>>> {
+    fn get_children(&self) -> &Vec<Threadly<dyn RenderElement<OpenGl>>> {
         &self.children
     }
 
-    fn create_circle (&mut self, at: EucVecf2, radius: f32, color: Color) -> Result<Arc<Mutex<Circle<OpenGl>>>, String> {
+    fn create_circle (&mut self, at: EucVecf2, radius: f32, color: Color) -> Result<Threadly<Circle<OpenGl>>, String> {
         let shader = self.parent.create_shader(include_str!("glsl/circle.frag"))?;
-        let circle = Arc::new(Mutex::new(Circle::<OpenGl>::new(shader, at, radius, color)));
+        let circle = Arc::new(RwLock::new(Circle::<OpenGl>::new(shader, at, radius, color)));
 
         self.children.push(circle.clone());
         Ok(circle)
