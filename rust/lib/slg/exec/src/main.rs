@@ -1,6 +1,7 @@
-use std::{sync::Arc, thread, time::Duration};
+use std::{sync::Arc, thread};
 use llml::vec::EucVecf2;
-use slg::{renderer::opengl::OpenGl, Renderer, RenderInstance, generics::{Color, SceneBuilder}};
+use slg::{renderer::opengl::OpenGl, Renderer, RenderInstance, generics::{Color, SceneWriter}};
+use slg::scene_with;
 
 fn main () {
     match builder_gl() {
@@ -36,17 +37,6 @@ fn init_gl () -> Result<(), String> {
 
 fn builder_gl () -> Result<(), String> {
     let ogl = Arc::new(OpenGl::new()?);
-    let builder = SceneBuilder::new(&ogl, "Hello world", 900, 900)?
-        .add_circle(EucVecf2::default(), 0.5, Color::new(255, 128, 128))?
-        .add_circle(EucVecf2::new([0.5, -0.5]), 0.25, Color::new(255, 0, 0))?.flatten_first();
-
-    let scene = builder.build(Duration::from_millis(17), |_, (c1, c2)| {
-        println!("{:?}", c1.position);
-        c1.position += EucVecf2::new([0.001, 0.]);
-        c2.position += EucVecf2::new([0., 0.001]);
-        println!("{:?}", c1.position);
-    });
-    
-    scene.start();
-    ogl.listen_events()
+    let scene = scene_with!(32 => SceneWriter<u32>);
+    todo!()
 }

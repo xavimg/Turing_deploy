@@ -3,6 +3,7 @@ use llml::vec::{EucVecf2};
 use slg::RenderInstance;
 use crate::{Color, Durationx};
 
+/*
 pub fn simulate_system () {
     use rand::{thread_rng, prelude::Distribution};
     use slg::{renderer::opengl::OpenGl, Renderer};
@@ -31,4 +32,4 @@ pub fn simulate_system () {
     });
 
     ogl.listen_events();
-}
+}*/

@@ -1,4 +1,4 @@
-use std::{sync::{Arc, Mutex}};
+use std::{sync::{Arc}};
 use llml::vec::EucVecf2;
 use crate::{Uniform, Uniformable, generics::{Color, Circle, RenderElement}, Threadly};
 
