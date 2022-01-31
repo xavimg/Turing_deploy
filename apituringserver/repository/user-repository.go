@@ -16,6 +16,7 @@ type UserRepository interface {
 	IsDuplicateEmail(email string) (ctx *gorm.DB)
 	FindByEmail(username string) entity.User
 	ProfileUser(userID string) entity.User
+	SaveToken(user entity.User, token string)
 }
 
 type userConnection struct {
@@ -92,7 +93,14 @@ func (db *userConnection) ProfileUser(userID string) entity.User {
 func (db *userConnection) FindByEmail(username string) entity.User {
 	var user entity.User
 
-	db.connection.Where("emial = ? ", username).Take(&user)
+	db.connection.Where("email = ? ", username).Take(&user)
 
 	return user
+}
+
+func (db *userConnection) SaveToken(user entity.User, token string) {
+
+	user.Token = token
+
+	db.connection.Save(&user)
 }

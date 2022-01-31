@@ -15,6 +15,7 @@ type AuthService interface {
 	VerifyCredential(email, password string) interface{}
 	FindByEmail(email string) entity.User
 	IsDuplicateEmail(email string) bool
+	SaveToken(user entity.User, token string)
 }
 
 type authService struct {
@@ -77,4 +78,8 @@ func comparePassword(hashedPwd string, plainPassword []byte) bool {
 
 func (service *authService) FindByEmail(email string) entity.User {
 	return service.userRepository.FindByEmail(email)
+}
+
+func (service *authService) SaveToken(user entity.User, token string) {
+	service.userRepository.SaveToken(user, token)
 }

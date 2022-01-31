@@ -10,9 +10,15 @@ type Response struct {
 	Data    interface{} `json:"data"`
 }
 
-// Emptyobj is used when data doesn't want to be null on json
-type EmptyObj struct {
+type ResponseToken struct {
+	Status  bool        `json:"status"`
+	Message string      `json:"message"`
+	Errors  interface{} `json:"errors"`
+	Token   string      `json:"token"`
 }
+
+// Emptyobj is used when data doesn't want to be null on json
+type EmptyObj struct{}
 
 // BuildResponse method is to inject data value to dynamic success response
 func BuildResponse(status bool, message string, data interface{}) Response {
@@ -26,14 +32,16 @@ func BuildResponse(status bool, message string, data interface{}) Response {
 	return res
 }
 
-// func AlexResponse() Response {
-// 	res := Response{
-// 		Message,
-// 		Status,
-// 	}
+func BuildResponseSession(status bool, message string, token string) ResponseToken {
+	res := ResponseToken{
+		Status:  status,
+		Message: message,
+		Errors:  nil,
+		Token:   token,
+	}
 
-// 	return res
-// }
+	return res
+}
 
 // BuildErrorResponse method is to inject data value to dynamic failed response
 func BuildErrorResponse(message string, err string, data interface{}) Response {

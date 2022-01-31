@@ -1,8 +1,12 @@
 package controller
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"io"
+	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/xavimg/Turing/apituringserver/dto"
@@ -17,8 +21,9 @@ type JsonAndreba struct {
 
 // AuthController interface is a contract what this controller can do
 type AuthController interface {
-	Login(context *gin.Context)
 	Register(context *gin.Context)
+	Login(context *gin.Context)
+	// Logout(context *gin.Context)
 }
 
 type authController struct {
@@ -48,10 +53,35 @@ func (c *authController) Login(context *gin.Context) {
 	// login successful
 	authResult := c.authService.VerifyCredential(loginDTO.Email, loginDTO.Password)
 
+	// var infoJson dto.DataAlex
+
 	if v, ok := authResult.(entity.User); ok {
-		generateToken := c.jwtService.GenerateToken(strconv.FormatUint(v.ID, 10))
+		generateToken := c.jwtService.GenerateTokenLogin(v.ID)
 		v.Token = generateToken
-		response := helper.BuildResponse(true, "User login successfully", v)
+
+		c.authService.SaveToken(v, generateToken)
+
+		json_data, err := json.Marshal(generateToken)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		resp, err := http.Post("http://192.168.192.221:8080/internal/user/signin", "application/json", bytes.NewReader(json_data))
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer resp.Body.Close()
+
+		bodyBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			log.Fatal(err)
+		}
+		bodyString := string(bodyBytes)
+		fmt.Println("debug", bodyString)
+
+		// context.SetCookie(generateToken, "testtoken", 3600, "/", "localhost", false, false)
+
+		response := helper.BuildResponseSession(true, "User login successfully", generateToken)
 		context.JSON(http.StatusOK, response)
 		return
 	}
@@ -81,30 +111,42 @@ func (c *authController) Register(context *gin.Context) {
 	} else {
 
 		createdUser := c.authService.CreateUser(registerDTO)
+		// token := c.jwtService.GenerateTokenRegister(createdUser.ID)
+		// createdUser.Token = token
 
 		// Action where I send to Alex ID from user, so he can knows.
-		// json_data, err := json.Marshal(createdUser.ID)
-		// if err != nil {
-		// 	return
-		// }
-		// resp, err := http.Post("http://192.168.139.195:8080/internal/user", "application/json", bytes.NewReader(json_data))
-		// if err != nil {
-		// 	log.Fatal(err)
-		// }
-		// defer resp.Body.Close()
+		// var infoJson dto.DataAlex
 
-		// bodyBytes, err := io.ReadAll(resp.Body)
-		// if err != nil {
-		// 	log.Fatal(err)
-		// }
-		// bodyString := string(bodyBytes)
-		// fmt.Println("debug", bodyString)
+		// infoJson.ID = createdUser.ID
+		// infoJson.Token = createdUser.Token
+
+		json_data, err := json.Marshal(createdUser.ID)
+		if err != nil {
+			return
+		}
+
+		resp, err := http.Post("http://192.168.192.221:8080/internal/user/signup", "application/json", bytes.NewReader(json_data))
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer resp.Body.Close()
+
+		bodyBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			log.Fatal(err)
+		}
+		bodyString := string(bodyBytes)
+		fmt.Println("debug", bodyString)
 		// Ending connection with Alex.
 
-		token := c.jwtService.GenerateToken(strconv.FormatUint(uint64(createdUser.ID), 10))
-		createdUser.Token = token
 		response := helper.BuildResponse(true, "User register successfully", createdUser)
 
 		context.JSON(http.StatusCreated, response.Data)
 	}
 }
+
+// func (c *authController) Logout(ctx *gin.Context) {
+
+// 	ctx.ShouldBind()
+// 	resp := c.authService.FindByEmail(email)
+// }
