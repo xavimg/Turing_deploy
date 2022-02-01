@@ -3,9 +3,11 @@ use bson::oid::ObjectId;
 use llml::vec::EucVecd2;
 use rayon::iter::{ParallelIterator, IntoParallelRefIterator, IndexedParallelIterator, IntoParallelRefMutIterator};
 use serde::{Serialize, Deserialize};
-use crate::{Star, Planet};
+use turing_proc::Maybee;
+use crate::{Star, Planet, cache::MongoDoc};
+use std::hash::Hash;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Maybee)]
 pub struct PlanetSystem {
     #[serde(rename = "_id")]
     id: ObjectId,
@@ -63,3 +65,23 @@ impl PlanetSystem {
             });
     }
 }
+
+impl MongoDoc for PlanetSystem {
+    fn get_id (&self) -> ObjectId {
+        self.id
+    }
+}
+
+impl PartialEq for PlanetSystem {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+    }
+}
+
+impl Hash for PlanetSystem {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
+    }
+}
+
+impl Eq for PlanetSystem {}

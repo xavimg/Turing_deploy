@@ -1,9 +1,10 @@
 use std::{time::Duration, hash::Hash};
 use llml::vec::{EucVecd2};
 use serde::{Serialize, Deserialize};
+use turing_proc::Maybee;
 use crate::{utils::Color, G, Star};
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Maybee)]
 pub struct Planet {
     #[serde(rename = "_id")]
     pub id: usize,
