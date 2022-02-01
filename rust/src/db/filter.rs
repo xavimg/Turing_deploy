@@ -1,6 +1,8 @@
+use std::any::Any;
 use bson::{doc, Document};
 use serde::Serialize;
 
+// FILTER
 pub struct DatabaseFilter<T> {
     key: String,
     filter: DatabaseFilterOpt<T>
@@ -46,7 +48,7 @@ impl<T: PartialOrd> DatabaseFilterOrd<T> {
     }
 }
 
-impl<T: PartialOrd + PartialEq> DatabaseFilterOrdCmp<T> {
+impl<T: PartialEq + PartialOrd> DatabaseFilterOrdCmp<T> {
     pub fn eval (&self, value: &T) -> bool {
         match self {
             Self::Gte(x) => value >= x,
@@ -55,13 +57,19 @@ impl<T: PartialOrd + PartialEq> DatabaseFilterOrdCmp<T> {
     }
 }
 
-impl<T: PartialOrd + PartialEq> DatabaseFilterOpt<T>  {
+impl<T> DatabaseFilterOpt<T>  {
     pub fn eval (&self, value: &T) -> bool {
         match self {
             Self::Cmp(cmp) => cmp.eval(value),
             Self::Ord(ord) => ord.eval(value),
             Self::OrdCmp(ord_cmp) => ord_cmp.eval(value)
         }
+    }
+}
+
+impl<T> DatabaseFilter<T>  {
+    pub fn eval (&self, value: &T) -> bool {
+        self.filter.eval(value)
     }
 }
 
