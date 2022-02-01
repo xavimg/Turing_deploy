@@ -32,6 +32,7 @@ func main() {
 	{
 		authRoutes.POST("/login", authController.Login)
 		authRoutes.POST("/register", authController.Register)
+		authRoutes.POST("/logout/:id", authController.Logout)
 	}
 
 	// private/tokenized routes

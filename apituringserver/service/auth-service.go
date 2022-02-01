@@ -2,6 +2,7 @@ package service
 
 import (
 	"log"
+	"strconv"
 
 	"github.com/mashingan/smapping"
 	"github.com/xavimg/Turing/apituringserver/dto"
@@ -13,9 +14,12 @@ import (
 type AuthService interface {
 	CreateUser(user dto.RegisterDTO) entity.User
 	VerifyCredential(email, password string) interface{}
+	VerifyUserExist(id string) interface{}
 	FindByEmail(email string) entity.User
 	IsDuplicateEmail(email string) bool
 	SaveToken(user entity.User, token string)
+	DeleteToken(user entity.User, s string)
+	GetToken(UserID string) entity.User
 }
 
 type authService struct {
@@ -57,6 +61,22 @@ func (service *authService) VerifyCredential(email, password string) interface{}
 	return false
 }
 
+func (service *authService) VerifyUserExist(id string) interface{} {
+
+	res := service.userRepository.VerifyUserExist(id)
+
+	if v, ok := res.(entity.User); ok {
+
+		if strconv.FormatUint(v.ID, 10) == id {
+			return res
+		}
+		return false
+	}
+
+	return false
+
+}
+
 func (service *authService) IsDuplicateEmail(email string) bool {
 	res := service.userRepository.IsDuplicateEmail(email)
 
@@ -82,4 +102,13 @@ func (service *authService) FindByEmail(email string) entity.User {
 
 func (service *authService) SaveToken(user entity.User, token string) {
 	service.userRepository.SaveToken(user, token)
+}
+
+func (service *authService) DeleteToken(user entity.User, s string) {
+	service.userRepository.DeleteToken(user, s)
+}
+
+func (service *authService) GetToken(userID string) entity.User {
+
+	return service.userRepository.GetToken(userID)
 }

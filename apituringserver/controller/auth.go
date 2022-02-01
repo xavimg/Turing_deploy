@@ -15,20 +15,19 @@ import (
 	"github.com/xavimg/Turing/apituringserver/service"
 )
 
-type JsonAndreba struct {
-	Isvalid bool `json:"isvalid"`
-}
-
 // AuthController interface is a contract what this controller can do
 type AuthController interface {
 	Register(context *gin.Context)
 	Login(context *gin.Context)
-	// Logout(context *gin.Context)
+	Logout(context *gin.Context)
 }
 
 type authController struct {
 	authService service.AuthService
 	jwtService  service.JWTService
+}
+type JsonAndreba struct {
+	Isvalid bool `json:"isvalid"`
 }
 
 // NewAuthController creates a new instance of AuthController
@@ -145,8 +144,24 @@ func (c *authController) Register(context *gin.Context) {
 	}
 }
 
-// func (c *authController) Logout(ctx *gin.Context) {
+func (c *authController) Logout(ctx *gin.Context) {
 
-// 	ctx.ShouldBind()
-// 	resp := c.authService.FindByEmail(email)
-// }
+	id := ctx.Param("id")
+	authResult := c.authService.VerifyUserExist(id)
+
+	if v, ok := authResult.(entity.User); ok {
+
+		c.authService.DeleteToken(v, "")
+
+		// resp := c.authService.GetToken(id)
+		// fmt.Println(resp.Token)
+		// fmt.Println(resp.Name)
+		// resp.Token = "null"
+
+		// fmt.Println(resp.Token)
+		// json_data, _ := json.Marshal(resp)
+
+		//http.Post("http://192.168.192.221:8080/internal/user/signup", "application/json", bytes.NewReader(json_data))
+
+	}
+}
