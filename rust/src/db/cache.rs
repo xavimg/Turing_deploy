@@ -1,10 +1,13 @@
-use std::{hash::Hash, collections::HashSet, sync::{RwLock, Arc}, thread, future::join};
+use std::{hash::Hash, collections::HashSet, sync::{RwLock, Arc}, thread};
+use futures::{join, select, FutureExt, pin_mut};
 use bson::{Document, oid::ObjectId, doc};
 use lazy_static::__Deref;
 use mongodb::{Collection, error::Error, results::{InsertOneResult}, options::UpdateModifications};
 use rayon::iter::{ParallelIterator, IntoParallelRefIterator};
 use serde::{Serialize, de::DeserializeOwned};
 use crate::{filter::{DatabaseFilter}};
+use crate::CURRENT_LOGGER;
+use crate::Logger;
 
 pub trait MongoDoc: Hash + Eq + Send + Sync + Serialize + DeserializeOwned + Unpin {
     fn get_id (&self) -> ObjectId;
@@ -30,34 +33,40 @@ impl<T: MongoDoc> DatabaseCache<T> {
         }
     }
 
-    pub async fn insert_one (&'static self, doc: T) {
-        let doc = Arc::new(doc);
-        let db = self.collection.insert_one(doc.deref(), None);
-        let cache = self.add_to_cache(doc.clone());
-
-        join!(db, cache).await;
-        todo!()
+    pub async fn insert_one (&'static self, doc: T) -> Result<InsertOneResult, Error> {
+        let insert = self.collection.insert_one(&doc, None).await;
+        if insert.is_ok() { thread::spawn(|| self.add_to_cache(Arc::new(doc))); }
+        insert
     }
 
+    /// Searches for the value with the specified id in the cahche and the database simultaneously, returning the result of
+    /// the first search to complete and killing the other
     pub async fn find_one_by_id (&'static self, id: ObjectId) -> Result<Option<Arc<T>>, Error> {
-        let read = self.set.read().unwrap();
-        let item = read.par_iter().find_any(|x| x.get_id() == id);
+        let cache = async {
+            let read = self.set.read().unwrap();
+            read.par_iter().find_any(|x| x.get_id() == id).map(|x| x.clone())
+        }.fuse();
 
-        match item {
-            None => {
-                drop(read);
-                self.collection.find_one(doc! { "_id": id }, None).await.map(|x| {
-                    x.map(|x| {
-                        let x = Arc::new(x);
-                        let y = x.clone();
-                        thread::spawn(move || self.add_to_cache(y));
-                        x
-                    })
-                })
+        let db = self.collection.find_one(doc! { "_id": id }, None).fuse();
+        pin_mut!(cache, db);
+
+        select!(
+            result = cache => {
+                CURRENT_LOGGER.async_log_info(format!("Polled {id:?} from cache"));
+                Ok(result)
             },
 
-            Some(x) => Ok(Some(x.clone())),
-        }
+            result = db => {
+                CURRENT_LOGGER.async_log_info(format!("Polled {id:?} from database"));
+                result.map(|ok| ok.map(|val| {
+                    let val = Arc::new(val);
+                    let clone = val.clone();
+
+                    thread::spawn(|| self.add_to_cache(clone));
+                    val
+                }))
+            }
+        )
     }
 
     pub async fn find_one<F: Send + Sync + Fn(&T) -> bool> (&self, filter: Option<DatabaseFilter<T,F>>) -> Result<Option<Arc<T>>, Error> {
