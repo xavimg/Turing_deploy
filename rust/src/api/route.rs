@@ -1,4 +1,6 @@
-use actix_web::{Responder, web, HttpRequest, post, get};
+use std::{ops::Deref, str::FromStr};
+use actix_web::{Responder, web, HttpRequest, post, get, HttpResponse};
+use bson::oid::ObjectId;
 use jsonwebtoken::{decode, DecodingKey, Validation};
 use mongodb::{bson::{doc}};
 use serde_json::{json, Value};
@@ -9,8 +11,7 @@ use rand::{thread_rng, prelude::Distribution};
 // OUT API
 #[get("/status")]
 pub async fn status () -> impl Responder {
-    let db = DATABASE.get().await;    
-    let ping = match db.run_command(doc! { "ping": 1u32 }, None).await {
+    let ping = match DATABASE.get().unwrap().run_command(doc! { "ping": 1u32 }, None).await {
         Err(x) => { CURRENT_LOGGER.async_log_error(x); false },
         Ok(x) => match x.get_f64("ok") {
             Ok(x) => {
@@ -50,8 +51,7 @@ pub async fn resources () -> impl Responder {
 #[post("/internal/user/signup")]
 pub async fn new_user (_: HttpRequest, body: web::Json<u64>) -> impl Responder {
     // TODO INTERNAL IP ONLY
-    let players = PLAYERS.get().await;
-    let valid = match players.insert_one(Player::new(PlayerToken::Unloged(body.0))).await {
+    let valid = match PLAYERS.insert_one(Player::new(PlayerToken::Unloged(body.0))).await {
         Err(x) => { CURRENT_LOGGER.async_log_error(x); false },
         Ok(_) => true
     };
@@ -68,12 +68,10 @@ pub async fn user_login (_: HttpRequest, body: web::Json<String>) -> impl Respon
         Err(e) => { CURRENT_LOGGER.async_log_error(e); json!({ "valid": false }) },
         Ok(token) => {
             let body = token.claims;
-            let players = PLAYERS.get().await;
-
             let query = bson::to_document(&PlayerToken::Unloged(body.id)).unwrap();
             let update = bson::to_document(&PlayerToken::Loged(body)).unwrap();
         
-            let valid = match players.update_one(doc! { "token": query }, doc! { "$set": { "token": update } }).await {
+            let valid = match PLAYERS.update_one(doc! { "token": query }, doc! { "$set": { "token": update } }).await {
                 Ok(_) => true,
                 Err(e) => { CURRENT_LOGGER.async_log_error(e); false }
             };
@@ -94,12 +92,10 @@ pub async fn user_logout (_: HttpRequest, body: web::Json<String>) -> impl Respo
         Err(e) => { CURRENT_LOGGER.async_log_error(e); json!({ "valid": false }) },
         Ok(token) => {
             let body = token.claims;
-            let players = PLAYERS.get().await;
-
             let update = bson::to_document(&PlayerToken::Unloged(body.id)).unwrap();
             let query = bson::to_document(&PlayerToken::Loged(body)).unwrap();
         
-            let valid = match players.update_one(doc! { "token": query }, doc! { "$set": { "token": update } }).await {
+            let valid = match PLAYERS.update_one(doc! { "token": query }, doc! { "$set": { "token": update } }).await {
                 Ok(_) => true,
                 Err(e) => { CURRENT_LOGGER.async_log_error(e); false }
             };
@@ -109,6 +105,32 @@ pub async fn user_logout (_: HttpRequest, body: web::Json<String>) -> impl Respo
     };
 
     web::Json(json)
+}
+
+#[get("/internal/players/{id}")]
+pub async fn get_player (req: HttpRequest) -> impl Responder {
+    let id;
+    match req.match_info().get("id") {
+        None => return HttpResponse::BadRequest().json(json!({ "error": "No id provided" })).respond_to(&req),
+        Some(x) => id = x
+    }
+
+    let oid;
+    match ObjectId::parse_str(id) {
+        Err(_) => return HttpResponse::BadRequest().json(json!({ "error": "Invalid id" })).respond_to(&req),
+        Ok(x) => oid = x
+    }
+
+    if let Some(addr) = req.peer_addr() {
+        if !addr.ip().is_loopback() { return HttpResponse::Forbidden().respond_to(&req) }
+    }
+
+    let result = match PLAYERS.find_one_by_id(oid).await {
+        Err(e) => { CURRENT_LOGGER.async_log_error(e); None },
+        Ok(value) => value.map(|x| serde_json::to_value(x.deref()).unwrap())
+    };
+
+    HttpResponse::Ok().json(json!({ "result": result })).respond_to(&req)
 }
 
 #[get("/internal/test/system")]

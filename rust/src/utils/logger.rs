@@ -49,18 +49,17 @@ pub struct ConsoleLog;
 impl Logger for ConsoleLog {
     fn log_info (&self, log: impl Debug) {
         let date = Utc::now();
-        let lo = trim(format!("{log:?}"));
-        println!("{date}: {log:?}")
+        println!("{date}: {log:?}\n")
     }
 
     fn log_warning (&self, log: impl Debug) {
         let date = Utc::now();
-        eprintln!("{date}: {log:?}")
+        eprintln!("{date}: {log:?}\n")
     }
 
     fn log_error (&self, log: impl Debug) {
         let date = Utc::now();
-        eprintln!("{date}: {log:?}")
+        eprintln!("{date}: {log:?}\n")
     }
 }
 
