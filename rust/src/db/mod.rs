@@ -9,6 +9,7 @@ use self::cache::DatabaseCache;
 
 pub mod cache;
 pub mod filter;
+pub mod field;
 
 const MAX_CACHE_SIZE : usize = 1073741824; // 1 GiB
 const CACHE_COUNT : usize = 2;

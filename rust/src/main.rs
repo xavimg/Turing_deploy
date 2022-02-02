@@ -1,4 +1,5 @@
-#![feature(once_cell, const_fn_floating_point_arithmetic, const_mut_refs, const_for)]
+#![feature(once_cell, const_fn_floating_point_arithmetic, const_mut_refs, const_for, future_join, future_poll_fn)]
+
 mod tests;
 use actix_web::{HttpServer, App};
 use actix_web::dev::Service;

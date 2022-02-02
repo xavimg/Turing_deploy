@@ -1,4 +1,4 @@
-use std::{hash::Hash, collections::HashSet, mem::size_of, sync::{RwLock, Arc}, thread};
+use std::{hash::Hash, collections::HashSet, sync::{RwLock, Arc}, thread, future::join};
 use bson::{Document, oid::ObjectId, doc};
 use lazy_static::__Deref;
 use mongodb::{Collection, error::Error, results::{InsertOneResult}, options::UpdateModifications};
@@ -23,17 +23,20 @@ impl<T: MongoDoc> DatabaseCache<T> {
         }
     }
 
-    fn add_to_cache (&self, value: Arc<T>) {
+    async fn add_to_cache (&self, value: Arc<T>) {
         let mut set = self.set.write().unwrap();
         if set.len() < set.capacity() {
             set.insert(value);
         }
     }
 
-    pub async fn insert_one (&'static self, doc: T) -> Result<InsertOneResult, Error> {
-        let result = self.collection.insert_one(&doc, None).await;
-        if result.is_ok() { thread::spawn(|| self.add_to_cache(Arc::new(doc))); }
-        result
+    pub async fn insert_one (&'static self, doc: T) {
+        let doc = Arc::new(doc);
+        let db = self.collection.insert_one(doc.deref(), None);
+        let cache = self.add_to_cache(doc.clone());
+
+        join!(db, cache).await;
+        todo!()
     }
 
     pub async fn find_one_by_id (&'static self, id: ObjectId) -> Result<Option<Arc<T>>, Error> {
