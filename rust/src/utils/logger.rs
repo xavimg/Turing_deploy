@@ -1,8 +1,6 @@
 use std::{thread, fmt::Debug, fs::{File, OpenOptions}, path::PathBuf, sync::{Mutex, MutexGuard}, io::Write};
 use chrono::{Utc};
 
-use crate::trim;
-
 pub trait Logger {
     fn log_info (&self, log: impl Debug);
     fn log_warning (&self, log: impl Debug);

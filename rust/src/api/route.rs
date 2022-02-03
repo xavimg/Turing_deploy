@@ -1,11 +1,12 @@
-use std::{ops::Deref, str::FromStr};
+use std::{ops::Deref, str::FromStr, sync::Arc};
 use actix_web::{Responder, web, HttpRequest, post, get, HttpResponse};
 use bson::oid::ObjectId;
+use futures::StreamExt;
 use jsonwebtoken::{decode, DecodingKey, Validation};
 use mongodb::{bson::{doc}};
 use serde_json::{json, Value};
 use strum::IntoEnumIterator;
-use crate::{DATABASE, Resource, PLAYERS, Player, Gaussian, PlanetSystem, PlayerToken, PlayerTokenLoged, Logger, CURRENT_LOGGER};
+use crate::{DATABASE, Resource, PLAYERS, Player, PlanetSystem, PlayerToken, PlayerTokenLoged, Logger, CURRENT_LOGGER, Gaussian};
 use rand::{thread_rng, prelude::Distribution};
 
 // OUT API
@@ -105,6 +106,17 @@ pub async fn user_logout (_: HttpRequest, body: web::Json<String>) -> impl Respo
     };
 
     web::Json(json)
+}
+
+#[get("/internal/players/")]
+pub async fn get_all_players (req: HttpRequest) -> impl Responder {
+    if let Some(addr) = req.peer_addr() {
+        if !addr.ip().is_loopback() { return HttpResponse::Forbidden().respond_to(&req) }
+    }
+
+    let stream = PLAYERS.find_many(doc! {}, |_| async { true }, None).await;
+    let players : Vec<Value> = stream.into_iter().map(|x| serde_json::to_value(x.deref()).unwrap()).collect();
+    HttpResponse::Ok().json(json!({ "result": players })).respond_to(&req)
 }
 
 #[get("/internal/players/{id}")]

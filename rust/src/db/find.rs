@@ -3,15 +3,13 @@ use actix_web::Either;
 use futures::{Future};
 use crate::{cache::{MongoDoc, DatabaseCache}, CURRENT_LOGGER, Logger, upgrade};
 
-pub type Either2<T> = Either<T,T>;
-
-struct FindFuture<'a, E1, E2, T, L: Future<Output = Result<T,E1>>, R: Future<Output = Result<T,E2>>> {
+struct FindFuture<'a, E1, E2, T1, T2, L: Future<Output = Result<T1,E1>>, R: Future<Output = Result<T2,E2>>> {
     left: Pin<&'a mut L>,
     right: Pin<&'a mut R>,
 }
 
-impl<'a, E1, E2, T, L: Future<Output = Result<T,E1>>, R: Future<Output = Result<T,E2>>> Future for FindFuture<'a, E1, E2, T, L, R> {
-    type Output = Result<Either2<T>, (E1, E2)>;
+impl<'a, E1, E2, T1, T2, L: Future<Output = Result<T1,E1>>, R: Future<Output = Result<T2,E2>>> Future for FindFuture<'a, E1, E2, T1, T2, L, R> {
+    type Output = Result<Either<T1,T2>, (E1, E2)>;
 
     fn poll(mut self: std::pin::Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> std::task::Poll<Self::Output> {
         let poll1 = self.left.as_mut().poll(cx);
@@ -44,7 +42,7 @@ impl<'a, E1, E2, T, L: Future<Output = Result<T,E1>>, R: Future<Output = Result<
 impl<T: MongoDoc> DatabaseCache<T> {
     /// Start both futures simultaneously. If the one that finishes first has no errors, return it's value.
     /// Otherwise, let the other end and return it's value
-    pub(crate) async fn any_of<U, E1, E2, A: Future<Output = Result<U,E1>>, B: Future<Output = Result<U,E2>>> (mut first: Pin<Box<A>>, mut last: Pin<Box<B>>) -> Result<Either2<U>, (E1, E2)> {
+    pub(crate) async fn any_of<U, V, E1, E2, A: Future<Output = Result<U,E1>>, B: Future<Output = Result<V,E2>>> (mut first: Pin<Box<A>>, mut last: Pin<Box<B>>) -> Result<Either<U,V>, (E1, E2)> {
         let join = FindFuture {
             left: first.as_mut(),
             right: last.as_mut()

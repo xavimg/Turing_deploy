@@ -1,6 +1,7 @@
 pub mod cache;
 pub mod filter;
 pub mod find;
+pub mod find_many;
 
 use std::lazy::SyncLazy;
 use std::mem::{size_of};
