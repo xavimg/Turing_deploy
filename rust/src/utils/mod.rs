@@ -1,4 +1,4 @@
-flat_mod!(logger, color, math, serdex, array_map, take_out, randx, durationx);
+flat_mod!(logger, color, math, serdex, array_map, take_out, randx, durationx, streamx);
 
 pub type LeftRight<T> = Either<T,T>;
 

@@ -1,14 +1,16 @@
-use std::{hash::Hash, collections::HashSet, sync::{RwLock, Arc, RwLockReadGuard, RwLockWriteGuard}, pin::Pin, fmt::Debug, ops::DerefMut};
+use std::{hash::Hash, collections::HashSet, sync::{RwLock, Arc}};
 use actix_web::Either;
 use std::ops::Deref;
-use futures::{FutureExt, pin_mut, Stream, Future};
+use futures::{FutureExt};
 use bson::{oid::ObjectId, doc, Document};
 use mongodb::{Collection, error::Error, results::{InsertOneResult}, options::{UpdateModifications}};
 use rayon::iter::{ParallelIterator, IntoParallelRefIterator};
 use serde::{Serialize, de::DeserializeOwned};
 use futures::stream::{StreamExt};
 
-pub trait MongoDoc: Debug + Hash + Eq + Send + Sync + Serialize + DeserializeOwned + Unpin {
+use crate::Streamx;
+
+pub trait MongoDoc: Hash + Eq + Send + Sync + Serialize + DeserializeOwned + Unpin {
     fn get_id (&self) -> ObjectId;
 }
 
@@ -111,30 +113,44 @@ impl<T: MongoDoc> DatabaseCache<T> {
 
     /// Searches for the values with the specified parameters in the cache and the database simultaneously, returning the result of
     /// the first individual search to complete
-    pub async fn find_many<F: 'static + Fn(&T) -> FUT, FUT: 'static + Future<Output = bool>> (&'static self, db: Document, cache: F, limit: Option<usize>) -> Vec<Arc<T>> {
+    pub async fn find_many<F: 'static + Fn(&T) -> bool> (&'static self, db: Document, cache: F, limit: Option<usize>) -> HashSet<Arc<T>> {
         let lock = self.set.read().unwrap();
-        let cache = futures::stream::iter(lock.deref().iter().cloned()).filter(move |x| cache(x.deref()));
+        let cache = futures::stream::iter(lock.deref().iter()).async_filter(|x| cache(x.deref())).cloned();
         let db = self.collection.find(db, None);
 
         let mut stream = Self::many_of(Box::pin(cache), Box::pin(db));
-        let mut results = Vec::<Arc<T>>::with_capacity(match limit {
-            None => 10,
-            Some(len) => len
-        });
+        let mut results;
+        let mut dbs;
 
-        let mut dbs = Vec::<Arc<T>>::with_capacity(match limit {
-            None => 10,
-            Some(len) => len
-        });
+        match limit {
+            Some(len) => {
+                results = HashSet::with_capacity(len);
+                dbs = Vec::with_capacity(len);
 
-        while let Some((x, from_db)) = stream.next().await { 
-            if from_db { dbs.push(x.clone()); }
-            results.push(x)
-        };
+                while results.len() < len {
+                    if let Some((x, from_db)) = stream.next().await {
+                        if from_db { dbs.push(x.clone()); }
+                        results.insert(x);
+                        continue
+                    } 
+
+                    break
+                }
+            },
+
+            None => {
+                results = HashSet::new();
+                dbs = Vec::new();
+
+                while let Some((x, from_db)) = stream.next().await {
+                    if from_db { dbs.push(x.clone()); }
+                    results.insert(x);
+                }
+            }
+        }
 
         drop(lock);
         self.add_all_to_cache(dbs);
-
         results
     }
 

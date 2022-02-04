@@ -1,5 +1,5 @@
 use std::rc::Rc;
-use serde::{Serialize, Deserialize};
+use serde::{Serialize};
 
 pub struct RcWrapper<T>(Rc<T>);
 

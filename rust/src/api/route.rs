@@ -114,7 +114,7 @@ pub async fn get_all_players (req: HttpRequest) -> impl Responder {
         if !addr.ip().is_loopback() { return HttpResponse::Forbidden().respond_to(&req) }
     }
 
-    let stream = PLAYERS.find_many(doc! {}, |_| async { true }, None).await;
+    let stream = PLAYERS.find_many(doc! {}, |_| true, None).await;
     let players : Vec<Value> = stream.into_iter().map(|x| serde_json::to_value(x.deref()).unwrap()).collect();
     HttpResponse::Ok().json(json!({ "result": players })).respond_to(&req)
 }

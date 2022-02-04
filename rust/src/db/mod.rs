@@ -5,6 +5,9 @@ pub mod find_many;
 
 use std::lazy::SyncLazy;
 use std::mem::{size_of};
+use std::pin::Pin;
+use std::task::Poll;
+use futures::{Stream, Future, StreamExt};
 use mongodb::{Database};
 use mongodb::{options::ClientOptions, Client};
 use tokio::sync::OnceCell;
@@ -23,7 +26,8 @@ pub static PLANET_SYSTEMS: SyncLazy<DatabaseCache<PlanetSystem>> = SyncLazy::new
 });
 
 pub static PLAYERS: SyncLazy<DatabaseCache<Player>> = SyncLazy::new(|| {
-    let size = MAX_SINGLE_CACHE_SIZE / size_of::<Player>();
+    let size = 1;
+    //let size = MAX_SINGLE_CACHE_SIZE / size_of::<Player>();
     CURRENT_LOGGER.async_log_info(format!("Player cache Size: {size} elements"));
     DatabaseCache::new(DATABASE.get().unwrap().collection("player"), size)
 });

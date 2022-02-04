@@ -1,4 +1,4 @@
-use std::{pin::Pin, task::Poll, sync::{Arc, RwLockWriteGuard}, mem::ManuallyDrop, collections::HashSet, ops::DerefMut};
+use std::{pin::Pin, task::Poll, sync::{Arc}, mem::ManuallyDrop};
 use futures::{Stream, Future};
 use mongodb::{error::Error, Cursor};
 use crate::{cache::{MongoDoc, DatabaseCache}, CURRENT_LOGGER, Logger};
@@ -42,25 +42,23 @@ impl<T: MongoDoc, CACHE: Stream<Item = Arc<T>>, DB: Future<Output = Result<Curso
         let stream;
         if self.db.is_stream {
             stream = unsafe { &mut self.db.value.stream }
-        } else {
-            if let Poll::Ready(result) = unsafe { (*self.db.value.future).as_mut().poll(cx) } {
-                match result {
-                    Err(e) => {
-                        CURRENT_LOGGER.async_log_error(e);
-                        return Poll::Ready(None)
-                    },
-                    Ok(cursor) => {
-                        self.db = FindManyDbResult {
-                            is_stream: true, 
-                            value: FindManyDb { stream: ManuallyDrop::new(Box::pin(cursor)) }
-                        };
+        } else if let Poll::Ready(result) = unsafe { (*self.db.value.future).as_mut().poll(cx) } {
+            match result {
+                Err(e) => {
+                    CURRENT_LOGGER.async_log_error(e);
+                    return Poll::Ready(None)
+                },
+                Ok(cursor) => {
+                    self.db = FindManyDbResult {
+                        is_stream: true, 
+                        value: FindManyDb { stream: ManuallyDrop::new(Box::pin(cursor)) }
+                    };
 
-                        stream = unsafe { &mut self.db.value.stream }
-                    }
+                    stream = unsafe { &mut self.db.value.stream }
                 }
-            } else {
-                return Poll::Pending
             }
+        } else {
+            return Poll::Pending
         }
 
         if let Poll::Ready(poll) = stream.as_mut().poll_next(cx) {
@@ -83,8 +81,8 @@ impl<T: MongoDoc, CACHE: Stream<Item = Arc<T>>, DB: Future<Output = Result<Curso
 
 impl<T: MongoDoc> DatabaseCache<T> {
     /// Stream that iterates over the results of both the cache and db searches.\
-    /// This stream starts iterating with the values of the cache and, one it has available the first
-    /// batch of results from the database, it starts returning them too
+    /// This stream starts iterating with the values of the cache and, once the first
+    /// batch of results from the database is available, it starts returning them too
     pub(super) fn many_of<'a, CACHE: Stream<Item = Arc<T>>, DB: Future<Output = Result<Cursor<T>, Error>>> (cache: Pin<Box<CACHE>>, db: Pin<Box<DB>>) -> FindManyStream<T, CACHE, DB> {        
         FindManyStream {
             cache,
