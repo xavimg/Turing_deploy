@@ -1,7 +1,6 @@
 use std::{pin::Pin, task::Poll};
-use actix_web::Either;
 use futures::{Future};
-use crate::{cache::{MongoDoc, DatabaseCache}};
+use crate::{cache::{MongoDoc, CollectionCache}, Either};
 
 struct FindFuture<'a, E1, E2, T1, T2, L: Future<Output = Result<T1,E1>>, R: Future<Output = Result<T2,E2>>> {
     left: Pin<&'a mut L>,
@@ -39,7 +38,7 @@ impl<'a, E1, E2, T1, T2, L: Future<Output = Result<T1,E1>>, R: Future<Output = R
     }
 }
 
-impl<T: MongoDoc> DatabaseCache<T> {
+impl<T> CollectionCache<T> {
     /// Start both futures simultaneously. If the one that finishes first has no errors, return it's value.
     /// Otherwise, let the other end and return it's value
     pub(crate) async fn any_of<U, V, E1, E2, A: Future<Output = Result<U,E1>>, B: Future<Output = Result<V,E2>>> (mut first: Pin<Box<A>>, mut last: Pin<Box<B>>) -> Result<Either<U,V>, (E1, E2)> {

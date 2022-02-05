@@ -1,5 +1,5 @@
-use std::{sync::{Arc, RwLock}, marker::PhantomData};
-use crate::{Threadly, Renderer};
+use std::{sync::{Arc, RwLock}};
+use crate::{Threadly};
 
 #[repr(transparent)]
 pub struct SceneReader<T>(Threadly<T>);
@@ -36,7 +36,7 @@ macro_rules! scene_with {
     ($($value:expr => $ty:ty),+) => {
         {
             struct Scene($($ty,)*);
-            Scene($($value.into()º,)*)
+            Scene($($value.into(),)*)
 
             impl Scene {
                 pub fn start (self) {

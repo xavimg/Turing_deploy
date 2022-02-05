@@ -1,7 +1,8 @@
 use std::{pin::Pin, task::Poll, sync::{Arc}, mem::ManuallyDrop};
 use futures::{Stream, Future};
 use mongodb::{error::Error, Cursor};
-use crate::{cache::{MongoDoc, DatabaseCache}, CURRENT_LOGGER, Logger};
+use serde::de::DeserializeOwned;
+use crate::{cache::{CollectionCache}, CURRENT_LOGGER, Logger};
 
 struct FindManyDbResult<FUT, STR> {
     pub is_stream: bool,
@@ -26,19 +27,15 @@ impl<FUT, STR> Drop for FindManyDbResult<FUT, STR> {
 /// Stream that iterates over the results of both the cache and db searches.\
 /// This stream starts iterating with the values of the cache and, one it has available the first
 /// batch of results from the database, it starts returning them too
-pub struct FindManyStream<T: MongoDoc, CACHE: Stream<Item = Arc<T>>, DB: Future<Output = Result<Cursor<T>, Error>>> {
+pub struct FindManyStream<T: DeserializeOwned + Send + Sync + Unpin, CACHE: Stream<Item = Arc<T>>, DB: Future<Output = Result<Cursor<T>, Error>>> {
     cache: Pin<Box<CACHE>>,
     db: FindManyDbResult<DB, Cursor<T>>
 }
 
-impl<T: MongoDoc, CACHE: Stream<Item = Arc<T>>, DB: Future<Output = Result<Cursor<T>, Error>>> futures::Stream for FindManyStream<T, CACHE, DB> {
+impl<T: DeserializeOwned + Send + Sync + Unpin, CACHE: Stream<Item = Arc<T>>, DB: Future<Output = Result<Cursor<T>, Error>>> futures::Stream for FindManyStream<T, CACHE, DB> {
     type Item = (Arc<T>, bool);
 
     fn poll_next(mut self: std::pin::Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> std::task::Poll<Option<Self::Item>> {
-        if let Poll::Ready(Some(x)) = self.cache.as_mut().poll_next(cx) {
-            return Poll::Ready(Some((x.clone(), false)))
-        }
-
         let stream;
         if self.db.is_stream {
             stream = unsafe { &mut self.db.value.stream }
@@ -57,6 +54,8 @@ impl<T: MongoDoc, CACHE: Stream<Item = Arc<T>>, DB: Future<Output = Result<Curso
                     stream = unsafe { &mut self.db.value.stream }
                 }
             }
+        } else if let Poll::Ready(Some(x)) = self.cache.as_mut().poll_next(cx) {
+            return Poll::Ready(Some((x.clone(), false)))
         } else {
             return Poll::Pending
         }
@@ -73,13 +72,15 @@ impl<T: MongoDoc, CACHE: Stream<Item = Arc<T>>, DB: Future<Output = Result<Curso
             }
 
             return Poll::Ready(None)
+        } else if let Poll::Ready(Some(x)) = self.cache.as_mut().poll_next(cx) {
+            return Poll::Ready(Some((x.clone(), false)))
         }
 
         Poll::Pending
     }
 }
 
-impl<T: MongoDoc> DatabaseCache<T> {
+impl<T: DeserializeOwned + Send + Sync + Unpin> CollectionCache<T> {
     /// Stream that iterates over the results of both the cache and db searches.\
     /// This stream starts iterating with the values of the cache and, once the first
     /// batch of results from the database is available, it starts returning them too

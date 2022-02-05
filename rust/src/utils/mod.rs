@@ -1,4 +1,5 @@
 flat_mod!(logger, color, math, serdex, array_map, take_out, randx, durationx, streamx);
+use std::ops::{Deref, DerefMut};
 
 pub type LeftRight<T> = Either<T,T>;
 
@@ -34,6 +35,35 @@ impl<L,R> Either<L,R> {
         match self {
             Self::Right(x) => x,
             _ => panic!("called `EitherOrAll::unwrap_right()` on a non `Right` value")
+        }
+    }
+}
+
+impl<T> LeftRight<T> {
+    pub fn into_value (self) -> T {
+        match self {
+            Self::Left(x) => x,
+            Self::Right(x) => x
+        }
+    }
+}
+
+impl<T> Deref for LeftRight<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        match self {
+            Self::Left(x) => x,
+            Self::Right(x) => x
+        }
+    }
+}
+
+impl<T> DerefMut for LeftRight<T> {
+    fn deref_mut (&mut self) -> &mut Self::Target {
+        match self {
+            Self::Left(x) => x,
+            Self::Right(x) => x
         }
     }
 }

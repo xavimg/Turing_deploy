@@ -1,4 +1,4 @@
-use std::{pin::Pin, task::Poll, hash::Hash, collections::HashSet};
+use std::{pin::Pin, task::Poll};
 use futures::{Stream};
 
 pub trait Streamx: Stream {
