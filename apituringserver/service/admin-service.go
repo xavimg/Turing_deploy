@@ -6,6 +6,7 @@ import (
 
 type AdminService interface {
 	BanUser(userID string)
+	UnbanUser(userID string)
 }
 
 type adminService struct {
@@ -21,4 +22,9 @@ func NewAdminService(adminRepo repository.AdminRepository) AdminService {
 func (service *adminService) BanUser(userID string) {
 
 	service.adminRepository.BanUser(userID)
+}
+
+func (service *adminService) UnbanUser(userID string) {
+
+	service.adminRepository.UnbanUser(userID)
 }

@@ -49,6 +49,7 @@ func main() {
 	adminRoutes := r.Group("api/admin")
 	{
 		adminRoutes.PUT("/ban/:id", adminController.BanUser)
+		adminRoutes.PUT("/unban/:id", adminController.UnbanUser)
 	}
 
 	r.Run(":8080")

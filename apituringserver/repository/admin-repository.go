@@ -7,7 +7,7 @@ import (
 
 type AdminRepository interface {
 	BanUser(userID string)
-	UnbanUser(userID string) entity.User
+	UnbanUser(userID string)
 	NewFeature(feature entity.Feature) entity.Feature
 }
 
@@ -25,8 +25,9 @@ func (db *adminConnection) BanUser(userID string) {
 	db.connection.Model(user).Where("id = ?", userID).Update("active", false)
 }
 
-func (db *adminConnection) UnbanUser(userID string) entity.User {
-	return entity.User{}
+func (db *adminConnection) UnbanUser(userID string) {
+	var user entity.User
+	db.connection.Model(user).Where("id = ?", userID).Update("active", true)
 }
 
 func (db *adminConnection) NewFeature(feature entity.Feature) entity.Feature {

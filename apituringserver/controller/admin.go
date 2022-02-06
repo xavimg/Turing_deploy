@@ -10,6 +10,7 @@ import (
 
 type AdminController interface {
 	BanUser(ctx *gin.Context)
+	UnbanUser(ctx *gin.Context)
 }
 
 type adminController struct {
@@ -28,6 +29,16 @@ func (c *adminController) BanUser(ctx *gin.Context) {
 	c.adminService.BanUser(userID)
 
 	res := helper.BuildResponse(true, "User has been banned !", helper.EmptyObj{})
+	ctx.JSON(http.StatusOK, res)
+
+}
+
+func (c *adminController) UnbanUser(ctx *gin.Context) {
+	userID := ctx.Param("id")
+
+	c.adminService.UnbanUser(userID)
+
+	res := helper.BuildResponse(true, "User has been unbanned !", helper.EmptyObj{})
 	ctx.JSON(http.StatusOK, res)
 
 }
