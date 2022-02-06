@@ -72,9 +72,6 @@ func (c *userController) Update(ctx *gin.Context) {
 	userID := fmt.Sprintf("%v", claims["user_id"])
 
 	user := c.userService.Update(userUpdateDTO, userID, userUpdateDTO)
-	fmt.Println(userUpdateDTO)
-	fmt.Println(userUpdateDTO.Name)
-	fmt.Println(userID)
 
 	res := helper.BuildResponse(true, "Update user successfully", user)
 	ctx.JSON(http.StatusOK, res)

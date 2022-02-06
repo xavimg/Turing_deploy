@@ -6,7 +6,7 @@ import (
 )
 
 type AdminRepository interface {
-	BanUser(user entity.User, userID string) entity.User
+	BanUser(userID string)
 	UnbanUser(userID string) entity.User
 	NewFeature(feature entity.Feature) entity.Feature
 }
@@ -15,18 +15,14 @@ type adminConnection struct {
 	connection *gorm.DB
 }
 
-func newAdminRepository(dbConn *gorm.DB) AdminRepository {
+func NewAdminRepository(dbConn *gorm.DB) AdminRepository {
 	return &adminConnection{
 		connection: dbConn}
 }
 
-func (db *adminConnection) BanUser(user entity.User, userID string) entity.User {
-
-	user.Active = false
-
-	db.connection.Save(&user)
-
-	return user
+func (db *adminConnection) BanUser(userID string) {
+	var user entity.User
+	db.connection.Model(user).Where("id = ?", userID).Update("active", false)
 }
 
 func (db *adminConnection) UnbanUser(userID string) entity.User {

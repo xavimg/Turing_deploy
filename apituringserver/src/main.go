@@ -11,15 +11,18 @@ import (
 )
 
 var (
-	db             *gorm.DB                  = config.SetupDatabaseConnection()
-	userRepository repository.UserRepository = repository.NewUserRepository(db)
+	db              *gorm.DB                   = config.SetupDatabaseConnection()
+	userRepository  repository.UserRepository  = repository.NewUserRepository(db)
+	adminRepository repository.AdminRepository = repository.NewAdminRepository(db)
 
-	jwtService  service.JWTService  = service.NewJWTService()
-	userService service.UserService = service.NewUserService(userRepository)
+	jwtService   service.JWTService   = service.NewJWTService()
+	userService  service.UserService  = service.NewUserService(userRepository)
+	authService  service.AuthService  = service.NewAuthService(userRepository)
+	adminService service.AdminService = service.NewAdminService(adminRepository)
 
-	authService    service.AuthService       = service.NewAuthService(userRepository)
-	authController controller.AuthController = controller.NewAuthController(authService, jwtService)
-	userController controller.UserController = controller.NewUserController(userService, jwtService)
+	authController  controller.AuthController  = controller.NewAuthController(authService, jwtService)
+	userController  controller.UserController  = controller.NewUserController(userService, jwtService)
+	adminController controller.AdminController = controller.NewAdminController(adminService)
 )
 
 func main() {
@@ -39,7 +42,13 @@ func main() {
 	userRoutes := r.Group("api/user", middleware.AuthorizeJWT(jwtService))
 	{
 		userRoutes.GET("/profile", userController.Profile)
-		userRoutes.PUT("update", userController.Update)
+		userRoutes.PUT("/update", userController.Update)
+	}
+
+	// admin Routes
+	adminRoutes := r.Group("api/admin")
+	{
+		adminRoutes.PUT("/ban/:id", adminController.BanUser)
 	}
 
 	r.Run(":8080")

@@ -47,19 +47,19 @@ func (db *userConnection) UpdateUser(user entity.User, userID string, newInfo dt
 
 	if newInfo.Name != "" {
 
-		db.connection.Model(&entity.User{}).Where("id = ?", userID).Update("name", newInfo.Name)
+		db.connection.Model(user).Where("id = ?", userID).Update("name", newInfo.Name)
 	}
 
 	if newInfo.Email != "" {
 
-		db.connection.Model(&entity.User{}).Where("id = ?", userID).Update("email", newInfo.Email)
+		db.connection.Model(user).Where("id = ?", userID).Update("email", newInfo.Email)
 	}
 
 	if newInfo.Password != "" {
 
 		user.Password = hashAndSalt([]byte(newInfo.Password))
 
-		db.connection.Model(&entity.User{}).Where("id = ?", userID).Update("password", user.Password)
+		db.connection.Model(user).Where("id = ?", userID).Update("password", user.Password)
 	}
 
 	db.connection.Preload("Characters").Preload("Characters.User").Find(&user)
