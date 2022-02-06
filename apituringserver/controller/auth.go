@@ -21,7 +21,6 @@ type AuthController interface {
 	Login(context *gin.Context)
 	Logout(context *gin.Context)
 }
-
 type authController struct {
 	authService service.AuthService
 	jwtService  service.JWTService
@@ -51,8 +50,6 @@ func (c *authController) Login(context *gin.Context) {
 
 	// login successful
 	authResult := c.authService.VerifyCredential(loginDTO.Email, loginDTO.Password)
-
-	// var infoJson dto.DataAlex
 
 	if v, ok := authResult.(entity.User); ok {
 		generateToken := c.jwtService.GenerateTokenLogin(v.ID)
@@ -110,14 +107,14 @@ func (c *authController) Register(context *gin.Context) {
 	} else {
 
 		createdUser := c.authService.CreateUser(registerDTO)
-		// token := c.jwtService.GenerateTokenRegister(createdUser.ID)
-		// createdUser.Token = token
+		token := c.jwtService.GenerateTokenRegister(createdUser.ID)
+		createdUser.Token = token
 
 		// Action where I send to Alex ID from user, so he can knows.
-		// var infoJson dto.DataAlex
+		var infoJson dto.DataAlex
 
-		// infoJson.ID = createdUser.ID
-		// infoJson.Token = createdUser.Token
+		infoJson.ID = createdUser.ID
+		infoJson.Token = createdUser.Token
 
 		json_data, err := json.Marshal(createdUser.ID)
 		if err != nil {
@@ -147,21 +144,38 @@ func (c *authController) Register(context *gin.Context) {
 func (c *authController) Logout(ctx *gin.Context) {
 
 	id := ctx.Param("id")
-	authResult := c.authService.VerifyUserExist(id)
 
+	// We must check if user exist in DB if we want to update.
+	authResult := c.authService.VerifyUserExist(id)
 	if v, ok := authResult.(entity.User); ok {
 
-		c.authService.DeleteToken(v, "")
+		response := c.authService.GetToken(id)
+		fmt.Println(response.Token)
 
-		// resp := c.authService.GetToken(id)
-		// fmt.Println(resp.Token)
-		// fmt.Println(resp.Name)
-		// resp.Token = "null"
+		json_data, _ := json.Marshal(response.Token)
 
-		// fmt.Println(resp.Token)
-		// json_data, _ := json.Marshal(resp)
+		resp, err := http.Post("http://192.168.192.221:8080/internal/user/signout", "application/json", bytes.NewReader(json_data))
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer resp.Body.Close()
 
-		//http.Post("http://192.168.192.221:8080/internal/user/signup", "application/json", bytes.NewReader(json_data))
+		bodyBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		bodyString := string(bodyBytes)
+
+		if bodyString == "true" {
+
+			c.authService.DeleteToken(v, "")
+
+		} else {
+
+			log.Fatal()
+
+		}
 
 	}
 }

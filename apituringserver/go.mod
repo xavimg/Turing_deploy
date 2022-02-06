@@ -33,6 +33,11 @@ require (
 
 require (
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
+	gorm.io/driver/mysql v1.2.3 // indirect
+	gorm.io/driver/postgres v1.2.3
+)
+
+require (
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.10.1 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
@@ -42,6 +47,4 @@ require (
 	github.com/jackc/pgtype v1.9.0 // indirect
 	github.com/jackc/pgx/v4 v4.14.0 // indirect
 	golang.org/x/text v0.3.7 // indirect
-	gorm.io/driver/mysql v1.2.3 // indirect
-	gorm.io/driver/postgres v1.2.3 // indirect
 )

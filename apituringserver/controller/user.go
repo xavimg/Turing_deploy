@@ -6,13 +6,14 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"github.com/xavimg/Turing/apituringserver/dto"
 	"github.com/xavimg/Turing/apituringserver/helper"
 	"github.com/xavimg/Turing/apituringserver/service"
 )
 
 type UserController interface {
 	Profile(context *gin.Context)
-	// Update(context *gin.Context)
+	Update(context *gin.Context)
 }
 
 type userController struct {
@@ -29,6 +30,7 @@ func NewUserController(userService service.UserService, jwtService service.JWTSe
 
 func (c *userController) Profile(ctx *gin.Context) {
 	authHeader := ctx.GetHeader("Authorization")
+
 	token, err := c.jwtService.ValidateToken(authHeader)
 	if err != nil {
 		panic(err.Error())
@@ -37,7 +39,7 @@ func (c *userController) Profile(ctx *gin.Context) {
 	claims := token.Claims.(jwt.MapClaims)
 	userID := fmt.Sprintf("%v", claims["user_id"])
 
-	// throw to service
+	// Send ID to service
 	user := c.userService.Profile(userID)
 
 	// response
@@ -45,7 +47,36 @@ func (c *userController) Profile(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, res)
 }
 
-// func (c *userController) Update(ctx *gin.Context) {
-// 	var userUpdateDTO dto.UserUpdateDTO
+func (c *userController) Update(ctx *gin.Context) {
+	var userUpdateDTO dto.UserUpdateDTO
 
-// }
+	// NewPass
+	err := ctx.ShouldBindJSON(&userUpdateDTO)
+	if err != nil {
+		res := helper.BuildErrorResponse(
+			"Update user failed", err.Error(),
+			helper.EmptyObj{})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+
+	// Get token from userController
+	authHeader := ctx.GetHeader("Authorization")
+	token, errToken := c.jwtService.ValidateToken(authHeader)
+
+	if err != nil {
+		panic(errToken.Error())
+	}
+
+	claims := token.Claims.(jwt.MapClaims)
+	userID := fmt.Sprintf("%v", claims["user_id"])
+
+	user := c.userService.Update(userUpdateDTO, userID, userUpdateDTO)
+	fmt.Println(userUpdateDTO)
+	fmt.Println(userUpdateDTO.Name)
+	fmt.Println(userID)
+
+	res := helper.BuildResponse(true, "Update user successfully", user)
+	ctx.JSON(http.StatusOK, res)
+
+}

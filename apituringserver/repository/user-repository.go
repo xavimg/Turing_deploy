@@ -3,6 +3,7 @@ package repository
 import (
 	"log"
 
+	"github.com/xavimg/Turing/apituringserver/dto"
 	"github.com/xavimg/Turing/apituringserver/entity"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -11,7 +12,7 @@ import (
 // UserRepository is a contract what UserRepository can do to db.
 type UserRepository interface {
 	InsertUser(user entity.User) entity.User
-	UpdateUser(user entity.User, path string) entity.User
+	UpdateUser(user entity.User, userID string, newInfo dto.UserUpdateDTO) entity.User
 	VerifyCredential(email, password string) interface{}
 	VerifyUserExist(id string) interface{}
 	IsDuplicateEmail(email string) (ctx *gorm.DB)
@@ -42,16 +43,25 @@ func (db *userConnection) InsertUser(user entity.User) entity.User {
 	return user
 }
 
-func (db *userConnection) UpdateUser(user entity.User, path string) entity.User {
-	if user.Password != "" {
-		user.Password = hashAndSalt([]byte(user.Password))
-	} else {
-		var tempUser entity.User
-		db.connection.Find(&tempUser, user.ID)
-		user.Password = tempUser.Password
+func (db *userConnection) UpdateUser(user entity.User, userID string, newInfo dto.UserUpdateDTO) entity.User {
+
+	if newInfo.Name != "" {
+
+		db.connection.Model(&entity.User{}).Where("id = ?", userID).Update("name", newInfo.Name)
 	}
 
-	db.connection.Save(&user)
+	if newInfo.Email != "" {
+
+		db.connection.Model(&entity.User{}).Where("id = ?", userID).Update("email", newInfo.Email)
+	}
+
+	if newInfo.Password != "" {
+
+		user.Password = hashAndSalt([]byte(newInfo.Password))
+
+		db.connection.Model(&entity.User{}).Where("id = ?", userID).Update("password", user.Password)
+	}
+
 	db.connection.Preload("Characters").Preload("Characters.User").Find(&user)
 
 	return user

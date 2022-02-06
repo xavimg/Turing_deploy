@@ -39,8 +39,9 @@ func main() {
 	userRoutes := r.Group("api/user", middleware.AuthorizeJWT(jwtService))
 	{
 		userRoutes.GET("/profile", userController.Profile)
+		userRoutes.PUT("update", userController.Update)
 	}
 
-	r.Run(":3000")
+	r.Run(":8080")
 
 }

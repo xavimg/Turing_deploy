@@ -1,6 +1,10 @@
 package service
 
 import (
+	"log"
+
+	"github.com/mashingan/smapping"
+	"github.com/xavimg/Turing/apituringserver/dto"
 	"github.com/xavimg/Turing/apituringserver/entity"
 	"github.com/xavimg/Turing/apituringserver/repository"
 )
@@ -8,7 +12,7 @@ import (
 // UserService is a contract about something that this service can do
 type UserService interface {
 	Profile(userID string) entity.User
-	// Update(user dto.UserUpdateDTO, path string) entity.User
+	Update(user dto.UserUpdateDTO, userID string, newInfo dto.UserUpdateDTO) entity.User
 }
 
 type userService struct {
@@ -26,16 +30,16 @@ func (service *userService) Profile(userID string) entity.User {
 	return service.userRepository.ProfileUser(userID)
 }
 
-// func (service *userService) Update(user dto.UserUpdateDTO, path string) entity.User {
-// 	userToUpdate := entity.User{}
+func (service *userService) Update(dataUser dto.UserUpdateDTO, userID string, newInfo dto.UserUpdateDTO) entity.User {
+	passToUpdate := entity.User{}
 
-// 	err := smapping.FillStruct(&userToUpdate, smapping.MapFields(&user))
+	err := smapping.FillStruct(&passToUpdate, smapping.MapFields(&dataUser))
 
-// 	if err != nil {
-// 		log.Fatalf("Failed map %v : ", err)
-// 	}
+	if err != nil {
+		log.Fatalf("Failed map %v : ", err)
+	}
 
-// 	updatedUser := service.userRepository.UpdateUser(userToUpdate, path)
+	res := service.userRepository.UpdateUser(passToUpdate, userID, newInfo)
 
-// 	return updatedUser
-// }
+	return res
+}

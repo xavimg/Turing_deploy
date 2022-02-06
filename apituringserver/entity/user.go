@@ -7,6 +7,7 @@ type User struct {
 	Password   string       `gorm:"->;<-;not null" json:"-"`
 	Token      string       `gorm:"type:varchar(255)" json:"token,omitempty"`
 	Characters *[]Character `json:"characters,omitempty"`
+	Active     bool         `gorm:"default:true" json:"active,omitempty"`
 	// Creditcard CreditCard `gorm:"foreingKey:UserName"`
 	// Languages []Language  `gorm:"many2many:user_languages"`
 	// Character []Character `gorm:"many2many:user_character"`
