@@ -14,7 +14,8 @@ import (
 type AuthService interface {
 	CreateUser(user dto.RegisterDTO) entity.User
 	VerifyCredential(email, password string) interface{}
-	VerifyUserExist(id string) interface{}
+	VerifyUserExist(userID string) interface{}
+	VerifyUserActive(email string) entity.User
 	FindByEmail(email string) entity.User
 	IsDuplicateEmail(email string) bool
 	SaveToken(user entity.User, token string)
@@ -111,4 +112,10 @@ func (service *authService) DeleteToken(user entity.User, s string) {
 func (service *authService) GetToken(userID string) entity.User {
 
 	return service.userRepository.GetToken(userID)
+}
+
+func (service *authService) VerifyUserActive(email string) entity.User {
+
+	return service.userRepository.VerifyUserActive(email)
+
 }

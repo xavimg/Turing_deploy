@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/xavimg/Turing/apituringserver/dto"
@@ -48,32 +49,40 @@ func (c *authController) Login(context *gin.Context) {
 		return
 	}
 
-	// login successful
+	// Verify of credentials exists
 	authResult := c.authService.VerifyCredential(loginDTO.Email, loginDTO.Password)
-
 	if v, ok := authResult.(entity.User); ok {
+
+		fmt.Println(v.Active)
+
+		if strconv.FormatBool(v.Active) == "false" {
+			context.JSON(http.StatusBadRequest, "User has been banned")
+			return
+
+		}
+
 		generateToken := c.jwtService.GenerateTokenLogin(v.ID)
 		v.Token = generateToken
 
 		c.authService.SaveToken(v, generateToken)
 
-		json_data, err := json.Marshal(generateToken)
-		if err != nil {
-			log.Fatal(err)
-		}
+		// json_data, err := json.Marshal(generateToken)
+		// if err != nil {
+		// 	log.Fatal(err)
+		// }
 
-		resp, err := http.Post("http://192.168.192.221:8080/internal/user/signin", "application/json", bytes.NewReader(json_data))
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer resp.Body.Close()
+		// resp, err := http.Post("http://192.168.192.221:8080/internal/user/signin", "application/json", bytes.NewReader(json_data))
+		// if err != nil {
+		// 	log.Fatal(err)
+		// }
+		// defer resp.Body.Close()
 
-		bodyBytes, err := io.ReadAll(resp.Body)
-		if err != nil {
-			log.Fatal(err)
-		}
-		bodyString := string(bodyBytes)
-		fmt.Println("debug", bodyString)
+		// bodyBytes, err := io.ReadAll(resp.Body)
+		// if err != nil {
+		// 	log.Fatal(err)
+		// }
+		// bodyString := string(bodyBytes)
+		// fmt.Println("debug", bodyString)
 
 		// context.SetCookie(generateToken, "testtoken", 3600, "/", "localhost", false, false)
 
@@ -104,6 +113,7 @@ func (c *authController) Register(context *gin.Context) {
 	if !c.authService.IsDuplicateEmail(registerDTO.Email) {
 		response := helper.BuildErrorResponse("User register failed", "Duplicate email", helper.EmptyObj{})
 		context.JSON(http.StatusConflict, response)
+		return
 	} else {
 
 		createdUser := c.authService.CreateUser(registerDTO)
@@ -150,7 +160,6 @@ func (c *authController) Logout(ctx *gin.Context) {
 	if v, ok := authResult.(entity.User); ok {
 
 		response := c.authService.GetToken(id)
-		fmt.Println(response.Token)
 
 		json_data, _ := json.Marshal(response.Token)
 

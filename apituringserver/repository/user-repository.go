@@ -14,7 +14,8 @@ type UserRepository interface {
 	InsertUser(user entity.User) entity.User
 	UpdateUser(user entity.User, userID string, newInfo dto.UserUpdateDTO) entity.User
 	VerifyCredential(email, password string) interface{}
-	VerifyUserExist(id string) interface{}
+	VerifyUserExist(userID string) interface{}
+	VerifyUserActive(email string) entity.User
 	IsDuplicateEmail(email string) (ctx *gorm.DB)
 	FindByEmail(username string) entity.User
 	ProfileUser(userID string) entity.User
@@ -82,6 +83,7 @@ func (db *userConnection) VerifyCredential(email string, password string) interf
 	var user entity.User
 
 	res := db.connection.Where("email = ?", email).Take(&user)
+	// resactive := db.connection.Model(user).Where("active = ?", true).Take(&user)
 
 	if res == nil {
 		return res.Error
@@ -89,10 +91,10 @@ func (db *userConnection) VerifyCredential(email string, password string) interf
 	return user
 }
 
-func (db *userConnection) VerifyUserExist(id string) interface{} {
+func (db *userConnection) VerifyUserExist(userID string) interface{} {
 	var user entity.User
 
-	res := db.connection.Where("id = ?", id).Take(&user)
+	res := db.connection.Where("id = ?", userID).Take(&user)
 
 	if res == nil {
 		return res.Error
@@ -141,6 +143,15 @@ func (db *userConnection) GetToken(UserID string) entity.User {
 	var user entity.User
 
 	db.connection.Find(&user, UserID)
+
+	return user
+}
+
+func (db *userConnection) VerifyUserActive(email string) entity.User {
+
+	var user entity.User
+
+	db.connection.Find(&user, email)
 
 	return user
 }
