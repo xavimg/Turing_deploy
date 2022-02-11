@@ -1,0 +1,11 @@
+version: "3.7"
+
+services:
+  servergo:
+    build:
+      context: .
+      dockerfile: .
+    environment:
+      ENV: local
+    ports:
+      - "8080:8080"
