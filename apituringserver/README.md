@@ -1,5 +1,7 @@
-1. First of all you have to run the server.
-2. Once server is running you can start making calls to this end-points:
+1. Download dependencies: go mod download
+2. write this command to start project/api: go run src/main.go
+
+3. Once server is running you can start making calls to this end-points:
 
    // public routes route will be something like this in PostMan: http://localhost:8080/auth/login
    authRoutes := r.Group("api/auth")
