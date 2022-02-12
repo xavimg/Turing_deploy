@@ -6,7 +6,7 @@ use serde::{Serialize, Deserialize};
 use turing_proc::Maybee;
 use crate::{utils::Color, H, K};
 
-#[derive(Debug, Serialize, Deserialize, Maybee)]
+#[derive(Clone, Debug, Serialize, Deserialize, Maybee)]
 pub struct Star {
     pub color: Color,
     pub temperature: f64,

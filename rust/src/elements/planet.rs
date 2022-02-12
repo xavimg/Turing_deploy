@@ -4,7 +4,7 @@ use serde::{Serialize, Deserialize};
 use turing_proc::Maybee;
 use crate::{utils::Color, G, Star};
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Maybee)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Maybee)]
 pub struct Planet {
     #[serde(rename = "_id")]
     pub id: usize,

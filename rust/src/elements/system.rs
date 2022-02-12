@@ -1,18 +1,19 @@
-use std::{time::Duration, sync::Mutex};
+use std::{time::Duration, sync::{Arc}};
 use bson::oid::ObjectId;
+use futures::{pin_mut};
 use llml::vec::EucVecd2;
-use rayon::iter::{ParallelIterator, IntoParallelRefIterator, IndexedParallelIterator, IntoParallelRefMutIterator};
 use serde::{Serialize, Deserialize};
 use turing_proc::Maybee;
 use crate::{Star, Planet, cache::MongoDoc};
 use std::hash::Hash;
+use tokio::{sync::Mutex, task::JoinError};
 
-#[derive(Debug, Serialize, Deserialize, Maybee)]
+#[derive(Clone, Debug, Serialize, Deserialize, Maybee)]
 pub struct PlanetSystem {
     #[serde(rename = "_id")]
-    id: ObjectId,
-    star: Star,
-    planets: Vec<Planet>
+    pub id: ObjectId,
+    pub star: Star,
+    pub planets: Vec<Planet>
 }
 
 impl PlanetSystem {
@@ -20,49 +21,44 @@ impl PlanetSystem {
         PlanetSystem { id: ObjectId::new(), star, planets }
     }
 
-    pub fn get_star (&self) -> &Star {
-        &self.star
-    }
-
-    pub fn get_planets (&self) -> &Vec<Planet> {
-        &self.planets
-    }
-
-    fn indexed_planets (&self) -> impl ParallelIterator<Item = (&Planet, usize)> {
-        self.planets.par_iter()
+    fn indexed_planets (&self) -> impl Iterator<Item = (&Planet, usize)> {
+        self.planets.iter()
             .zip(0..self.planets.len())
     }
 
-    pub fn simulate (&mut self, dt: Duration) {
-        let iter = self.indexed_planets()
-            .flat_map(|(x, i)| {
-                self.indexed_planets().filter_map(move |(y, j)| {
-                    if i == j { return None }
-                    Some((x, y))
-                })
-            });
-
-
-        let mut interplanet_acc = Vec::<Mutex<EucVecd2>>::with_capacity(self.planets.len());
-        for planet in self.get_planets() {
-            interplanet_acc.insert(planet.id, Mutex::new(planet.calc_acc_star(&self.star)));
-        }
-
-        iter.for_each(|(x, y)| {
-            let (acc_x, acc_y) = x.calc_acc(y);
-            let mut lock = interplanet_acc[x.id].lock().unwrap();
-            *lock += acc_x;
-            drop(lock);
-
-            let mut lock = interplanet_acc[y.id].lock().unwrap();
-            *lock += acc_y;
+    pub async fn simulate (&'static mut self, dt: Duration) -> Result<(), JoinError> {
+        let iter = self.indexed_planets().flat_map(|(x, i)| {
+            self.indexed_planets().filter_map(move |(y, j)| {
+                if i == j { return None }
+                Some((x, y))
+            })
         });
 
-        self.planets.par_iter_mut()
-            .for_each(|planet| {
-                let acc = interplanet_acc[planet.id].lock().unwrap();
-                planet.accelerate_and_travel(*acc, dt)
-            });
+
+        let interplanet_acc = Arc::new(Mutex::new(Vec::<EucVecd2>::with_capacity(self.planets.len())));
+        let mut lock = interplanet_acc.lock().await;
+        for planet in self.planets.iter() {
+            lock.insert(planet.id, planet.calc_acc_star(&self.star));
+        }
+        drop(lock);
+
+        let handles = iter.map(|(x, y)| {
+            let acc_clone = interplanet_acc.clone();
+            tokio::spawn(async move {
+                let (acc_x, acc_y) = x.calc_acc(y);
+                let mut lock = acc_clone.lock().await;
+                lock[x.id] += acc_x;
+                lock[y.id] += acc_y;
+            })
+        });
+
+        let join = futures::future::try_join_all(handles).await?;
+        let stream = self.planets.iter_mut();
+
+        let lock = interplanet_acc.lock().await;
+        stream.for_each(|planet| { planet.accelerate_and_travel(lock[planet.id], dt); });
+
+        Ok(())
     }
 }
 

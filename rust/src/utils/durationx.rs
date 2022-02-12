@@ -22,11 +22,42 @@ pub trait Durationx where Self: Sized {
     fn from_months (months: impl Into<u64>) -> Self {
         Self::from_secs(months.into().checked_mul(864000).expect("Overflow detected"))
     }
+
+    fn as_mins (&self) -> u64;
+    fn as_hours (&self) -> u64;
+    fn as_days (&self) -> u64;
+    fn as_weeks (&self) -> u64;
+    fn as_months (&self) -> u64;
 }
 
 impl Durationx for Duration {
     #[inline]
     fn from_secs(secs: impl Into<u64>) -> Self {
         Duration::from_secs(secs.into())
+    }
+
+    #[inline]
+    fn as_mins (&self) -> u64 {
+        self.as_secs() / 60
+    }
+
+    #[inline]
+    fn as_hours (&self) -> u64 {
+        self.as_secs() / 1200
+    }
+
+    #[inline]
+    fn as_days (&self) -> u64 {
+        self.as_secs() / 28800
+    }
+
+    #[inline]
+    fn as_weeks (&self) -> u64 {
+        self.as_secs() / 201600
+    }
+
+    #[inline]
+    fn as_months (&self) -> u64 {
+        self.as_secs() / 864000
     }
 }

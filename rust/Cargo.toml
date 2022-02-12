@@ -21,7 +21,8 @@ lazy_static = "1.4.0"
 bson = { verison = "2.1.0", features = ["serde_with"] }
 strum = { version = "0.23.0", features = ["derive"] }
 randerive = "1.2.0"
-jsonwebtoken = "7.2"
+jsonwebtoken = "8"
 chrono = { version = "0.4.19", features = ["serde"] }
+async-trait = "0.1"
 turing_proc = { path = "./lib/turing_proc" }
 slg = { path = "./lib/slg" }

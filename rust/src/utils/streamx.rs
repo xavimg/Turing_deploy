@@ -1,6 +1,8 @@
 use std::{pin::Pin, task::Poll};
-use futures::{Stream};
+use async_trait::async_trait;
+use futures::{Stream, StreamExt};
 
+#[async_trait]
 pub trait Streamx: Stream {
     /// Async version of ```Iterator::cloned```
     fn cloned<'a, T: Clone> (self) -> StreamCloned<'a, T, Self> where Self: Stream<Item = &'a T> + Sized {
@@ -16,8 +18,6 @@ pub trait Streamx: Stream {
         }
     }
 }
-
-impl<T: Stream> Streamx for T {}
 
 pub struct AsyncFilter<S: Stream, F: Fn(&S::Item) -> bool> {
     stream: Pin<Box<S>>,
@@ -52,5 +52,9 @@ impl<'a, T: 'a + Clone, S: Stream<Item = &'a T>> Stream for StreamCloned<'a,T,S>
         }
 
         Poll::Pending
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.0.size_hint()
     }
 }
