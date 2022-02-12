@@ -4,7 +4,7 @@ use slg::{renderer::opengl::OpenGl, Renderer, RenderInstance, generics::{Color, 
 use slg::scene_with;
 
 fn main () {
-    match builder_gl() {
+    match init_gl() {
         Err(x) => panic!("{x}"),
         Ok(_) => {}
     }
@@ -33,10 +33,4 @@ fn init_gl () -> Result<(), String> {
     });
 
     ogl.listen_events()
-}
-
-fn builder_gl () -> Result<(), String> {
-    let ogl = Arc::new(OpenGl::new()?);
-    let scene = scene_with!(32 => SceneWriter<u32>);
-    todo!()
 }

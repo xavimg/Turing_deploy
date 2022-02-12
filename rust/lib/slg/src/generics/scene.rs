@@ -42,7 +42,7 @@ macro_rules! scene_with {
                 pub fn start (self) {
                     std::thread::spawn(move || {
                         loop {
-                            let input = ($($)*);
+                            //let input = ($($)*);
                         }
                     })
                 }

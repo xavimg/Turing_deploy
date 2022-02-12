@@ -11,7 +11,10 @@ flat_mod!(utils, elements, consts, api, db);
 pub const CURRENT_LOGGER : ConsoleLog = ConsoleLog;
 
 #[actix_web::main]
-async fn main() -> std::io::Result<()> {    
+async fn main() -> std::io::Result<()> {
+    simulate_system();
+    Ok(())
+    /*
     dotenv::dotenv().unwrap();
     match DATABASE.set(initialize_mongo().await) {
         Err(e) => panic!("{e:?}"),
@@ -24,5 +27,5 @@ async fn main() -> std::io::Result<()> {
         random_system, get_player, get_all_players
     );  
 
-    server.bind(("0.0.0.0", 8080))?.run().await
+    server.bind(("0.0.0.0", 8080))?.run().await*/
 }
