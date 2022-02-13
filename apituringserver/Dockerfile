@@ -2,9 +2,10 @@ FROM golang:alpine
 
 WORKDIR /app
 
-COPY go.mod go.sum ./
-RUN go mod download
+COPY . .
 
-EXPOSE 8080
+RUN go get -u github.com/lib/pq
 
-CMD ["go", "run" "main.go"]
+RUN go build -o main .
+
+CMD ["./main"]

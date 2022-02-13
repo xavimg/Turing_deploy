@@ -121,28 +121,28 @@ func (c *authController) Register(context *gin.Context) {
 		createdUser.Token = token
 
 		// Action where I send to Alex ID from user, so he can knows.
-		var infoJson dto.DataAlex
+		// var infoJson dto.DataAlex
 
-		infoJson.ID = createdUser.ID
-		infoJson.Token = createdUser.Token
+		// infoJson.ID = createdUser.ID
+		// infoJson.Token = createdUser.Token
 
-		json_data, err := json.Marshal(createdUser.ID)
-		if err != nil {
-			return
-		}
+		// json_data, err := json.Marshal(createdUser.ID)
+		// if err != nil {
+		// 	return
+		// }
 
-		resp, err := http.Post("http://192.168.192.221:8080/internal/user/signup", "application/json", bytes.NewReader(json_data))
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer resp.Body.Close()
+		// resp, err := http.Post("http://192.168.192.221:8080/internal/user/signup", "application/json", bytes.NewReader(json_data))
+		// if err != nil {
+		// 	log.Fatal(err)
+		// }
+		// defer resp.Body.Close()
 
-		bodyBytes, err := io.ReadAll(resp.Body)
-		if err != nil {
-			log.Fatal(err)
-		}
-		bodyString := string(bodyBytes)
-		fmt.Println("debug", bodyString)
+		// bodyBytes, err := io.ReadAll(resp.Body)
+		// if err != nil {
+		// 	log.Fatal(err)
+		// }
+		// bodyString := string(bodyBytes)
+		// fmt.Println("debug", bodyString)
 		// Ending connection with Alex.
 
 		response := helper.BuildResponse(true, "User register successfully", createdUser)

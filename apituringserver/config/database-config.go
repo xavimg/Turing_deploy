@@ -5,6 +5,8 @@ import (
 	"github.com/xavimg/Turing/apituringserver/entity"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+
+	_ "github.com/lib/pq"
 )
 
 // SetupDatabaseConnection is creating a new connection to our database
@@ -15,12 +17,7 @@ func SetupDatabaseConnection() *gorm.DB {
 		panic("Failed to load env file")
 	}
 
-	// dbUser := os.Getenv("DB_USER")
-	// dbPass := os.Getenv("DB_PASS")
-	// dbHost := os.Getenv("DB_HOST")
-	// dbName := os.Getenv("DB_NAME")
-
-	dsn := "host=localhost user=postgres password=v6vpxdkd dbname=alanturing port=5432 sslmode=disable"
+	dsn := "host=db user=postgres password=v6vpxdkd dbname=alanturing port=5432 sslmode=disable"
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 

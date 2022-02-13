@@ -1,11 +1,44 @@
-version: "3.7"
+version: "3.8"
 
 services:
-  servergo:
-    build:
-      context: .
-      dockerfile: .
+
+  db:
+    #network_mode: host
+    image: postgres:9.6
     environment:
-      ENV: local
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=v6vpxdkd
+      - POSTGRES_DB=alanturing
     ports:
-      - "8080:8080"
+      - "5433:5432"
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    networks:
+      - fullstack
+
+  go:
+    #network_mode: host
+    image: server-go
+    environment:
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=v6vpxdkd
+      - DB_DB=alanturing
+      - DB_HOST=db
+      - DB_PORT=5432
+    ports:
+      - "3000:3000"
+    depends_on:
+      - "db"
+    networks:
+      - fullstack
+
+volumes:
+  dbdata:
+
+networks:
+  fullstack:
+    driver: bridge
+  
+  
+
+  
