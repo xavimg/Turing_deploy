@@ -1,12 +1,11 @@
 use std::{time::Duration, sync::{Arc}};
 use bson::oid::ObjectId;
-use futures::{pin_mut};
 use llml::vec::EucVecd2;
 use serde::{Serialize, Deserialize};
 use turing_proc::Maybee;
 use crate::{Star, Planet, cache::MongoDoc};
 use std::hash::Hash;
-use tokio::{sync::Mutex, task::JoinError};
+use tokio::{sync::Mutex};
 
 #[derive(Clone, Debug, Serialize, Deserialize, Maybee)]
 pub struct PlanetSystem {
@@ -21,44 +20,42 @@ impl PlanetSystem {
         PlanetSystem { id: ObjectId::new(), star, planets }
     }
 
-    fn indexed_planets (&self) -> impl Iterator<Item = (&Planet, usize)> {
-        self.planets.iter()
-            .zip(0..self.planets.len())
-    }
+    pub async fn simulate (&mut self, dt: Duration) {
+        // Iterator over all possible planet pairs. This way we don't repeat calculations.
+        let len = self.planets.len();
+        let mut pairs = Vec::with_capacity((len * len - len) / 2);
 
-    pub async fn simulate (&'static mut self, dt: Duration) -> Result<(), JoinError> {
-        let iter = self.indexed_planets().flat_map(|(x, i)| {
-            self.indexed_planets().filter_map(move |(y, j)| {
-                if i == j { return None }
-                Some((x, y))
-            })
-        });
-
-
-        let interplanet_acc = Arc::new(Mutex::new(Vec::<EucVecd2>::with_capacity(self.planets.len())));
-        let mut lock = interplanet_acc.lock().await;
-        for planet in self.planets.iter() {
-            lock.insert(planet.id, planet.calc_acc_star(&self.star));
+        for i in 0..(len-1) {
+            for j in i..len {
+                pairs.push((&self.planets[i], &self.planets[j]));
+            }
         }
-        drop(lock);
 
-        let handles = iter.map(|(x, y)| {
+        // Initialize planet acceleration by calculating its acceleration to the start. In this model, stars are immovable (always at coordinate origin)
+        let mut interplanet_acc = Vec::<EucVecd2>::with_capacity(self.planets.len());
+        for planet in self.planets.iter() {
+            interplanet_acc.insert(planet.id, planet.calc_acc_star(&self.star));
+        }
+
+        // Calculate interplanet acceleration for each planet pair. Each calculation is done in a diferent thread
+        let interplanet_acc = Arc::new(Mutex::new(interplanet_acc));
+        let handles = pairs.into_iter().map(|(x, y)| {
             let acc_clone = interplanet_acc.clone();
-            tokio::spawn(async move {
+            async move {
                 let (acc_x, acc_y) = x.calc_acc(y);
                 let mut lock = acc_clone.lock().await;
                 lock[x.id] += acc_x;
                 lock[y.id] += acc_y;
-            })
+            }
         });
 
-        let join = futures::future::try_join_all(handles).await?;
-        let stream = self.planets.iter_mut();
+        // Process features concurrently
+        futures::future::join_all(handles).await;
 
+        // Apply changes
+        let planets = self.planets.iter_mut();
         let lock = interplanet_acc.lock().await;
-        stream.for_each(|planet| { planet.accelerate_and_travel(lock[planet.id], dt); });
-
-        Ok(())
+        planets.for_each(|planet| { planet.accelerate_and_travel(lock[planet.id], dt); });
     }
 }
 

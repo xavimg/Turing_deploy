@@ -68,6 +68,8 @@ impl<T> DerefMut for LeftRight<T> {
     }
 }
 
+/// Upgrades reference to mutable reference.\
+/// **THIS IS SUPER-UNSAFE, USE WITH EXTREME CAUTION**
 pub unsafe fn upgrade<T> (ptr: &T) -> &mut T {
     let ptr = ptr as *const T as *mut T;
     &mut *ptr

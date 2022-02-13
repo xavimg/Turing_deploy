@@ -1,6 +1,6 @@
 use std::{pin::Pin, task::Poll};
 use async_trait::async_trait;
-use futures::{Stream, StreamExt};
+use futures::{Stream};
 
 #[async_trait]
 pub trait Streamx: Stream {
@@ -18,6 +18,8 @@ pub trait Streamx: Stream {
         }
     }
 }
+
+impl<T: Stream> Streamx for T {}
 
 pub struct AsyncFilter<S: Stream, F: Fn(&S::Item) -> bool> {
     stream: Pin<Box<S>>,
@@ -58,3 +60,4 @@ impl<'a, T: 'a + Clone, S: Stream<Item = &'a T>> Stream for StreamCloned<'a,T,S>
         self.0.size_hint()
     }
 }
+

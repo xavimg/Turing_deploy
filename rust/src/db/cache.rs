@@ -1,9 +1,9 @@
-use std::{hash::Hash, collections::{HashSet}, sync::{RwLock, Arc}, ops::{Deref, DerefMut}};
-use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
-use futures::{FutureExt, StreamExt, Future};
+use std::{hash::Hash, collections::{HashSet}, sync::{Arc}, ops::{Deref}};
+use futures::{FutureExt, StreamExt, Future, future::select_ok};
 use bson::{oid::ObjectId, doc, Document};
 use mongodb::{Collection, error::Error, results::{InsertOneResult, UpdateResult}, options::{UpdateModifications, FindOptions}};
 use serde::{Serialize, de::DeserializeOwned};
+use tokio::{sync::RwLock, task::JoinError};
 use crate::{Streamx, Either};
 
 pub trait MongoDoc {
@@ -47,24 +47,31 @@ impl<T: Hash + Eq> CollectionCache<T> {
 
     /// Searches for the value with the specified id in the cahche and the database simultaneously, returning the result of
     /// the first search to complete and killing the other
-    pub async fn find_any_one (&self) -> Result<Option<Arc<T>>, Error> where T: Unpin + Send + Sync + DeserializeOwned {
+    pub async fn find_any_one (&'static self) -> Result<Option<Arc<T>>, Error> where T: Unpin + Send + Sync + DeserializeOwned {
         self.find_one(doc! {}, |_| true).await
     }
     
-    pub async fn find_one_by_id (&self, id: ObjectId) -> Result<Option<Arc<T>>, Error> where T: MongoDoc + Unpin + Send + Sync + DeserializeOwned {
+    pub async fn find_one_by_id (&'static self, id: ObjectId) -> Result<Option<Arc<T>>, Error> where T: MongoDoc + Unpin + Send + Sync + DeserializeOwned {
         self.find_one(doc! { "_id": id }, |x| x.get_id() == id).await
     }
 
     /// Searches for the value with the specified parameters in the cahche and the database simultaneously, returning the result of
     /// the first search to complete and killing the other
-    pub async fn find_one<F: Send + Sync + Fn(&T) -> bool> (&self, db: Document, cache: F) -> Result<Option<Arc<T>>, Error> where T: Unpin + Send + Sync + DeserializeOwned {
+    pub async fn find_one<F: 'static + Send + Sync + Fn(&T) -> bool> (&'static self, db: Document, cache: F) -> Result<Option<Arc<T>>, Error> where T: Unpin + Send + Sync + DeserializeOwned {
+        let cache_fn = Arc::new(cache);
         let cache = async {
-            let read = self.set.read().unwrap();
-            match read.par_iter().find_any(|x| (cache)(x.deref())) {
-                None => Err(()),
-                Some(x) => Ok(x.clone())
-            }
-        }.fuse();
+            let read = self.set.read().await;
+            let handles = read.iter().map(|entry| {
+                let my_cache = cache_fn.clone();
+                tokio::spawn(async move {
+                    if my_cache(entry.deref()) { return Ok(entry.clone()) }
+                    Err(())
+                })
+            });
+
+            let res = select_ok(handles);
+            todo!()
+        };
 
         let db = async { 
             match self.collection.find_one(db, None).await {
@@ -74,9 +81,10 @@ impl<T: Hash + Eq> CollectionCache<T> {
                     Some(x) => Ok(Arc::new(x))
                 }
             }
-        }.fuse();
+        };
 
-        match Self::any_of(Box::pin(cache), Box::pin(db)).await {
+        todo!()
+        /*match Self::any_of(Box::pin(cache), Box::pin(db)).await {
             Ok(either) => {
                 let value = either.deref();
                 if either.is_right() { self.add_to_cache(value.clone()); }
@@ -87,7 +95,7 @@ impl<T: Hash + Eq> CollectionCache<T> {
                 Either::Left(e) => Err(e),
                 _ => Ok(None)
             }
-        }
+        }*/
     }
 
     /// Searches for the values with the specified parameters in the cache and the database simultaneously, returning the result of
@@ -102,7 +110,7 @@ impl<T: Hash + Eq> CollectionCache<T> {
             }
         };
         
-        let lock = self.set.read().unwrap();
+        let lock = self.set.read().await;
         let cache = futures::stream::iter(lock.deref().iter()).async_filter(|x| cache(x.deref())).cloned();
         let db = self.collection.find(db, db_opts);
 

@@ -1,8 +1,5 @@
-#![feature(once_cell, const_fn_floating_point_arithmetic, const_mut_refs, const_for, future_join, future_poll_fn, const_maybe_uninit_zeroed, stream_from_iter, untagged_unions)]
+#![feature(once_cell, const_fn_floating_point_arithmetic, const_mut_refs, const_for, future_join, future_poll_fn, const_maybe_uninit_zeroed, stream_from_iter, untagged_unions, fn_traits)]
 mod tests;
-use actix_web::{HttpServer, App};
-use actix_web::dev::Service;
-use crate::route::*;
 
 include!("macros.rs");
 include!("tests.rs");
