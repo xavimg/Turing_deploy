@@ -33,12 +33,12 @@ impl<T: Hash + Eq> CollectionCache<T> {
     /// Inserts element into the cache and retruns a ```Future``` that promises the resolution of the action
     /// on the database. This method is recomended if speed is your ultimate goal, but should be used carefully,
     /// since it means you won't catch database errors until you poll the future
-    pub fn insert_one_promise (&self, doc: T) -> (Option<Arc<T>>, impl Future<Output = Result<InsertOneResult, Error>> + '_) where T: Serialize {
+    pub async fn insert_one_promise (&self, doc: T) -> (Option<Arc<T>>, impl Future<Output = Result<InsertOneResult, Error>> + '_) where T: Serialize {
         let doc = Arc::new(doc);
         let clone = doc.clone();
         let future = self.collection.insert_one(clone, None);
 
-        if !self.add_to_cache(doc.clone()) {
+        if !self.add_to_cache(doc.clone()).await {
             return (None, future)
         }
 
@@ -152,7 +152,7 @@ impl<T: Hash + Eq> CollectionCache<T> {
         }
 
         drop(lock);
-        self.add_all_to_cache(dbs);
+        self.add_all_to_cache(dbs).await;
         results
     }
 
@@ -161,45 +161,62 @@ impl<T: Hash + Eq> CollectionCache<T> {
     }
 
     pub async fn update_one (&self, filter: Document, update: impl Into<UpdateModifications>) -> Result<Option<Arc<T>>, Error> where T: DeserializeOwned {
-        self.collection.find_one_and_update(filter, update, None).await.map(|x| {
-            x.map(|x| {
-                let x = Arc::new(x);
-                let mut lock = self.set.write().unwrap();
-                lock.replace(x.clone());
-                x
+        let request = self.collection.find_one_and_update(filter, update, None).await;
+        match request {
+            Err(e) => Err(e),
+            Ok(x) => Ok(match x {
+                None => None,
+                Some(x) => {
+                    let x = Arc::new(x);
+                    let mut lock = self.set.write().await;
+                    lock.replace(x.clone());
+                    Some(x)
+                }
             })
-        })
+        }
     }
 
     /// Updates element in the cache and retruns a ```Future``` that promises the resolution of the action
     /// on the database. This method is recomended if speed is your ultimate goal, but should be used carefully,
     /// since it means you won't catch database errors until you poll the future
-    pub fn update_one_promise<F1: Send + Sync + Fn(&T) -> bool, F2: FnOnce(T) -> T> (&self, filter_db: Document, filter_cache: F1, update_db: impl Into<UpdateModifications>, update_cache: F2) -> (Option<Arc<T>>, impl Future<Output = Result<UpdateResult, Error>> + '_) where T: Send + Sync + Clone {
+    pub async fn update_one_promise<F1: 'static + Send + Sync + Fn(&T) -> bool, F2: FnOnce(T) -> T> (&self, filter_db: Document, filter_cache: F1, update_db: impl Into<UpdateModifications>, update_cache: F2) -> (Result<Option<Arc<T>>, JoinError>, impl Future<Output = Result<UpdateResult, Error>> + '_) where T: 'static + Send + Sync + Clone {
         let future = self.collection.update_one(filter_db, update_db.into(), None);
-        let lock = self.set.read().unwrap();
+        let lock = self.set.read().await;
 
-        let result = lock.par_iter()
-            .find_any(|elem| filter_cache(elem.deref()))
-            .map(|value| update_cache(value.deref().clone()));
+        let filter_cache = Arc::new(filter_cache);
+        let handles = lock.iter().cloned().map(|entry| -> crate::TrySpawn<Arc<T>, ()> {
+            let my_cache = filter_cache.clone();
+            try_spawn(async move {
+                if my_cache(&entry) { return Ok(entry) }
+                Err(())
+            })
+        });
 
-        match result {
-            Some(value) => {
-                let value = Arc::new(value);
-                drop(lock);
+        let res = select_ok(handles).await;
+        drop(lock);
 
-                let mut lock = self.set.write().unwrap();
-                lock.replace(value.clone());
-                (Some(value), future)
+        let res = match res {
+            Err(e) => match e {
+                Either::Left(e) => Err(e),
+                Either::Right(_) => Ok(None)
             },
 
-            None => (None, future)
-        }
+            Ok((res, futs)) => {
+                futs.into_iter().for_each(|fut| fut.handle.abort());
+                let res = Arc::new(update_cache(res.deref().clone()));
+                let mut lock = self.set.write().await;
+                lock.replace(res.clone());
+                Ok(Some(res))
+            }
+        };
+
+        (res, future)
     }
 }
 
 impl<T> CollectionCache<T> {
-    pub(super) fn add_to_cache (&self, value: Arc<T>) -> bool where T: Hash + Eq {
-        let mut set = self.set.write().unwrap();
+    pub(super) async fn add_to_cache (&self, value: Arc<T>) -> bool where T: Hash + Eq {
+        let mut set = self.set.write().await;
         if set.len() < set.capacity() {
             return set.insert(value)
         }
@@ -207,13 +224,13 @@ impl<T> CollectionCache<T> {
         false
     }
 
-    pub(super) fn add_all_to_cache<I: IntoIterator<Item = Arc<T>>> (&self, value: I) -> bool where T: Hash + Eq {
+    pub(super) async fn add_all_to_cache<I: IntoIterator<Item = Arc<T>>> (&self, value: I) -> bool where T: Hash + Eq {
         let value = value.into_iter();
         let (_, hint) = value.size_hint();
 
         return match hint {
             Some(len) => {
-                let mut set = self.set.write().unwrap();
+                let mut set = self.set.write().await;
                 let max_len = set.capacity() - set.len();
 
                 let mut value = value.take(len.min(max_len));
@@ -225,7 +242,13 @@ impl<T> CollectionCache<T> {
                 all
             },
 
-            None => value.map(|x| self.add_to_cache(x)).all(|x| x)
+            None => {
+                for item in value {
+                    if !self.add_to_cache(item).await { return false }
+                }
+
+                true
+            }
         }
     }
 }
