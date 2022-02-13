@@ -1,10 +1,10 @@
 use std::{hash::Hash, collections::{HashSet}, sync::{Arc}, ops::{Deref}};
-use futures::{FutureExt, StreamExt, Future, future::select_ok};
+use futures::{StreamExt, Future, future::{select_ok}};
 use bson::{oid::ObjectId, doc, Document};
 use mongodb::{Collection, error::Error, results::{InsertOneResult, UpdateResult}, options::{UpdateModifications, FindOptions}};
 use serde::{Serialize, de::DeserializeOwned};
 use tokio::{sync::RwLock, task::JoinError};
-use crate::{Streamx, Either};
+use crate::{Streamx, Either, try_spawn};
 
 pub trait MongoDoc {
     fn get_id (&self) -> ObjectId;
@@ -47,55 +47,61 @@ impl<T: Hash + Eq> CollectionCache<T> {
 
     /// Searches for the value with the specified id in the cahche and the database simultaneously, returning the result of
     /// the first search to complete and killing the other
-    pub async fn find_any_one (&'static self) -> Result<Option<Arc<T>>, Error> where T: Unpin + Send + Sync + DeserializeOwned {
+    pub async fn find_any_one (&'static self) -> Result<Option<Arc<T>>, Either<JoinError, Error>> where T: Unpin + Send + Sync + DeserializeOwned {
         self.find_one(doc! {}, |_| true).await
     }
     
-    pub async fn find_one_by_id (&'static self, id: ObjectId) -> Result<Option<Arc<T>>, Error> where T: MongoDoc + Unpin + Send + Sync + DeserializeOwned {
-        self.find_one(doc! { "_id": id }, |x| x.get_id() == id).await
+    pub async fn find_one_by_id (&'static self, id: ObjectId) -> Result<Option<Arc<T>>, Either<JoinError, Error>> where T: MongoDoc + Unpin + Send + Sync + DeserializeOwned {
+        self.find_one(doc! { "_id": id }, move |x| x.get_id() == id).await
     }
 
     /// Searches for the value with the specified parameters in the cahche and the database simultaneously, returning the result of
     /// the first search to complete and killing the other
-    pub async fn find_one<F: 'static + Send + Sync + Fn(&T) -> bool> (&'static self, db: Document, cache: F) -> Result<Option<Arc<T>>, Error> where T: Unpin + Send + Sync + DeserializeOwned {
+    pub async fn find_one<F: 'static + Send + Sync + Fn(&T) -> bool> (&'static self, db: Document, cache: F) -> Result<Option<Arc<T>>, Either<JoinError, Error>> where T: Unpin + Send + Sync + DeserializeOwned {
         let cache_fn = Arc::new(cache);
-        let cache = async {
+        let cache = try_spawn(async move {
             let read = self.set.read().await;
-            let handles = read.iter().map(|entry| {
+            let handles = read.iter().cloned().map(|entry| -> crate::TrySpawn<Arc<T>, ()> {
                 let my_cache = cache_fn.clone();
-                tokio::spawn(async move {
-                    if my_cache(entry.deref()) { return Ok(entry.clone()) }
+                try_spawn(async move {
+                    if my_cache(&entry) { return Ok(entry) }
                     Err(())
                 })
             });
 
-            let res = select_ok(handles);
-            todo!()
-        };
+            match select_ok(handles).await {
+                Err(e) => Err(e.map_left(|e| Either::Left(e))),
+                Ok((res, futs)) => {
+                    futs.into_iter().for_each(|fut| fut.handle.abort());
+                    Ok(res)
+                }
+            }
+        });
 
-        let db = async { 
+        let db = try_spawn(async { 
             match self.collection.find_one(db, None).await {
-                Err(e) => Err(Either::Left(e)),
+                Err(e) => Err(Either::Left(Either::Right(e))),
                 Ok(x) => match x {
                     None => Err(Either::Right(())),
                     Some(x) => Ok(Arc::new(x))
                 }
             }
-        };
+        });
 
-        todo!()
-        /*match Self::any_of(Box::pin(cache), Box::pin(db)).await {
-            Ok(either) => {
-                let value = either.deref();
-                if either.is_right() { self.add_to_cache(value.clone()); }
-                Ok(Some(value.clone()))
-            }
+        match select_ok([cache, db]).await {
+            Err(err) => match err {
+                Either::Left(join) => Err(Either::Left(join)),
+                Either::Right(either) => match either {
+                    Either::Left(e) => Err(e),
+                    Either::Right(_) => Ok(None)
+                }
+            },
 
-            Err((_, e)) => match e {
-                Either::Left(e) => Err(e),
-                _ => Ok(None)
+            Ok((result, other)) => {
+                other[0].handle.abort();
+                Ok(Some(result))
             }
-        }*/
+        }
     }
 
     /// Searches for the values with the specified parameters in the cache and the database simultaneously, returning the result of

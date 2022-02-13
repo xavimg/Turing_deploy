@@ -1,6 +1,9 @@
-use std::{pin::Pin, task::Poll};
+use std::{pin::Pin, task::Poll, marker::PhantomData};
 use async_trait::async_trait;
-use futures::{Stream};
+use futures::{Stream, Future, FutureExt};
+use tokio::task::{JoinHandle, JoinError};
+
+use crate::Either;
 
 #[async_trait]
 pub trait Streamx: Stream {
@@ -61,3 +64,23 @@ impl<'a, T: 'a + Clone, S: Stream<Item = &'a T>> Stream for StreamCloned<'a,T,S>
     }
 }
 
+pub fn try_spawn<O: 'static + Send, E: 'static + Send, T: Future<Output = Result<O,E>> + Send + 'static> (fut: T) -> TrySpawn<O, E> {
+    TrySpawn {
+        handle: tokio::spawn(fut)
+    }
+}
+
+pub struct TrySpawn<T, E> {
+    pub handle: JoinHandle<Result<T,E>>
+}
+
+impl<T, E> Future for TrySpawn<T,E> {
+    type Output = Result<T, Either<JoinError,E>>;
+
+    fn poll(self: Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> Poll<Self::Output> {
+        self.handle.poll_unpin(cx).map(|res| match res {
+            Err(e) => Err(Either::Left(e)),
+            Ok(res) => res.map_err(|e| Either::Right(e))
+        })
+    }
+}
