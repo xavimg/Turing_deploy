@@ -1,5 +1,3 @@
-use rayon::iter::{ParallelBridge, ParallelIterator};
-
 struct LinearSpace {
     at: f64,
     to: f64,
@@ -30,7 +28,7 @@ impl Iterator for LinearSpace {
     }
 }
 
-pub fn integral<F: Fn(f64) -> f64> (from: f64, to: f64, len: usize, f: F) -> f64 where F: Send + Sync {
+pub async fn integral<F: Fn(f64) -> f64> (from: f64, to: f64, len: usize, f: F) -> f64 where F: Send + Sync {
     let dist = to - from;
     let cast = len as f64;
     let n2 = 2. * cast;
@@ -44,7 +42,11 @@ pub fn integral<F: Fn(f64) -> f64> (from: f64, to: f64, len: usize, f: F) -> f64
         delta
     };
 
-    let sum : f64 = lnsp.par_bridge()
+    let sum = lnsp.map(|x| tokio::spawn(async move {
+        f(x)
+    }));
+
+    let sum : f64 = lnsp.into_iter()
         .map(|x| f(x))
         .sum();
 
