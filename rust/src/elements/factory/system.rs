@@ -2,6 +2,7 @@ use std::{time::Duration, intrinsics::transmute, cmp::Ordering, rc::Rc, ops::Der
 use crate::{Durationx};
 use llml::{vec::EucVecd2, others::Complxd};
 use rand::{prelude::{Distribution, ThreadRng}, distributions::{Standard, Uniform}, thread_rng};
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use tokio::{task::JoinError};
 use crate::{Gaussian, PlanetSystem, Star, Planet, loop_clamp, Color};
 
@@ -63,7 +64,11 @@ impl GeneticSystem {
         Self { systems, mutation_rate, rng: Rc::new((Standard, std::sync::Mutex::new(rng))) }
     }
 
-    async fn fitness (systems: impl IntoIterator<Item = PlanetSystem>, time_step: Duration) -> Result<Vec<(PlanetSystem, f64)>, JoinError> {
+    async fn fitness (systems: impl IntoParallelIterator<Item = PlanetSystem>, time_step: Duration) -> Result<Vec<(PlanetSystem, f64)>, JoinError> {
+        systems.into_par_iter().map(|| {
+
+        });
+        
         let stream = systems.into_iter()
             .map(|mut system| tokio::spawn(async move {
                 let mut time = Duration::ZERO;
