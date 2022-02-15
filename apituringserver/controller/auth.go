@@ -102,7 +102,6 @@ func (c *authController) Register(context *gin.Context) {
 
 	// validation form request
 	errDTO := context.ShouldBind(&registerDTO)
-
 	if errDTO != nil {
 		response := helper.BuildErrorResponse("User register failed", errDTO.Error(), helper.EmptyObj{})
 		context.AbortWithStatusJSON(http.StatusBadRequest, response)

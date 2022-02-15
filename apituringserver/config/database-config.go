@@ -17,7 +17,7 @@ func SetupDatabaseConnection() *gorm.DB {
 		panic("Failed to load env file")
 	}
 
-	dsn := "host=db user=postgres password=v6vpxdkd dbname=alanturing port=5432 sslmode=disable"
+	dsn := "host=localhost user=postgres password=v6vpxdkd dbname=alanturing port=5432 sslmode=disable"
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
@@ -28,6 +28,7 @@ func SetupDatabaseConnection() *gorm.DB {
 	db.AutoMigrate(
 		&entity.User{},
 		&entity.Character{},
+		&entity.Feature{},
 	)
 
 	return db

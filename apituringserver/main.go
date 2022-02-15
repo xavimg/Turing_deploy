@@ -59,6 +59,7 @@ func main() {
 	{
 		adminRoutes.PUT("/ban/:id", adminController.BanUser)
 		adminRoutes.PUT("/unban/:id", adminController.UnbanUser)
+		adminRoutes.POST("/newfeature", adminController.NewFeature)
 	}
 
 	r.Run(":3000")

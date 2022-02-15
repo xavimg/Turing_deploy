@@ -31,5 +31,7 @@ func (db *adminConnection) UnbanUser(userID string) {
 }
 
 func (db *adminConnection) NewFeature(feature entity.Feature) entity.Feature {
-	return entity.Feature{}
+
+	db.connection.Save(&feature)
+	return feature
 }

@@ -31,11 +31,7 @@ require (
 	gopkg.in/yaml.v2 v2.2.8 // indirect
 )
 
-require (
-	github.com/go-sql-driver/mysql v1.6.0 // indirect
-	gorm.io/driver/mysql v1.2.3 // indirect
-	gorm.io/driver/postgres v1.2.3
-)
+require gorm.io/driver/postgres v1.2.3
 
 require (
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect

@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/xavimg/Turing/apituringserver/dto"
 	"github.com/xavimg/Turing/apituringserver/helper"
 	"github.com/xavimg/Turing/apituringserver/service"
 )
@@ -11,6 +12,7 @@ import (
 type AdminController interface {
 	BanUser(ctx *gin.Context)
 	UnbanUser(ctx *gin.Context)
+	NewFeature(ctx *gin.Context)
 }
 
 type adminController struct {
@@ -41,4 +43,23 @@ func (c *adminController) UnbanUser(ctx *gin.Context) {
 	res := helper.BuildResponse(true, "User has been unbanned !", helper.EmptyObj{})
 	ctx.JSON(http.StatusOK, res)
 
+}
+
+func (c *adminController) NewFeature(ctx *gin.Context) {
+	var feature dto.FeatureDTO
+
+	err := ctx.ShouldBind(&feature)
+	if err != nil {
+		res := helper.BuildErrorResponse(
+			"Feature not created", err.Error(),
+			helper.EmptyObj{})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+
+	featureCreated := c.adminService.NewFeature(feature)
+
+	response := helper.BuildResponse(true, "Feature has been created", featureCreated)
+
+	ctx.JSON(http.StatusCreated, response.Data)
 }
