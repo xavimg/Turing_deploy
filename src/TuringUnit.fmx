@@ -1,10 +1,246 @@
 object TuringWindow: TTuringWindow
   Left = 0
   Top = 0
-  ClientHeight = 480
-  ClientWidth = 640
+  BorderStyle = Single
+  Caption = 'Off World'
+  ClientHeight = 720
+  ClientWidth = 1280
   FormFactor.Width = 320
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  OnResize = FormResize
+  OnShow = FormShow
   DesignerMasterStyle = 0
+  object TabControl: TTabControl
+    Align = Client
+    Size.Width = 1280.000000000000000000
+    Size.Height = 720.000000000000000000
+    Size.PlatformDefault = False
+    TabIndex = 3
+    TabOrder = 3
+    TabPosition = PlatformDefault
+    Sizes = (
+      1280s
+      694s
+      1280s
+      694s
+      1280s
+      694s
+      1280s
+      694s)
+    object Login: TTabItem
+      CustomIcon = <
+        item
+        end>
+      IsSelected = False
+      Size.Width = 50.000000000000000000
+      Size.Height = 26.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = ''
+      TabOrder = 0
+      Text = 'Login'
+      ExplicitSize.cx = 50.000000000000000000
+      ExplicitSize.cy = 26.000000000000000000
+    end
+    object Settings: TTabItem
+      CustomIcon = <
+        item
+        end>
+      IsSelected = False
+      Size.Width = 63.000000000000000000
+      Size.Height = 26.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = ''
+      TabOrder = 0
+      Text = 'Settings'
+      ExplicitSize.cx = 63.000000000000000000
+      ExplicitSize.cy = 26.000000000000000000
+    end
+    object Menu: TTabItem
+      CustomIcon = <
+        item
+        end>
+      IsSelected = False
+      Size.Width = 51.000000000000000000
+      Size.Height = 26.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = ''
+      TabOrder = 0
+      Text = 'Menu'
+      ExplicitSize.cx = 51.000000000000000000
+      ExplicitSize.cy = 26.000000000000000000
+      object MainViewport: TViewport3D
+        Align = Client
+        Color = claBlack
+        Multisample = None
+        Size.Width = 1280.000000000000000000
+        Size.Height = 694.000000000000000000
+        Size.PlatformDefault = False
+        object MenuPlanet: TSphere
+          Width = 10.000000000000000000
+          Height = 10.000000000000000000
+          Depth = 10.000000000000000000
+          SubdivisionsAxes = 32
+          SubdivisionsHeight = 32
+          MaterialSource = MenuPlanetMaterial
+          object MenuPlanetAnimation1: TFloatAnimation
+            Enabled = True
+            Duration = 30.000000000000000000
+            Loop = True
+            PropertyName = 'RotationAngle.X'
+            StartValue = 0.000000000000000000
+            StopValue = 360.000000000000000000
+          end
+          object MenuPlanetMaterial: TLightMaterialSource
+            Diffuse = claWhite
+            Ambient = claBlack
+            Emissive = claNull
+            Specular = claNull
+            Shininess = 30
+            Left = 96
+            Top = 40
+            object MenuPlanetMaterialAnimation: TBitmapAnimation
+              AnimationType = InOut
+              Duration = 5.000000000000000000
+              Interpolation = Exponential
+              OnFinish = MenuPlanetMaterialAnimationFinish
+              PropertyName = 'Texture'
+            end
+          end
+          object MenuPlanetAnimation2: TFloatAnimation
+            Enabled = True
+            Duration = 60.000000000000000000
+            Loop = True
+            PropertyName = 'RotationAngle.Y'
+            StartValue = 0.000000000000000000
+            StopValue = 360.000000000000000000
+          end
+          object MenuPlanetAnimation3: TFloatAnimation
+            Enabled = True
+            Duration = 90.000000000000000000
+            Loop = True
+            PropertyName = 'RotationAngle.Z'
+            StartValue = 0.000000000000000000
+            StopValue = 360.000000000000000000
+          end
+        end
+        object MenuLayer: TLayer3D
+          Align = Client
+          Height = 694.000000000000000000
+          Position.X = 640.000000000000000000
+          Position.Y = 347.000000000000000000
+          Projection = Screen
+          Resolution = 50
+          StyleLookup = 'backgroundstyle'
+          Transparency = True
+          Width = 1280.000000000000000000
+          ZWrite = False
+          object MenuLayerBackground: TImage
+            MultiResBitmap = <
+              item
+              end>
+            Align = Client
+            Size.Width = 1280.000000000000000000
+            Size.Height = 694.000000000000000000
+            Size.PlatformDefault = False
+            object MenuBottom: TRectangle
+              Align = Bottom
+              Fill.Color = claNull
+              Margins.Left = 15.000000000000000000
+              Margins.Top = 15.000000000000000000
+              Margins.Right = 15.000000000000000000
+              Margins.Bottom = 15.000000000000000000
+              Position.X = 15.000000000000000000
+              Position.Y = 629.000000000000000000
+              Size.Width = 1250.000000000000000000
+              Size.Height = 50.000000000000000000
+              Size.PlatformDefault = False
+              Stroke.Color = claNull
+              Stroke.Thickness = 0.000000000000000000
+              object PlayButton: TRectangle
+                Align = Left
+                Fill.Color = claNull
+                Size.Width = 145.000000000000000000
+                Size.Height = 50.000000000000000000
+                Size.PlatformDefault = False
+                Stroke.Color = claWhite
+                OnClick = PlayButtonClick
+                OnMouseEnter = PlayButtonMouseEnter
+                OnMouseLeave = PlayButtonMouseLeave
+                object PlayButtonLabel: TLabel
+                  Align = Client
+                  StyledSettings = [Size, Style]
+                  Size.Width = 145.000000000000000000
+                  Size.Height = 50.000000000000000000
+                  Size.PlatformDefault = False
+                  TextSettings.Font.Family = 'Orbitron'
+                  TextSettings.FontColor = claWhite
+                  TextSettings.HorzAlign = Center
+                  Text = 'Play'
+                  TabOrder = 0
+                end
+              end
+            end
+            object MenuTitle: TLabel
+              Align = Top
+              StyledSettings = [Style]
+              Size.Width = 1280.000000000000000000
+              Size.Height = 72.000000000000000000
+              Size.PlatformDefault = False
+              TextSettings.Font.Family = 'Orbitron'
+              TextSettings.Font.Size = 72.000000000000000000
+              TextSettings.FontColor = claWhite
+              TextSettings.HorzAlign = Center
+              Text = 'Off World'
+              TabOrder = 1
+            end
+          end
+        end
+        object MenuLight: TLight
+          Color = claWhite
+          LightType = Directional
+          SpotCutOff = 180.000000000000000000
+          Position.X = -10.000000000000000000
+          RotationAngle.Y = 90.000000000000000000
+          Width = 1.000000000000000000
+          Height = 1.000000000000000000
+          Depth = 1.000000000000000000
+          Quanternion = '(0,-0.70710688829422,0,-0.707106649875641)'
+          object MenuLightAnimation: TColorAnimation
+            AnimationType = InOut
+            Enabled = True
+            Duration = 5.000000000000000000
+            OnFinish = MenuLightAnimationFinish
+            PropertyName = 'Color'
+            StartValue = claWhite
+            StartFromCurrent = True
+            StopValue = claWhite
+          end
+        end
+        object MusicMediaPlayer: TMediaPlayer
+          Left = 16
+          Top = 40
+        end
+        object HoverMediaPlayer: TMediaPlayer
+          Left = 56
+          Top = 40
+        end
+      end
+    end
+    object Game: TTabItem
+      CustomIcon = <
+        item
+        end>
+      IsSelected = True
+      Size.Width = 51.000007629394530000
+      Size.Height = 26.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = ''
+      TabOrder = 0
+      Text = 'Game'
+      ExplicitSize.cx = 51.000007629394530000
+      ExplicitSize.cy = 26.000000000000000000
+    end
+  end
 end

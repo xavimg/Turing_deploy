@@ -5,7 +5,7 @@
         <FrameworkType>FMX</FrameworkType>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
-        <Platform Condition="'$(Platform)'==''">Win32</Platform>
+        <Platform Condition="'$(Platform)'==''">Win64</Platform>
         <TargetedPlatforms>168979</TargetedPlatforms>
         <AppType>Application</AppType>
         <MainSource>TuringProject.dpr</MainSource>
@@ -250,6 +250,48 @@
             <Form>TuringWindow</Form>
             <FormType>fmx</FormType>
         </DCCReference>
+        <DCCReference Include="lib\Turing.Classes.pas"/>
+        <DCCReference Include="lib\Turing.Utils.pas"/>
+        <RcItem Include="dat\bitmap\textures\earth_daymap.jpg">
+            <ResourceType>RCDATA</ResourceType>
+            <ResourceId>Earth_day</ResourceId>
+        </RcItem>
+        <RcItem Include="dat\bitmap\textures\earth_nightmap.jpg">
+            <ResourceType>RCDATA</ResourceType>
+            <ResourceId>Earth_night</ResourceId>
+        </RcItem>
+        <RcItem Include="dat\bitmap\textures\jupiter.jpg">
+            <ResourceType>RCDATA</ResourceType>
+            <ResourceId>Jupiter</ResourceId>
+        </RcItem>
+        <RcItem Include="dat\bitmap\textures\mars.jpg">
+            <ResourceType>RCDATA</ResourceType>
+            <ResourceId>Mars</ResourceId>
+        </RcItem>
+        <RcItem Include="dat\bitmap\textures\mercury.jpg">
+            <ResourceType>RCDATA</ResourceType>
+            <ResourceId>Mercury</ResourceId>
+        </RcItem>
+        <RcItem Include="dat\bitmap\textures\neptune.jpg">
+            <ResourceType>RCDATA</ResourceType>
+            <ResourceId>Neptune</ResourceId>
+        </RcItem>
+        <RcItem Include="dat\bitmap\textures\saturn.jpg">
+            <ResourceType>RCDATA</ResourceType>
+            <ResourceId>Saturn</ResourceId>
+        </RcItem>
+        <RcItem Include="dat\bitmap\textures\uranus.jpg">
+            <ResourceType>RCDATA</ResourceType>
+            <ResourceId>Uranus</ResourceId>
+        </RcItem>
+        <RcItem Include="dat\bitmap\textures\venus_atmosphere.jpg">
+            <ResourceType>RCDATA</ResourceType>
+            <ResourceId>Venus_atm</ResourceId>
+        </RcItem>
+        <RcItem Include="dat\bitmap\textures\venus_surface.jpg">
+            <ResourceType>RCDATA</ResourceType>
+            <ResourceId>Venus</ResourceId>
+        </RcItem>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
@@ -272,9 +314,21 @@
                 </Source>
             </Delphi.Personality>
             <Deployment Version="3">
-                <DeployFile LocalName="Win32\Debug\TuringProject.exe" Configuration="Debug" Class="ProjectOutput">
-                    <Platform Name="Win32">
-                        <RemoteName>TuringProject.exe</RemoteName>
+                <DeployFile LocalName="dat\bitmap\textures\mercury.jpg" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win64">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="dat\bitmap\textures\saturn.jpg" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win64">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="dat\bitmap\textures\mars.jpg" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win64">
+                        <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -283,13 +337,73 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="$(BDS)\Redist\osx32\libcgunwind.1.0.dylib" Class="DependencyModule">
-                    <Platform Name="OSX32">
+                <DeployFile LocalName="dat\bitmap\textures\venus_atmosphere.jpg" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win64">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="dat\bitmap\textures\uranus.jpg" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win64">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="dat\bitmap\textures\earth_nightmap.jpg" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win64">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="dat\bitmap\textures\venus_surface.jpg" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win64">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="dat\bitmap\textures\neptune.jpg" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win64">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="Win64\Debug\TuringProject.rsm" Configuration="Debug" Class="DebugSymbols">
+                    <Platform Name="Win64">
+                        <RemoteName>TuringProject.rsm</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="$(BDS)\Redist\iossimulator\libcgunwind.1.0.dylib" Class="DependencyModule">
                     <Platform Name="iOSSimulator">
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="Win32\Debug\TuringProject.exe" Configuration="Debug" Class="ProjectOutput">
+                    <Platform Name="Win32">
+                        <RemoteName>TuringProject.exe</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="$(BDS)\Redist\osx32\libcgunwind.1.0.dylib" Class="DependencyModule">
+                    <Platform Name="OSX32">
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="dat\bitmap\textures\earth_daymap.jpg" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win64">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="dat\bitmap\textures\jupiter.jpg" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win64">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="Win64\Debug\TuringProject.exe" Configuration="Debug" Class="ProjectOutput">
+                    <Platform Name="Win64">
+                        <RemoteName>TuringProject.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -1095,9 +1209,9 @@
                 <ProjectRoot Platform="OSX32" Name="$(PROJECTNAME).app"/>
                 <ProjectRoot Platform="OSX64" Name="$(PROJECTNAME).app"/>
                 <ProjectRoot Platform="Android64" Name="$(PROJECTNAME)"/>
-                <ProjectRoot Platform="OSXARM64" Name="$(PROJECTNAME).app"/>
-                <ProjectRoot Platform="Android" Name="$(PROJECTNAME)"/>
                 <ProjectRoot Platform="Win32" Name="$(PROJECTNAME)"/>
+                <ProjectRoot Platform="Android" Name="$(PROJECTNAME)"/>
+                <ProjectRoot Platform="OSXARM64" Name="$(PROJECTNAME).app"/>
                 <ProjectRoot Platform="Win64" Name="$(PROJECTNAME)"/>
                 <ProjectRoot Platform="Linux64" Name="$(PROJECTNAME)"/>
                 <ProjectRoot Platform="iOSDevice32" Name="$(PROJECTNAME).app"/>
@@ -1107,10 +1221,7 @@
             <Platforms>
                 <Platform value="Android">True</Platform>
                 <Platform value="Android64">True</Platform>
-                <Platform value="iOSDevice32">False</Platform>
                 <Platform value="iOSDevice64">True</Platform>
-                <Platform value="iOSSimulator">False</Platform>
-                <Platform value="OSX32">False</Platform>
                 <Platform value="OSX64">True</Platform>
                 <Platform value="OSXARM64">True</Platform>
                 <Platform value="Win32">True</Platform>
