@@ -6,7 +6,7 @@ use jsonwebtoken::{decode, DecodingKey, Validation};
 use mongodb::{bson::{doc}};
 use serde_json::{json, Value};
 use strum::IntoEnumIterator;
-use crate::{DATABASE, Resource, PLAYERS, Player, PlanetSystem, PlayerToken, PlayerTokenLoged, Logger, CURRENT_LOGGER, Gaussian};
+use crate::{DATABASE, Resource, PLAYERS, Player, PlanetSystem, PlayerToken, PlayerTokenLoged, Logger, CURRENT_LOGGER, Gaussian, create_system};
 use rand::{thread_rng, prelude::Distribution};
 
 // OUT API
@@ -148,6 +148,6 @@ pub async fn get_player (req: HttpRequest) -> impl Responder {
 #[get("/internal/test/system")]
 pub async fn random_system () -> impl Responder {
     let gaussian : Gaussian<f64> = Gaussian::new();
-    let system : PlanetSystem = gaussian.sample(&mut thread_rng());
+    let system : PlanetSystem = create_system().await;
     web::Json(system)
 }

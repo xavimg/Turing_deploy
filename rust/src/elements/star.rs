@@ -1,6 +1,7 @@
 use std::{intrinsics::transmute};
 use lazy_static::lazy_static;
 use llml::{vec::{EucVecd2, EucVecd3}, mat::Matd3};
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use serde::{Serialize, Deserialize};
 use turing_proc::Maybee;
 use crate::{utils::Color, H, K};

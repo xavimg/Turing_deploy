@@ -1,6 +1,6 @@
 use std::{pin::Pin, task::Poll};
 use futures::{Future};
-use crate::{cache::{MongoDoc, CollectionCache}, Either};
+use crate::{cache::{CollectionCache}, Either};
 
 struct FindFuture<'a, E1, E2, T1, T2, L: Future<Output = Result<T1,E1>>, R: Future<Output = Result<T2,E2>>> {
     left: Pin<&'a mut L>,

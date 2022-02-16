@@ -24,14 +24,14 @@ impl<L,R> Either<L,R> {
         }
     }
 
-    pub const fn map_left<T, F: FnOnce(L) -> T> (self, f: F) -> Either<T,R> {
+    pub fn map_left<T, F: FnOnce(L) -> T> (self, f: F) -> Either<T,R> {
         match self {
             Self::Left(x) => Either::Left(f(x)),
             Self::Right(y) => Either::Right(y)
         }
     }
 
-    pub const fn map_right<T, F: FnOnce(R) -> T> (self, f: F) -> Either<L,T> {
+    pub fn map_right<T, F: FnOnce(R) -> T> (self, f: F) -> Either<L,T> {
         match self {
             Self::Left(x) => Either::Left(x),
             Self::Right(y) => Either::Right(f(y))

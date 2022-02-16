@@ -77,7 +77,7 @@ pub struct TrySpawn<T, E> {
 impl<T, E> Future for TrySpawn<T,E> {
     type Output = Result<T, Either<JoinError,E>>;
 
-    fn poll(self: Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> Poll<Self::Output> {
+    fn poll(mut self: Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> Poll<Self::Output> {
         self.handle.poll_unpin(cx).map(|res| match res {
             Err(e) => Err(Either::Left(e)),
             Ok(res) => res.map_err(|e| Either::Right(e))

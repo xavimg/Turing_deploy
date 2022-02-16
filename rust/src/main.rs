@@ -1,4 +1,6 @@
 #![feature(once_cell, const_fn_floating_point_arithmetic, const_mut_refs, const_for, future_join, future_poll_fn, const_maybe_uninit_zeroed, stream_from_iter, untagged_unions, fn_traits)]
+use rand::thread_rng;
+use tokio::task::JoinError;
 mod tests;
 
 include!("macros.rs");
@@ -7,10 +9,10 @@ flat_mod!(utils, elements, consts, api, db);
 
 pub const CURRENT_LOGGER : ConsoleLog = ConsoleLog;
 
-#[actix_web::main]
-async fn main() -> std::io::Result<()> {
-    simulate_system();
-    Ok(())
+// #[actix_web::main]
+#[tokio::main(flavor = "multi_thread")]
+async fn main() {
+    simulate_system().await;
     /*
     dotenv::dotenv().unwrap();
     match DATABASE.set(initialize_mongo().await) {

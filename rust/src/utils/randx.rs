@@ -13,30 +13,37 @@ impl<T: SampleUniform + One + Neg<Output = T> + Clone> Gaussian<T> where Gaussia
         Self(Mutex::new(None), Uniform::<T>::new_inclusive(-one.clone(), one))
     }
 
+    #[inline]
     pub fn random (&self) -> T {
         self.sample(&mut thread_rng())
     }
 
+    #[inline]
     pub fn with (&self, std: T, mean: T) -> T where T: Add<T, Output = T> + Mul<T, Output = T> {
         std * self.random() + mean
     }
 
+    #[inline]
     pub fn sample_with <R: rand::Rng + ?Sized>(&self, rng: &mut R, std: T, mean: T) -> T where T: Add<T, Output = T> + Mul<T, Output = T> {
         std * self.sample(rng) + mean
     }
 
+    #[inline]
     pub fn with_mean (&self, mean: T) -> <T as Add<T>>::Output where T: Add<T> {
         self.random() + mean
     }
 
+    #[inline]
     pub fn sample_with_mean<R: rand::Rng + ?Sized> (&self, rng: &mut R, mean: T) -> <T as Add<T>>::Output where T: Add<T> {
         self.sample(rng) + mean
     }
 
+    #[inline]
     pub fn with_std (&self, std: T) -> <T as Mul<T>>::Output where T: Mul<T> {
         self.random() * std
     }
 
+    #[inline]
     pub fn sample_with_std<R: rand::Rng + ?Sized> (&self, rng: &mut R, std: T) -> <T as Mul<T>>::Output where T: Mul<T> {
         self.sample(rng) * std
     }

@@ -26,7 +26,7 @@ impl PlanetSystem {
         let mut pairs = Vec::with_capacity((len * len - len) / 2);
 
         for i in 0..(len-1) {
-            for j in i..len {
+            for j in (i+1)..len {
                 pairs.push((&self.planets[i], &self.planets[j]));
             }
         }
@@ -38,9 +38,9 @@ impl PlanetSystem {
         }
 
         // Calculate interplanet acceleration for each planet pair. Each calculation is done in a diferent thread
-        let interplanet_acc = Arc::new(Mutex::new(interplanet_acc));
+        let interplanet_acc_ref = Arc::new(Mutex::new(&mut interplanet_acc));
         let handles = pairs.into_iter().map(|(x, y)| {
-            let acc_clone = interplanet_acc.clone();
+            let acc_clone = interplanet_acc_ref.clone();
             async move {
                 let (acc_x, acc_y) = x.calc_acc(y);
                 let mut lock = acc_clone.lock().await;
@@ -53,9 +53,8 @@ impl PlanetSystem {
         futures::future::join_all(handles).await;
 
         // Apply changes
-        let planets = self.planets.iter_mut();
-        let lock = interplanet_acc.lock().await;
-        planets.for_each(|planet| { planet.accelerate_and_travel(lock[planet.id], dt); });
+        self.planets.iter_mut()
+            .for_each(|planet| { planet.accelerate_and_travel(interplanet_acc[planet.id], dt); });
     }
 }
 
