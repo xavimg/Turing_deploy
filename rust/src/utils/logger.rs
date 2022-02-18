@@ -1,61 +1,42 @@
-use std::{thread, fmt::Debug, fs::{File, OpenOptions}, path::PathBuf, sync::{Mutex, MutexGuard}, io::Write};
+use std::{fmt::Debug, path::PathBuf};
+use async_trait::async_trait;
 use chrono::{Utc};
+use futures::future::try_join3;
+use tokio::{sync::{Mutex, MutexGuard}, fs::{File, OpenOptions}, io::AsyncWriteExt};
 
+#[async_trait]
 pub trait Logger {
-    fn log_info (&self, log: impl Debug);
-    fn log_warning (&self, log: impl Debug);
-    fn log_error (&self, log: impl Debug);
-
-    /// Loggs the info without blocking the current thread
-    fn async_log_info<T: 'static + Debug + Send> (&'static self, log: T) where Self: Send + Sync {
-        thread::spawn(move || {
-            self.log_info(log)
-        });
-    }
-
-    /// Loggs the warning without blocking the current thread
-    fn async_log_warning<T: 'static + Debug + Send> (&'static self, log: T) where Self: Send + Sync {
-        thread::spawn(move || {
-            self.log_warning(log)
-        });
-    }
-
-    /// Loggs the error without blocking the current thread
-    fn async_log_error<T: 'static + Debug + Send> (&'static self, log: T) where Self: Send + Sync {
-        thread::spawn(move || {
-            self.log_error(log)
-        });
-    }
+    async fn log_info<D: Debug + Send> (&self, log: D);
+    async fn log_warning<D: Debug + Send> (&self, log: D);
+    async fn log_error<D: Debug + Send> (&self, log: D);
 }
 
 // NOLOG
 pub struct NoLog;
 
+#[async_trait]
 impl Logger for NoLog {
-    fn log_info (&self, _log: impl Debug) {}
-    fn log_warning (&self, _log: impl Debug) {}
-    fn log_error (&self, _log: impl Debug) {}
-
-    fn async_log_info<T: 'static + Debug + Send> (&'static self, _log: T) where Self: Send + Sync {}
-    fn async_log_warning<T: 'static + Debug + Send> (&'static self, _log: T) where Self: Send + Sync {}
-    fn async_log_error<T: 'static + Debug + Send> (&'static self, _log: T) where Self: Send + Sync {}
+    async fn log_info<D: Debug + Send> (&self, _log: D) {}
+    async fn log_warning<D: Debug + Send> (&self, _log: D) {}
+    async fn log_error<D: Debug + Send> (&self, _log: D) {}
 }
 
 // CONSOLE LOG
 pub struct ConsoleLog;
 
+#[async_trait]
 impl Logger for ConsoleLog {
-    fn log_info (&self, log: impl Debug) {
+    async fn log_info<D: Debug + Send> (&self, log: D) {
         let date = Utc::now();
         println!("{date}: {log:?}\n")
     }
 
-    fn log_warning (&self, log: impl Debug) {
+    async fn log_warning<D: Debug + Send> (&self, log: D) {
         let date = Utc::now();
         eprintln!("{date}: {log:?}\n")
     }
 
-    fn log_error (&self, log: impl Debug) {
+    async fn log_error<D: Debug + Send> (&self, log: D) {
         let date = Utc::now();
         eprintln!("{date}: {log:?}\n")
     }
@@ -69,7 +50,7 @@ pub struct FsLog {
 }
 
 impl FsLog {    
-    pub fn new (dir: PathBuf) -> std::io::Result<Self> {
+    pub async fn new (dir: PathBuf) -> std::io::Result<Self> {
         let mut info = dir.clone();
         let mut warning = dir.clone();
         let mut error = dir;
@@ -81,37 +62,44 @@ impl FsLog {
         let mut opt = OpenOptions::new();
         let opt = opt.write(true);
 
+        let (info, warning, error) = try_join3(
+            opt.open(info), 
+            opt.open(warning),
+            opt.open(error)
+        ).await?;
+
         Ok(Self {
-            info: opt.open(info).map(|x| Mutex::new(x))?,
-            warning: opt.open(warning).map(|x| Mutex::new(x))?,
-            error: opt.open(error).map(|x| Mutex::new(x))?,
+            info: Mutex::new(info),
+            warning: Mutex::new(warning),
+            error: Mutex::new(error),
         })
     }
     
-    fn log_at (mut file: MutexGuard<File>, str: String) {
-        match file.write(str.as_bytes()) {
+    async fn log_at<'a> (mut file: MutexGuard<'a, File>, str: String) {
+        match file.write(str.as_bytes()).await {
             Ok(_) => {}
-            Err(e) => panic!("{e:?}")
+            Err(e) => eprintln!("{e:?}")
         }
     }
 }
 
+#[async_trait]
 impl Logger for FsLog {
-    fn log_info (&self, log: impl Debug) {
+    async fn log_info<D: Debug + Send> (&self, log: D) {
+        let file = self.info.lock().await;
         let date = Utc::now();
-        let file = self.info.lock().unwrap();
-        Self::log_at(file, format!("{date}: {log:?}"))
+        Self::log_at(file, format!("{date}: {log:?}")).await
     }
 
-    fn log_warning (&self, log: impl Debug) {
+    async fn log_warning<D: Debug + Send> (&self, log: D) {
+        let file = self.warning.lock().await;
         let date = Utc::now();
-        let file = self.warning.lock().unwrap();
-        Self::log_at(file, format!("{date}: {log:?}"))
+        Self::log_at(file, format!("{date}: {log:?}")).await
     }
 
-    fn log_error (&self, log: impl Debug) {
+    async fn log_error<D: Debug + Send> (&self, log: D) {
+        let file = self.error.lock().await;
         let date = Utc::now();
-        let file = self.error.lock().unwrap();
-        Self::log_at(file, format!("{date}: {log:?}"))
+        Self::log_at(file, format!("{date}: {log:?}")).await
     }
 }

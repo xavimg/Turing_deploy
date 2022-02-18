@@ -1,5 +1,5 @@
 use std::{hash::Hash, collections::{HashSet}, sync::{Arc}, ops::{Deref}};
-use futures::{StreamExt, Future, future::{select_ok}};
+use futures::{StreamExt, Future, future::{select_ok}, pin_mut};
 use bson::{oid::ObjectId, doc, Document};
 use mongodb::{Collection, error::Error, results::{InsertOneResult, UpdateResult}, options::{UpdateModifications, FindOptions}};
 use serde::{Serialize, de::DeserializeOwned};
@@ -26,7 +26,7 @@ impl<T: Hash + Eq> CollectionCache<T> {
     pub async fn insert_one (&self, doc: T) -> Result<(Arc<T>, InsertOneResult), Error> where T: Serialize {
         let insert = self.collection.insert_one(&doc, None).await;
         let doc = Arc::new(doc);
-        if insert.is_ok() { self.add_to_cache(doc.clone()); }
+        if insert.is_ok() { self.add_to_cache(doc.clone()).await; }
         insert.map(move |res| (doc, res))
     }
 
@@ -61,13 +61,17 @@ impl<T: Hash + Eq> CollectionCache<T> {
         let cache_fn = Arc::new(cache);
         let cache = try_spawn(async move {
             let read = self.set.read().await;
-            let handles = read.iter().cloned().map(|entry| -> crate::TrySpawn<Arc<T>, ()> {
+            let mut handles = read.iter().cloned().map(|entry| -> crate::TrySpawn<Arc<T>, ()> {
                 let my_cache = cache_fn.clone();
                 try_spawn(async move {
                     if my_cache(&entry) { return Ok(entry) }
                     Err(())
                 })
-            });
+            }).peekable();
+
+            if let None = handles.peek() {
+                return Err(Either::Right(()))
+            }
 
             match select_ok(handles).await {
                 Err(e) => Err(e.map_left(|e| Either::Left(e))),
@@ -98,7 +102,10 @@ impl<T: Hash + Eq> CollectionCache<T> {
             },
 
             Ok((result, other)) => {
-                other[0].handle.abort();
+                if let Some(other) = other.get(0) {
+                    other.handle.abort();
+                }
+
                 Ok(Some(result))
             }
         }
@@ -117,10 +124,14 @@ impl<T: Hash + Eq> CollectionCache<T> {
         };
         
         let lock = self.set.read().await;
-        let cache = futures::stream::iter(lock.deref().iter()).async_filter(|x| cache(x.deref())).cloned();
+        let cache = async {
+            futures::stream::iter(lock.iter()).async_filter(|x| cache(x.deref())).cloned()
+        };
+        
         let db = self.collection.find(db, db_opts);
+        pin_mut!(cache, db);
 
-        let mut stream = Self::many_of(Box::pin(cache), Box::pin(db));
+        let mut stream = Self::many_of(cache, db);
         let mut results;
         let mut dbs;
 
@@ -151,7 +162,7 @@ impl<T: Hash + Eq> CollectionCache<T> {
             }
         }
 
-        drop(lock);
+        //drop(lock);
         self.add_all_to_cache(dbs).await;
         results
     }

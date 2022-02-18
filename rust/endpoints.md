@@ -51,6 +51,7 @@
     }],
     "planets": [{
         "_id": uint,
+        "name": string,
         "color": uint,
         "pos": {
             "x": double,

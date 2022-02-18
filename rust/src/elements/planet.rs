@@ -10,6 +10,7 @@ pub struct Planet {
     pub id: usize,
     pub color: Color,
     pub mass: f64,
+    pub radius: f64,
     pub position: EucVecd2,
     pub velocity: EucVecd2
 }
@@ -23,8 +24,8 @@ impl Hash for Planet {
 }
 
 impl Planet {
-    pub fn new (id: usize, color: Color, mass: f64, position: EucVecd2, velocity: EucVecd2) -> Self {
-        Self { id, color, mass, position, velocity }
+    pub fn new (id: usize, color: Color, mass: f64, radius: f64, position: EucVecd2, velocity: EucVecd2) -> Self {
+        Self { id, color, mass, position, velocity, radius }
     }
 
     pub fn accelerate (&mut self, acc: EucVecd2, dt: Duration) {

@@ -9,21 +9,21 @@ macro_rules! flat_mod {
 
 macro_rules! create_http {
     ($($service:expr),+) => {
-        HttpServer::new(|| {
-            App::new()
+        actix_web::HttpServer::new(|| {
+            actix_web::App::new()
 
             // LOG REQUESTS & RESPONSES
             .wrap_fn(|req, srv| {
-                CURRENT_LOGGER.async_log_info(format!("{req:?}"));
+                tokio::spawn(CURRENT_LOGGER.log_info(format!("{req:?}")));
                 let fut = srv.call(req);
                 async {
                     match fut.await {
-                        Err(e) => { CURRENT_LOGGER.async_log_error(format!("{e:?}")); Err(e) },
+                        Err(e) => { tokio::spawn(CURRENT_LOGGER.log_error(format!("{e:?}"))); Err(e) },
                         Ok(x) => {
                             if x.status().is_success() {
-                                CURRENT_LOGGER.async_log_info(format!("RESP {x:?}"))
+                                { tokio::spawn(CURRENT_LOGGER.log_info(format!("RESP {x:?}"))); }
                             } else {
-                                CURRENT_LOGGER.async_log_warning(format!("RESP {x:?}"))
+                                { tokio::spawn(CURRENT_LOGGER.log_warning(format!("RESP {x:?}"))); }
                             }
                             Ok(x)
                         }

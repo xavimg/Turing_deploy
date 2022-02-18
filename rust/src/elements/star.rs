@@ -13,10 +13,10 @@ pub struct Star {
     pub mass: f64
 }
 
-const nanoC : f64 = 2.998e17;
-const nanoC2 : f64 = nanoC * nanoC;
-const nanoCH : f64 = nanoC * H;
-const nanoC2H2 : f64 = 2. * H * nanoC2;
+const NANO_C : f64 = 2.998e17;
+const NANO_C2 : f64 = NANO_C * NANO_C;
+const NANO_CH : f64 = NANO_C * H;
+const NANO_C2_H2 : f64 = 2. * H * NANO_C2;
 
 lazy_static! {
     pub static ref RGB_MATRIX : Matd3 = unsafe { Matd3::new([
@@ -60,7 +60,7 @@ impl Star {
     }
 
     fn spectral_radiance (lambda: f64, t: f64) -> f64 {
-        return nanoC2H2 / (lambda.powi(5) * (nanoCH / (lambda * K * t)).exp())
+        return NANO_C2_H2 / (lambda.powi(5) * (NANO_CH / (lambda * K * t)).exp())
     }
 
     fn gaussian_func (x: f64, mu: f64, gamma1: f64, gamma2: f64) -> f64 {

@@ -1,27 +1,36 @@
 use std::hash::Hash;
-
 use bson::oid::ObjectId;
+use rand::random;
 use serde::{Serialize, Deserialize};
 use turing_proc::Maybee;
-
-use crate::cache::MongoDoc;
+use crate::{color_rgba, PlanetSystem};
+use crate::{cache::MongoDoc, utils::Color};
 
 #[derive(Debug, Serialize, Deserialize, Maybee)]
 pub struct Player {
     #[serde(rename = "_id")]
-    id: ObjectId,
-    token: PlayerToken,
-    inventory: Inventory,
-    health: u8,
+    pub id: ObjectId,
+    pub system: Option<ObjectId>,
+    pub name: String,
+    pub token: PlayerToken,
+    pub stats: PlayerStats,
+    pub inventory: Inventory,
+    pub health: u8,
+    #[serde(with = "color_rgba")]
+    pub color: Color
 }
 
 impl Player {
-    pub fn new (token: PlayerToken) -> Self {
+    pub fn new<'a> (token: PlayerToken, name: String, system: impl Into<Option<&'a PlanetSystem>>) -> Self {
         Player {
             id: ObjectId::new(),
+            system: system.into().map(|x| x.id),
+            name,
             token,
+            stats: PlayerStats::default(),
             inventory: Inventory::default(),
             health: 100,
+            color: random()
         }
     }
 }
@@ -45,4 +54,4 @@ impl Hash for Player {
 }
 
 impl Eq for Player {}
-flat_mod!(web, inventory, resource);
+flat_mod!(stats, web, inventory, resource);

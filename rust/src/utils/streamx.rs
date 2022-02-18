@@ -1,4 +1,4 @@
-use std::{pin::Pin, task::Poll, marker::PhantomData};
+use std::{pin::Pin, task::Poll};
 use async_trait::async_trait;
 use futures::{Stream, Future, FutureExt};
 use tokio::task::{JoinHandle, JoinError};

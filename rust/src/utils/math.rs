@@ -6,16 +6,6 @@ struct LinearSpace {
     delta: f64
 }
 
-impl LinearSpace {
-    pub fn new (from: f64, to: f64, len: usize) -> Self {
-        LinearSpace {
-            at: from,
-            to,
-            delta: (to - from) / (len as f64)
-        }
-    }
-}
-
 impl Iterator for LinearSpace {
     type Item = f64;
 

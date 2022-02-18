@@ -3,7 +3,7 @@ use chrono::{DateTime, Utc};
 use serde::{Serialize, Deserialize};
 use chrono::serde::ts_seconds;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum PlayerToken {
     Loged(PlayerTokenLoged),
     Unloged(u64)
@@ -18,7 +18,7 @@ impl PlayerToken {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct PlayerTokenLoged {
     #[serde(rename = "user_id")]
     pub id: u64,

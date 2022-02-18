@@ -1,6 +1,5 @@
 pub mod cache;
 pub mod filter;
-pub mod find;
 pub mod find_many;
 
 use std::lazy::SyncLazy;
@@ -8,30 +7,26 @@ use std::mem::{size_of};
 use mongodb::{Database};
 use mongodb::{options::ClientOptions, Client};
 use tokio::sync::OnceCell;
-use crate::{PlanetSystem, Player, CURRENT_LOGGER, Logger};
+use crate::{PlanetSystem, Player};
 use self::cache::CollectionCache;
 
 const MAX_CACHE_SIZE : usize = 1073741824; // 1 GiB
 const MAX_SINGLE_CACHE_SIZE : usize = MAX_CACHE_SIZE / 2;
-
 pub static DATABASE : OnceCell<Database> = OnceCell::const_new();
 
 pub static PLANET_SYSTEMS: SyncLazy<CollectionCache<PlanetSystem>> = SyncLazy::new(|| {
     let size = MAX_SINGLE_CACHE_SIZE / size_of::<PlanetSystem>();
-    CURRENT_LOGGER.async_log_info(format!("Planet System cache Size: {size} elements"));
     CollectionCache::new(DATABASE.get().unwrap().collection("system"), size)
 });
 
 pub static PLAYERS: SyncLazy<CollectionCache<Player>> = SyncLazy::new(|| {
-    let size = 1;
-    //let size = MAX_SINGLE_CACHE_SIZE / size_of::<Player>();
-    CURRENT_LOGGER.async_log_info(format!("Player cache Size: {size} elements"));
+    let size = MAX_SINGLE_CACHE_SIZE / size_of::<Player>();
     CollectionCache::new(DATABASE.get().unwrap().collection("player"), size)
 });
 
-pub async fn initialize_mongo () -> Database {    
+pub async fn initialize_mongo () -> mongodb::error::Result<Database> {    
     let uri = format!("mongodb://{}:{}@127.0.0.1:1234/?authSource=admin&readPreference=primary&directConnection=true&ssl=false", get_env!("TURING_USERNAME"), get_env!("TURING_PASSWORD"));
-    let client = ClientOptions::parse(uri).await.expect("Error connectiong to MongoDB");
-    let client = Client::with_options(client).expect("Error connectiong to MongoDB");
-    client.database(get_env!("TURING_DATABASE").as_str())
+    let client = ClientOptions::parse(uri).await?;
+    let client = Client::with_options(client)?;
+    Ok(client.database(get_env!("TURING_DATABASE").as_str()))
 }
