@@ -144,9 +144,11 @@ func (c *authController) Register(context *gin.Context) {
 		// fmt.Println("debug", bodyString)
 		// Ending connection with Alex.
 
-		response := helper.BuildResponse(true, "User register successfully", createdUser)
+		service.SendEmail(registerDTO.Name, registerDTO.Email)
 
-		context.JSON(http.StatusCreated, response.Data)
+		response := helper.BuildResponse(true, "Check your email !", createdUser)
+
+		context.JSON(http.StatusCreated, response)
 	}
 }
 
