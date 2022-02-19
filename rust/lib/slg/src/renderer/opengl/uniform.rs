@@ -1,4 +1,4 @@
-use std::{sync::{Arc}, time::Duration};
+use std::{sync::{Arc}};
 use gl33::global_loader::{glGetUniformLocation, glUniform1i, glUniform1ui, glUniform1f, glUniform2fv, glUniform3fv, glUniform4fv};
 use crate::{Uniform, RenderShader};
 use super::{OpenGl, GlShader};

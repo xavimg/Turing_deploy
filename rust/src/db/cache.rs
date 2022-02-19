@@ -3,8 +3,8 @@ use futures::{StreamExt, Future, future::{select_ok}, pin_mut};
 use bson::{oid::ObjectId, doc, Document};
 use mongodb::{Collection, error::Error, results::{InsertOneResult, UpdateResult}, options::{UpdateModifications, FindOptions}};
 use serde::{Serialize, de::DeserializeOwned};
-use tokio::{sync::RwLock, task::JoinError};
-use crate::{Streamx, Either, try_spawn};
+use tokio::{sync::RwLock, task::JoinError, join};
+use crate::{Streamx, Either, try_spawn, CURRENT_LOGGER, Logger};
 
 pub trait MongoDoc {
     fn get_id (&self) -> ObjectId;
@@ -23,20 +23,31 @@ impl<T: Hash + Eq> CollectionCache<T> {
         }
     }
 
+    /// Resync cache data with database data
+    pub async fn resync (&self) {
+        todo!()
+    }
+
     pub async fn insert_one (&self, doc: T) -> Result<(Arc<T>, InsertOneResult), Error> where T: Serialize {
-        let insert = self.collection.insert_one(&doc, None).await;
         let doc = Arc::new(doc);
-        if insert.is_ok() { self.add_to_cache(doc.clone()).await; }
-        insert.map(move |res| (doc, res))
+        let (_, db) = join!(self.add_to_cache(doc.clone()), self.collection.insert_one(doc.clone(), None));
+
+        match db {
+            Err(e) => {
+                tokio::spawn(CURRENT_LOGGER.log_error(format!("{e}")));
+                Err(e)
+            },
+
+            Ok(result) => Ok((doc, result))
+        }
     }
 
     /// Inserts element into the cache and retruns a ```Future``` that promises the resolution of the action
-    /// on the database. This method is recomended if speed is your ultimate goal, but should be used carefully,
+    /// on the database. This method runs unther the reasonable assumption that the cache will be faster than the database, and is recomended if speed is your ultimate goal, but should be used carefully,
     /// since it means you won't catch database errors until you poll the future
     pub async fn insert_one_promise (&self, doc: T) -> (Option<Arc<T>>, impl Future<Output = Result<InsertOneResult, Error>> + '_) where T: Serialize {
         let doc = Arc::new(doc);
-        let clone = doc.clone();
-        let future = self.collection.insert_one(clone, None);
+        let future = self.collection.insert_one(doc.clone(), None);
 
         if !self.add_to_cache(doc.clone()).await {
             return (None, future)

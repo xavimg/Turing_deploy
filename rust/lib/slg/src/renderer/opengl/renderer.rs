@@ -1,4 +1,4 @@
-use std::{sync::{Arc, Mutex, RwLock}, num::NonZeroU32, mem::{size_of_val, size_of}, lazy::Lazy, ops::Deref};
+use std::{sync::{Arc, RwLock}, num::NonZeroU32, mem::{size_of_val, size_of}, lazy::Lazy, ops::Deref, os::raw::c_char};
 use glutin::{event_loop::{EventLoop, ControlFlow}, window::WindowBuilder, dpi::LogicalSize, ContextBuilder, event::{Event, WindowEvent}, GlRequest, Api, platform::run_return::EventLoopExtRunReturn};
 use gl33::{global_loader::{load_global_gl, glCreateShader, glShaderSource, glCompileShader, glGetShaderiv, glGetShaderInfoLog, glCreateProgram, glAttachShader, glGetProgramiv, glLinkProgram, glGetProgramInfoLog, glDetachShader, glValidateProgram, glGenVertexArrays, glBindVertexArray, glGenBuffers, glBindBuffer, glBufferData, glVertexAttribPointer, glEnableVertexAttribArray, glClear, glEnable, glBlendFunc}, GL_COMPILE_STATUS, GL_LINK_STATUS, ProgramPropertyARB, GL_VALIDATE_STATUS, GL_ARRAY_BUFFER, GL_STATIC_DRAW, GL_FLOAT, ShaderType, GL_VERTEX_SHADER, GL_FRAGMENT_SHADER, GL_DEPTH_BUFFER_BIT, GL_COLOR_BUFFER_BIT, GL_BLEND, GL_ONE};
 use crate::{Renderer, Threadly, RenderInstance};
@@ -42,7 +42,7 @@ impl Renderer for OpenGl {
 
         unsafe {
             load_global_gl(&|ptr| {
-                let c_str = std::ffi::CStr::from_ptr(ptr as *const i8);
+                let c_str = std::ffi::CStr::from_ptr(ptr as *const c_char);
                 let r_str = c_str.to_str().unwrap();
                 current.get_proc_address(r_str) as _
             });

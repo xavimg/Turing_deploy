@@ -2,25 +2,21 @@ use std::ops::Deref;
 use std::str::FromStr;
 use actix_web::{get, Responder, HttpRequest, web::{Path, self}};
 use bson::{oid::ObjectId, doc};
-use jsonwebtoken::encode;
 use serde_json::json;
-use crate::{PLAYERS, decode_token, CURRENT_LOGGER, PlayerToken, Logger, is_loopback, PlayerTokenLoged};
+use crate::{PLAYERS, decode_token, CURRENT_LOGGER, PlayerToken, Logger, is_loopback, test_token};
 
 #[get("/test/player/token/{id}")]
 pub async fn test_login (req: HttpRequest, id: web::Path<u64>) -> impl Responder {
-    let id = id.into_inner();
     if !is_loopback(&req) {
         return web::Json(json!({ "error": "Invelid address" }))
     }
 
-    let body = PlayerTokenLoged::default_for(id);
-    let token = encode(&Header::default(), &body, EncodingKey::from_secret(JWT_SECRET.as_ref()));
-
+    let (body, token) = test_token(id.into_inner());
     let query = bson::to_document(&PlayerToken::Unloged(body.id)).unwrap();
     let update = bson::to_document(&PlayerToken::Loged(body)).unwrap();
 
     let output = match PLAYERS.update_one(doc! { "token": query }, doc! { "$set": { "token": update } }).await {
-        Ok(_) => json!({ "token": body }),
+        Ok(_) => json!({ "token": token }),
         Err(e) => {
             let e = format!("{e}");
             tokio::spawn(CURRENT_LOGGER.log_error(e.clone()));
@@ -31,6 +27,7 @@ pub async fn test_login (req: HttpRequest, id: web::Path<u64>) -> impl Responder
     web::Json(output)
 }
 
+// eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjo2MCwiZXhwIjoxNjQ1NTI1ODExLCJpYXQiOjE2NDUyNjY2MTEsImlzcyI6IlRlc3RpbmcifQ.6V4CNkDWV5a3lODu5ZFkkG3GDGQgFifMiRZ2KiIMXgI
 #[get("/player")]
 pub async fn get_player_me (req: HttpRequest) -> impl Responder {
     let output = match decode_token(&req) {

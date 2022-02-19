@@ -1,4 +1,4 @@
-#![feature(once_cell, const_fn_floating_point_arithmetic, const_mut_refs, const_for, future_join, future_poll_fn, const_maybe_uninit_zeroed, stream_from_iter, untagged_unions, fn_traits)]
+#![feature(once_cell, const_fn_floating_point_arithmetic, const_mut_refs, const_for, future_join, future_poll_fn, const_maybe_uninit_zeroed, untagged_unions, fn_traits)]
 use api::{route::*, game::*};
 mod tests;
 use actix_web::dev::Service;
@@ -9,8 +9,7 @@ flat_mod!(utils, elements, consts, api, db);
 
 pub const CURRENT_LOGGER : ConsoleLog = ConsoleLog;
 
-// #[actix_web::main]
-#[tokio::main(flavor = "multi_thread")]
+#[actix_web::main]
 async fn main() -> std::io::Result<()> {
     dotenv::dotenv().unwrap();
     match DATABASE.set(initialize_mongo().await.expect("Error connecting to MongoDB")) {
@@ -19,9 +18,9 @@ async fn main() -> std::io::Result<()> {
     }
 
     let server = create_http!(
-        status, resources, 
-        new_user, user_login, user_logout,
-        get_player_me, get_player
+        status, resources, new_user, user_login, user_logout,
+        get_player_me, get_player,
+        test_login
     );  
 
     server.bind(("0.0.0.0", 8080))?.run().await

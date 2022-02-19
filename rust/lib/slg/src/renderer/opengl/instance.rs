@@ -1,4 +1,4 @@
-use std::{lazy::Lazy, num::NonZeroU32, sync::{Arc, Mutex, RwLock}};
+use std::{lazy::Lazy, num::NonZeroU32, sync::{Arc, RwLock}};
 use glutin::{window::Window, ContextWrapper, PossiblyCurrent};
 use llml::vec::EucVecf2;
 use crate::{RenderInstance, generics::{Color, Circle, RenderElement}, Renderer, Threadly};

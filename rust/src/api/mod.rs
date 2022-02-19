@@ -1,7 +1,7 @@
 use std::{lazy::Lazy, fmt::Display};
 use actix_web::{HttpRequest, http::header::AUTHORIZATION};
 use chrono::{DateTime, Utc};
-use jsonwebtoken::{DecodingKey, decode, Validation, TokenData};
+use jsonwebtoken::{DecodingKey, decode, Validation, TokenData, encode, EncodingKey, Header};
 use crate::PlayerTokenLoged;
 
 pub mod route;
@@ -41,11 +41,11 @@ pub fn decode_token (req: &HttpRequest) -> Result<TokenData<PlayerTokenLoged>, T
         let token = decode::<PlayerTokenLoged>(token, &JWT_KEY, &Validation::default()).map_err(|e| TokenError::JWT(e))?;
         let now = Utc::now();
 
-        if token.claims.expiration_date >= token.claims.issued_at {
+        if token.claims.issued_at >= token.claims.expiration_date {
             return Err(TokenError::TokenExpiredBeforeIssued { issued: token.claims.issued_at, expired: token.claims.expiration_date })
-        } else if token.claims.issued_at >= now {
+        } else if token.claims.issued_at > now {
             return Err(TokenError::TokenInFuture(token.claims.issued_at))
-        } else if token.claims.expiration_date >= now {
+        } else if token.claims.expiration_date <= now {
             return Err(TokenError::TokenExpired(token.claims.expiration_date))
         }
 
