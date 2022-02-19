@@ -50,7 +50,8 @@ pub struct FsLog {
 }
 
 impl FsLog {    
-    pub async fn new (dir: PathBuf) -> std::io::Result<Self> {
+    pub async fn new (dir: impl Into<PathBuf>) -> std::io::Result<Self> {
+        let dir = dir.into();
         let mut info = dir.clone();
         let mut warning = dir.clone();
         let mut error = dir;

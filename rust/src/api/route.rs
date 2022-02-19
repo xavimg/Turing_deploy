@@ -3,7 +3,7 @@ use jsonwebtoken::{decode, DecodingKey, Validation};
 use mongodb::{bson::{doc}};
 use serde_json::{json, Value};
 use strum::IntoEnumIterator;
-use crate::{DATABASE, Resource, PLAYERS, Player, PlanetSystem, PlayerToken, PlayerTokenLoged, CURRENT_LOGGER, create_system, Logger};
+use crate::{DATABASE, Resource, PLAYERS, Player, PlayerToken, PlayerTokenLoged, CURRENT_LOGGER, Logger};
 
 // OUT API
 #[get("/status")]
@@ -43,9 +43,8 @@ pub async fn resources () -> impl Responder {
     }))
 }
 
-
 // IN API
-#[post("/internal/user/signup")]
+#[post("/player/signup")]
 pub async fn new_user (_: HttpRequest, body: web::Json<u64>) -> impl Responder {
     // TODO INTERNAL IP ONLY
     let valid = match PLAYERS.insert_one(Player::new(PlayerToken::Unloged(body.0), format!("todo"), None)).await {
@@ -56,7 +55,7 @@ pub async fn new_user (_: HttpRequest, body: web::Json<u64>) -> impl Responder {
     web::Json(json!({ "valid": valid }))
 }
 
-#[post("/internal/user/signin")]
+#[post("/player/signin")]
 pub async fn user_login (_: HttpRequest, body: web::Json<String>) -> impl Responder {
     let secret = get_env!("JWT_SECRET");
     let key = DecodingKey::from_secret(secret.as_ref());
@@ -80,7 +79,7 @@ pub async fn user_login (_: HttpRequest, body: web::Json<String>) -> impl Respon
     web::Json(json)
 }
 
-#[post("/internal/user/signout")]
+#[post("/player/signout")]
 pub async fn user_logout (_: HttpRequest, body: web::Json<String>) -> impl Responder {
     let secret = get_env!("JWT_SECRET");
     let key = DecodingKey::from_secret(secret.as_ref());
@@ -102,10 +101,4 @@ pub async fn user_logout (_: HttpRequest, body: web::Json<String>) -> impl Respo
     };
 
     web::Json(json)
-}
-
-#[get("/internal/test/system")]
-pub async fn random_system () -> impl Responder {
-    let system : PlanetSystem = create_system().await;
-    web::Json(system)
 }

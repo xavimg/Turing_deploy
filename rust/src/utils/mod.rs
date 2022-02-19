@@ -1,6 +1,6 @@
 flat_mod!(logger, color, math, serdex, array_map, take_out, randx, durationx, streamx);
-use std::ops::{Deref, DerefMut};
 
+use std::{ops::{Deref, DerefMut}, fmt::Display};
 pub type LeftRight<T> = Either<T,T>;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -58,6 +58,15 @@ impl<T> LeftRight<T> {
         match self {
             Self::Left(x) => x,
             Self::Right(x) => x
+        }
+    }
+}
+
+impl<A: Display, B: Display> Display for Either<A, B> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Either::Left(x) => x.fmt(f),
+            Either::Right(x) => x.fmt(f)
         }
     }
 }

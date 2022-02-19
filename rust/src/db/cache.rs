@@ -172,8 +172,7 @@ impl<T: Hash + Eq> CollectionCache<T> {
     }
 
     pub async fn update_one (&self, filter: Document, update: impl Into<UpdateModifications>) -> Result<Option<Arc<T>>, Error> where T: DeserializeOwned {
-        let request = self.collection.find_one_and_update(filter, update, None).await;
-        match request {
+        match self.collection.find_one_and_update(filter, update, None).await {
             Err(e) => Err(e),
             Ok(x) => Ok(match x {
                 None => None,

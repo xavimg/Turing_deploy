@@ -21,7 +21,7 @@ async fn main() -> std::io::Result<()> {
     let server = create_http!(
         status, resources, 
         new_user, user_login, user_logout,
-        random_system, get_player
+        get_player_me, get_player
     );  
 
     server.bind(("0.0.0.0", 8080))?.run().await

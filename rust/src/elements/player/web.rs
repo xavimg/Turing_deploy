@@ -1,5 +1,5 @@
 use bson::{doc};
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Utc, Duration};
 use serde::{Serialize, Deserialize};
 use chrono::serde::ts_seconds;
 
@@ -28,4 +28,16 @@ pub struct PlayerTokenLoged {
     pub issued_at: DateTime<Utc>,
     #[serde(rename = "iss")]
     pub issued_by: String
+}
+
+impl PlayerTokenLoged {
+    pub fn default_for (id: u64) -> Self {
+        let now = Utc::now();
+        Self {
+            id,
+            expiration_date: now + Duration::days(3),
+            issued_at: now,
+            issued_by: "Testing".to_string()
+        }
+    }
 }
