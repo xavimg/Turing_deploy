@@ -47,7 +47,7 @@ pub async fn resources () -> impl Responder {
 #[post("/player/signup")]
 pub async fn new_user (_: HttpRequest, body: web::Json<u64>) -> impl Responder {
     // TODO INTERNAL IP ONLY
-    let valid = match PLAYERS.insert_one(Player::new(PlayerToken::Unloged(body.0), format!("todo"), None)).await {
+    let valid = match PLAYERS.insert_one(Player::new(PlayerToken::Unloged(body.0), format!("todo"))).await {
         Err(x) => { tokio::spawn(CURRENT_LOGGER.log_error(x)); false },
         Ok(_) => true
     };

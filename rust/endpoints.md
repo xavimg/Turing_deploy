@@ -9,16 +9,18 @@
 {
     "_id": objectId,
     "name": string,
-    "system": object,
+    "location": {
+        "system": object,
+        "pos": {
+            "x": double,
+            "y": double
+        }
+    },
     "hp": uint,
     "stats": {
         "level": uint,
         "max_speed": double,
         "max_hp": double
-    },
-    "pos": {
-        "x": double,
-        "y": double
     },
     "inventory": [object],
     "color": uint

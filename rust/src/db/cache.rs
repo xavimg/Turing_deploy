@@ -66,6 +66,10 @@ impl<T: Hash + Eq> CollectionCache<T> {
         self.find_one(doc! { "_id": id }, move |x| x.get_id() == id).await
     }
 
+    pub async fn find_one_by_value (&'static self, value: &T) -> Result<Option<Arc<T>>, Either<JoinError, Error>> where T: MongoDoc + Unpin + Send + Sync + DeserializeOwned {
+        self.find_one_by_id(value.get_id()).await
+    }
+
     /// Searches for the value with the specified parameters in the cahche and the database simultaneously, returning the result of
     /// the first search to complete and killing the other
     pub async fn find_one<F: 'static + Send + Sync + Fn(&T) -> bool> (&'static self, db: Document, cache: F) -> Result<Option<Arc<T>>, Either<JoinError, Error>> where T: Unpin + Send + Sync + DeserializeOwned {
