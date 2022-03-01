@@ -48,8 +48,7 @@ func (c *adminController) UnbanUser(ctx *gin.Context) {
 func (c *adminController) NewFeature(ctx *gin.Context) {
 	var feature dto.FeatureDTO
 
-	err := ctx.ShouldBind(&feature)
-	if err != nil {
+	if err := ctx.ShouldBind(&feature); err != nil {
 		res := helper.BuildErrorResponse(
 			"Feature not created", err.Error(),
 			helper.EmptyObj{})

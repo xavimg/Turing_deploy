@@ -11,13 +11,13 @@ import (
 
 // UserRepository is a contract what UserRepository can do to db.
 type UserRepository interface {
-	InsertUser(user entity.User) entity.User
+	InsertUser(user entity.User, userCode int) entity.User
 	UpdateUser(user entity.User, userID string, newInfo dto.UserUpdateDTO) entity.User
 	VerifyCredential(email, password string) interface{}
 	VerifyUserExist(userID string) interface{}
 	VerifyUserActive(email string) entity.User
 	IsDuplicateEmail(email string) (ctx *gorm.DB)
-	FindByEmail(username string) entity.User
+	FindByEmail(username string) (entity.User, error)
 	ProfileUser(userID string) entity.User
 	SaveToken(user entity.User, token string)
 	DeleteToken(user entity.User, token string)
@@ -35,8 +35,9 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 	}
 }
 
-func (db *userConnection) InsertUser(user entity.User) entity.User {
+func (db *userConnection) InsertUser(user entity.User, userCode int) entity.User {
 	user.Password = hashAndSalt([]byte(user.Password))
+	user.CodeVerify = userCode
 
 	db.connection.Save(&user)
 	db.connection.Preload("Characters").Find(&user)
@@ -116,12 +117,15 @@ func (db *userConnection) ProfileUser(userID string) entity.User {
 	return user
 }
 
-func (db *userConnection) FindByEmail(username string) entity.User {
-	var user entity.User
+func (db *userConnection) FindByEmail(email string) (user entity.User, err error) {
+	var userToFind entity.User
 
-	db.connection.Where("email = ? ", username).Take(&user)
+	db.connection.Where("email = ? ", email).Take(&userToFind)
+	if err != nil {
+		log.Fatal("Error: ", err)
+	}
 
-	return user
+	return user, nil
 }
 
 func (db *userConnection) SaveToken(user entity.User, token string) {

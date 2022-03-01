@@ -18,7 +18,7 @@ services:
 
   go:
     #network_mode: host
-    image: server-go
+    build: .
     environment:
       - DB_USERNAME=postgres
       - DB_PASSWORD=v6vpxdkd
@@ -38,7 +38,3 @@ volumes:
 networks:
   fullstack:
     driver: bridge
-  
-  
-
-  

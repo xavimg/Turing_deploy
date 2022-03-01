@@ -43,5 +43,8 @@ require (
 	github.com/jackc/pgtype v1.9.0 // indirect
 	github.com/jackc/pgx/v4 v4.14.0 // indirect
 	github.com/lib/pq v1.10.4
+	github.com/rs/cors v1.8.2
 	golang.org/x/text v0.3.7 // indirect
 )
+
+require github.com/gin-contrib/cors v1.3.1 // indirect

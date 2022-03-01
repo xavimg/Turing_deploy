@@ -12,11 +12,11 @@ import (
 )
 
 type AuthService interface {
-	CreateUser(user dto.RegisterDTO) entity.User
+	CreateUser(user dto.RegisterDTO, userCode int) entity.User
 	VerifyCredential(email, password string) interface{}
 	VerifyUserExist(userID string) interface{}
 	VerifyUserActive(email string) entity.User
-	FindByEmail(email string) entity.User
+	FindByEmail(email string) (entity.User, error)
 	IsDuplicateEmail(email string) bool
 	SaveToken(user entity.User, token string)
 	DeleteToken(user entity.User, s string)
@@ -33,7 +33,7 @@ func NewAuthService(userRepo repository.UserRepository) AuthService {
 	}
 }
 
-func (service *authService) CreateUser(user dto.RegisterDTO) entity.User {
+func (service *authService) CreateUser(user dto.RegisterDTO, userCode int) entity.User {
 	userToCreate := entity.User{}
 
 	err := smapping.FillStruct(&userToCreate, smapping.MapFields(&user))
@@ -41,7 +41,7 @@ func (service *authService) CreateUser(user dto.RegisterDTO) entity.User {
 		log.Fatalf("Failed map %v", err)
 	}
 
-	res := service.userRepository.InsertUser(userToCreate)
+	res := service.userRepository.InsertUser(userToCreate, userCode)
 
 	return res
 }
@@ -97,7 +97,7 @@ func comparePassword(hashedPwd string, plainPassword []byte) bool {
 	return true
 }
 
-func (service *authService) FindByEmail(email string) entity.User {
+func (service *authService) FindByEmail(email string) (entity.User, error) {
 	return service.userRepository.FindByEmail(email)
 }
 

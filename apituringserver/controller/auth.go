@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 	"github.com/xavimg/Turing/apituringserver/dto"
@@ -39,11 +40,13 @@ func NewAuthController(authService service.AuthService, jwtService service.JWTSe
 }
 
 func (c *authController) Login(context *gin.Context) {
+
+	//fmt.Println(context.Request.Body)
+
 	var loginDTO dto.LoginDTO
 
 	// validation from request
-	errDTO := context.ShouldBind(&loginDTO)
-	if errDTO != nil {
+	if errDTO := context.ShouldBindJSON(&loginDTO); errDTO != nil {
 		response := helper.BuildErrorResponse("User login failed", errDTO.Error(), helper.EmptyObj{})
 		context.AbortWithStatusJSON(http.StatusBadRequest, response)
 		return
@@ -52,9 +55,6 @@ func (c *authController) Login(context *gin.Context) {
 	// Verify of credentials exists
 	authResult := c.authService.VerifyCredential(loginDTO.Email, loginDTO.Password)
 	if v, ok := authResult.(entity.User); ok {
-
-		fmt.Println(v.Active)
-
 		if strconv.FormatBool(v.Active) == "false" {
 			context.JSON(http.StatusBadRequest, "User has been banned")
 			return
@@ -63,35 +63,31 @@ func (c *authController) Login(context *gin.Context) {
 
 		generateToken := c.jwtService.GenerateTokenLogin(v.ID)
 		v.Token = generateToken
-
 		c.authService.SaveToken(v, generateToken)
 
-		// json_data, err := json.Marshal(generateToken)
-		// if err != nil {
-		// 	log.Fatal(err)
-		// }
+		json_data, err := json.Marshal(generateToken)
+		if err != nil {
+			log.Fatal(err)
+		}
 
-		// resp, err := http.Post("http://192.168.192.221:8080/internal/user/signin", "application/json", bytes.NewReader(json_data))
-		// if err != nil {
-		// 	log.Fatal(err)
-		// }
-		// defer resp.Body.Close()
+		resp, err := http.Post("http://192.168.195.80:8080/internal/user/signin", "application/json", bytes.NewReader(json_data))
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer resp.Body.Close()
 
-		// bodyBytes, err := io.ReadAll(resp.Body)
-		// if err != nil {
-		// 	log.Fatal(err)
-		// }
-		// bodyString := string(bodyBytes)
-		// fmt.Println("debug", bodyString)
-
-		// context.SetCookie(generateToken, "testtoken", 3600, "/", "localhost", false, false)
+		bodyBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			log.Fatal(err)
+		}
+		bodyString := string(bodyBytes)
+		fmt.Println("debug", bodyString)
 
 		response := helper.BuildResponseSession(true, "User login successfully", generateToken)
 		context.JSON(http.StatusOK, response)
 		return
 	}
 
-	// login failed
 	response := helper.BuildErrorResponse("User login failed", "Invalid credential", helper.EmptyObj{})
 	context.AbortWithStatusJSON(http.StatusUnauthorized, response)
 
@@ -100,51 +96,53 @@ func (c *authController) Login(context *gin.Context) {
 func (c *authController) Register(context *gin.Context) {
 	var registerDTO dto.RegisterDTO
 
-	// validation form request
-	errDTO := context.ShouldBind(&registerDTO)
-	if errDTO != nil {
+	if errDTO := context.ShouldBind(&registerDTO); errDTO != nil {
 		response := helper.BuildErrorResponse("User register failed", errDTO.Error(), helper.EmptyObj{})
 		context.AbortWithStatusJSON(http.StatusBadRequest, response)
 		return
 	}
 
-	// check duplicate email
 	if !c.authService.IsDuplicateEmail(registerDTO.Email) {
 		response := helper.BuildErrorResponse("User register failed", "Duplicate email", helper.EmptyObj{})
 		context.JSON(http.StatusConflict, response)
 		return
 	} else {
 
-		createdUser := c.authService.CreateUser(registerDTO)
+		getCode := service.SendEmailCodeVerify(registerDTO.Name, registerDTO.Email)
+
+		createdUser := c.authService.CreateUser(registerDTO, getCode)
+
 		token := c.jwtService.GenerateTokenRegister(createdUser.ID)
 		createdUser.Token = token
 
 		// Action where I send to Alex ID from user, so he can knows.
-		// var infoJson dto.DataAlex
+		var infoJson dto.DataAlex
 
-		// infoJson.ID = createdUser.ID
-		// infoJson.Token = createdUser.Token
+		infoJson.ID = createdUser.ID
+		infoJson.Token = createdUser.Token
 
-		// json_data, err := json.Marshal(createdUser.ID)
-		// if err != nil {
-		// 	return
-		// }
+		json_data, err := json.Marshal(createdUser.ID)
+		if err != nil {
+			return
+		}
+		resp, err := http.Post("http://192.168.195.80:8080/internal/user/signup", "application/json", bytes.NewReader(json_data))
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer resp.Body.Close()
 
-		// resp, err := http.Post("http://192.168.192.221:8080/internal/user/signup", "application/json", bytes.NewReader(json_data))
-		// if err != nil {
-		// 	log.Fatal(err)
-		// }
-		// defer resp.Body.Close()
-
-		// bodyBytes, err := io.ReadAll(resp.Body)
-		// if err != nil {
-		// 	log.Fatal(err)
-		// }
-		// bodyString := string(bodyBytes)
-		// fmt.Println("debug", bodyString)
+		bodyBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			log.Fatal(err)
+		}
+		bodyString := string(bodyBytes)
+		fmt.Println("debug", bodyString)
 		// Ending connection with Alex.
 
-		service.SendEmail(registerDTO.Name, registerDTO.Email)
+		var routine sync.Mutex
+		routine.Lock()
+		go service.SendEmail(registerDTO.Name, registerDTO.Email)
+		routine.Unlock()
 
 		response := helper.BuildResponse(true, "Check your email !", createdUser)
 
@@ -156,7 +154,6 @@ func (c *authController) Logout(ctx *gin.Context) {
 
 	id := ctx.Param("id")
 
-	// We must check if user exist in DB if we want to update.
 	authResult := c.authService.VerifyUserExist(id)
 	if v, ok := authResult.(entity.User); ok {
 
@@ -164,7 +161,7 @@ func (c *authController) Logout(ctx *gin.Context) {
 
 		json_data, _ := json.Marshal(response.Token)
 
-		resp, err := http.Post("http://192.168.192.221:8080/internal/user/signout", "application/json", bytes.NewReader(json_data))
+		resp, err := http.Post("http://192.168.195.80:8080/internal/user/signout", "application/json", bytes.NewReader(json_data))
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -172,20 +169,18 @@ func (c *authController) Logout(ctx *gin.Context) {
 
 		bodyBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal("Error reading response", err)
 		}
 
 		bodyString := string(bodyBytes)
-
-		if bodyString == "true" {
-
-			c.authService.DeleteToken(v, "")
-
-		} else {
+		if bodyString != "true" {
 
 			log.Fatal()
+			return
 
 		}
+
+		c.authService.DeleteToken(v, "")
 
 	}
 }

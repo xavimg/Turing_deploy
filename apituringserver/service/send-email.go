@@ -2,7 +2,10 @@ package service
 
 import (
 	"log"
+	"math/rand"
 	"net/smtp"
+	"strconv"
+	"time"
 )
 
 const (
@@ -41,7 +44,7 @@ func SendEmail(username string, To string) {
 				<h3> Team: <h3>
 				<ul>
 					<li>Khadija Rehman</li>
-					<li>Alex Andreva</li>
+					<li>Alex Andreba</li>
 					<li>Gerard Marquina</li>
 					<li>Xavier Moya</li>
 				</ul>
@@ -51,5 +54,50 @@ func SendEmail(username string, To string) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+}
+
+func SendEmailCodeVerify(username string, To string) int {
+
+	from := email
+	password := password
+	toEmail := To
+	to := []string{toEmail}
+
+	host := "smtp.gmail.com"
+	port := "587"
+	address := host + ":" + port
+
+	codeVerify := GenerateVerificationCode()
+
+	auth := smtp.PlainAuth("", from, password, host)
+
+	message := ([]byte("This is your code verification: " + strconv.Itoa(codeVerify)))
+
+	msg := []byte(
+		"From: Off World <" + from + ">\r\n" +
+			"To: " + toEmail + "\r\n" +
+			"Subject: Verify this code for start playing!\r\n" +
+			"MIME: MIME-version: 1.0\r\n" +
+			"Content-Type: text/html; charset=\"UTF-8\";\r\n" +
+			"\r\n" +
+			string(message))
+
+	err := smtp.SendMail(address, auth, from, to, msg)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return codeVerify
+}
+
+func GenerateVerificationCode() (code int) {
+
+	max := 999999
+	min := 100000
+
+	rand.Seed(time.Now().Unix())
+
+	return rand.Intn(max-min) + min
 
 }

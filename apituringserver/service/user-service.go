@@ -13,6 +13,7 @@ import (
 type UserService interface {
 	Profile(userID string) entity.User
 	Update(user dto.UserUpdateDTO, userID string, newInfo dto.UserUpdateDTO) entity.User
+	VerifyAccount(email string) entity.User
 }
 
 type userService struct {
@@ -42,4 +43,14 @@ func (service *userService) Update(dataUser dto.UserUpdateDTO, userID string, ne
 	res := service.userRepository.UpdateUser(passToUpdate, userID, newInfo)
 
 	return res
+}
+
+func (service *userService) VerifyAccount(email string) entity.User {
+
+	user, err := service.userRepository.FindByEmail(email)
+	if err != nil {
+		log.Fatal("Error: ", err)
+	}
+
+	return user
 }

@@ -1,9 +1,6 @@
 package main
 
 import (
-	"fmt"
-	"net/smtp"
-
 	"github.com/gin-gonic/gin"
 	"github.com/xavimg/Turing/apituringserver/config"
 	"github.com/xavimg/Turing/apituringserver/controller"
@@ -32,9 +29,8 @@ func main() {
 
 	r := gin.Default()
 
-	email()
-
 	r.MaxMultipartMemory = 8 << 20
+	//r.Use(cors.Default())
 
 	r.GET("/hello", func(c *gin.Context) {
 
@@ -69,31 +65,4 @@ func main() {
 
 	r.Run(":3000")
 
-}
-
-func email() {
-	// sender data
-	from := "xavimg@blanquerna.url.edu" //ex: "John.Doe@gmail.com"
-	password := "v6vpxdkd"              // ex: "ieiemcjdkejspqz"
-	// receiver address
-	toEmail := "xavimoyatesting@gmail.com" // ex: "Jane.Smith@yahoo.com"
-	to := []string{toEmail}
-	// smtp - Simple Mail Transfer Protocol
-	host := "smtp.gmail.com"
-	port := "587"
-	address := host + ":" + port
-	// message
-	subject := "Subject: Our Golang Email\n"
-	body := "our first email!"
-	message := []byte(subject + body)
-	// athentication data
-	// func PlainAuth(identity, username, password, host string) Auth
-	auth := smtp.PlainAuth("", from, password, host)
-	// send mail
-	// func SendMail(addr string, a Auth, from string, to []string, msg []byte) error
-	err := smtp.SendMail(address, auth, from, to, message)
-	if err != nil {
-		fmt.Println("err:", err)
-		return
-	}
 }
