@@ -20,23 +20,34 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WebSocket {
             Ok(ws::Message::Ping(msg)) => ctx.pong(&msg),
             Ok(ws::Message::Text(text)) => ctx.text(text),
             Ok(ws::Message::Binary(bin)) => ctx.binary(bin),
-            _ => (),
+            x => println!("{x:?}"),
         }
     }
 }
 
 #[get("/player/conn")]
 pub async fn start_connection (req: HttpRequest, payload: web::Payload) -> Result<HttpResponse, actix_web::Error> {
-    let token;
+    let actor = WebSocket { player: ObjectId::new() };
+    tokio::spawn(CURRENT_LOGGER.log_info(format!("Started WS connection with {}", req.peer_addr().unwrap())));
+    ws::start(actor, &req, payload)
+    /*let token;
+    let string;
+
     match decode_token(&req) {
-        Ok(t) => token = t,
+        Ok((s, t)) => { token = t; string = s },
         Err(e) => { tokio::spawn(CURRENT_LOGGER.log_error(format!("{e}"))); return Ok(HttpResponse::BadRequest().body(format!("{e}"))) }
     }
     
     let id = token.claims.id;
-    let bson = bson::to_document(&PlayerToken::Loged(token.claims)).unwrap();
+    let bson = bson::to_document(&PlayerToken::Loged(string.clone())).unwrap();
 
-    return match PLAYERS.find_one(doc! { "token": bson }, move |player| player.token.get_id() == id).await {
+    return match PLAYERS.find_one(doc! { "token": bson }, move |player| {
+        if let PlayerToken::Loged(ref a) = player.token {
+            return a == &string
+        }
+
+        false
+    }).await {
         Ok(Some(player)) => {
             let actor = WebSocket { player: player.id };
             return ws::start(actor, &req, payload)
@@ -45,6 +56,6 @@ pub async fn start_connection (req: HttpRequest, payload: web::Payload) -> Resul
         Err(Either::Right(e)) => Ok(HttpResponse::BadRequest().body(format!("{e}"))),
         Err(Either::Left(e)) => Ok(HttpResponse::InternalServerError().body(format!("{e}"))),
         _ => todo!()
-    }
+    }*/
 }
 

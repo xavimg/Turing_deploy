@@ -38,7 +38,7 @@ pub fn get_auth_token (req: &HttpRequest) -> Option<&str> {
     None
 }
 
-pub fn decode_token (req: &HttpRequest) -> Result<(&str, TokenData<PlayerTokenLoged>), TokenError> {
+pub fn decode_token (req: &HttpRequest) -> Result<(String, TokenData<PlayerTokenLoged>), TokenError> {
     if let Some(string) = get_auth_token(req) {
         let token = decode::<PlayerTokenLoged>(&string, &JWT_KEY, &Validation::default()).map_err(|e| TokenError::JWT(e))?;
         let now = Utc::now();
@@ -51,7 +51,7 @@ pub fn decode_token (req: &HttpRequest) -> Result<(&str, TokenData<PlayerTokenLo
             return Err(TokenError::TokenExpired(token.claims.expiration_date))
         }
 
-        return Ok((string, token))
+        return Ok((string.to_string(), token))
     }
 
     Err(TokenError::TokenNotFound)

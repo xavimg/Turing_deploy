@@ -7,7 +7,7 @@ fn main () {
     let mut headers = Headers::new();
     headers.append_raw("Authorization", format!("Bearer {TOKEN}").into_bytes());
 
-    let mut client = ClientBuilder::new("http://localhost:8080/player/conn")
+    let mut client = ClientBuilder::new("ws://localhost:8080/player/conn")
         .unwrap()
         .custom_headers(&headers)
         .connect_insecure()

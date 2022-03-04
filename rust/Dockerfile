@@ -8,7 +8,6 @@ WORKDIR /rust
 
 # 2. Copy our manifests
 COPY ./lib ./lib
-COPY ./Cargo.lock ./Cargo.lock
 COPY ./Cargo.toml ./Cargo.toml
 
 # 3. Build only the dependencies to cache them

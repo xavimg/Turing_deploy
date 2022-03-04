@@ -1,9 +1,9 @@
-use actix_web::{Responder, web, HttpRequest, post, get};
+use actix_web::{Responder, web, HttpRequest, post, get, HttpResponse};
 use jsonwebtoken::{decode, DecodingKey, Validation};
 use mongodb::{bson::{doc}};
 use serde_json::{json, Value};
 use strum::IntoEnumIterator;
-use crate::{DATABASE, Resource, PLAYERS, Player, PlayerToken, PlayerTokenLoged, CURRENT_LOGGER, Logger};
+use crate::{DATABASE, Resource, PLAYERS, Player, PlayerToken, PlayerTokenLoged, CURRENT_LOGGER, Logger, get_auth_token, decode_token};
 
 // OUT API
 #[get("/status")]
@@ -56,7 +56,13 @@ pub async fn new_user (_: HttpRequest, body: web::Json<u64>) -> impl Responder {
 }
 
 #[post("/player/signin")]
-pub async fn user_login (_: HttpRequest, body: web::Json<String>) -> impl Responder {
+pub async fn user_login (_: HttpRequest, body: web::Json<String>) -> HttpResponse {
+    if let Ok((string, token)) = decode_token(&req) {
+        
+    }
+
+    HttpResponse::BadRequest().body("No authorization key found")
+    /*
     let secret = get_env!("JWT_SECRET");
     let key = DecodingKey::from_secret(secret.as_ref());
 
@@ -76,28 +82,24 @@ pub async fn user_login (_: HttpRequest, body: web::Json<String>) -> impl Respon
     };
 
     web::Json(json)
+    */
 }
 
 #[post("/player/signout")]
-pub async fn user_logout (_: HttpRequest, body: web::Json<String>) -> impl Responder {
-    let secret = get_env!("JWT_SECRET");
-    let key = DecodingKey::from_secret(secret.as_ref());
-
-    let json = match decode::<PlayerTokenLoged>(body.as_str(), &key, &Validation::default()) {
-        Err(e) => { tokio::spawn(CURRENT_LOGGER.log_error(e)); json!({ "valid": false }) },
-        Ok(token) => {
-            let body = token.claims;
-            let update = bson::to_document(&PlayerToken::Unloged(body.id)).unwrap();
-            let query = bson::to_document(&PlayerToken::Loged(body)).unwrap();
-        
-            let valid = match PLAYERS.update_one(doc! { "token": query }, doc! { "$set": { "token": update } }).await {
-                Ok(_) => true,
-                Err(e) => { tokio::spawn(CURRENT_LOGGER.log_error(e)); false }
-            };
-
-            json!({ "valid": valid })
+pub async fn user_logout (req: HttpRequest) -> HttpResponse {
+    if let Ok((string, token)) = decode_token(&req) {
+        let update = bson::to_document(&PlayerToken::Unloged(token.claims.id)).unwrap();
+        let query = bson::to_document(&PlayerToken::Loged(string)).unwrap();
+    
+        return match PLAYERS.update_one(doc! { "token": query }, doc! { "$set": { "token": update } }).await {
+            Ok(Some(_)) => HttpResponse::Ok().finish(),
+            Ok(None) => HttpResponse::BadRequest().body("No matching player found"),
+            Err(e) => { 
+                tokio::spawn(CURRENT_LOGGER.log_error(format!("{e}")));
+                HttpResponse::InternalServerError().body(format!("{e}"))
+            }
         }
-    };
+    }
 
-    web::Json(json)
+    HttpResponse::BadRequest().body("No authorization key found")
 }
