@@ -1,0 +1,12 @@
+/Users/Adebas/IdeaProjects/Turing/rust/wsclient/target/debug/deps/base64-52d7a2d80a09df02.rmeta: /Users/Adebas/.cargo/registry/src/github.com-1ecc6299db9ec823/base64-0.10.1/src/lib.rs /Users/Adebas/.cargo/registry/src/github.com-1ecc6299db9ec823/base64-0.10.1/src/chunked_encoder.rs /Users/Adebas/.cargo/registry/src/github.com-1ecc6299db9ec823/base64-0.10.1/src/display.rs /Users/Adebas/.cargo/registry/src/github.com-1ecc6299db9ec823/base64-0.10.1/src/tables.rs /Users/Adebas/.cargo/registry/src/github.com-1ecc6299db9ec823/base64-0.10.1/src/write/mod.rs /Users/Adebas/.cargo/registry/src/github.com-1ecc6299db9ec823/base64-0.10.1/src/write/encoder.rs /Users/Adebas/.cargo/registry/src/github.com-1ecc6299db9ec823/base64-0.10.1/src/encode.rs /Users/Adebas/.cargo/registry/src/github.com-1ecc6299db9ec823/base64-0.10.1/src/decode.rs
+
+/Users/Adebas/IdeaProjects/Turing/rust/wsclient/target/debug/deps/base64-52d7a2d80a09df02.d: /Users/Adebas/.cargo/registry/src/github.com-1ecc6299db9ec823/base64-0.10.1/src/lib.rs /Users/Adebas/.cargo/registry/src/github.com-1ecc6299db9ec823/base64-0.10.1/src/chunked_encoder.rs /Users/Adebas/.cargo/registry/src/github.com-1ecc6299db9ec823/base64-0.10.1/src/display.rs /Users/Adebas/.cargo/registry/src/github.com-1ecc6299db9ec823/base64-0.10.1/src/tables.rs /Users/Adebas/.cargo/registry/src/github.com-1ecc6299db9ec823/base64-0.10.1/src/write/mod.rs /Users/Adebas/.cargo/registry/src/github.com-1ecc6299db9ec823/base64-0.10.1/src/write/encoder.rs /Users/Adebas/.cargo/registry/src/github.com-1ecc6299db9ec823/base64-0.10.1/src/encode.rs /Users/Adebas/.cargo/registry/src/github.com-1ecc6299db9ec823/base64-0.10.1/src/decode.rs
+
+/Users/Adebas/.cargo/registry/src/github.com-1ecc6299db9ec823/base64-0.10.1/src/lib.rs:
+/Users/Adebas/.cargo/registry/src/github.com-1ecc6299db9ec823/base64-0.10.1/src/chunked_encoder.rs:
+/Users/Adebas/.cargo/registry/src/github.com-1ecc6299db9ec823/base64-0.10.1/src/display.rs:
+/Users/Adebas/.cargo/registry/src/github.com-1ecc6299db9ec823/base64-0.10.1/src/tables.rs:
+/Users/Adebas/.cargo/registry/src/github.com-1ecc6299db9ec823/base64-0.10.1/src/write/mod.rs:
+/Users/Adebas/.cargo/registry/src/github.com-1ecc6299db9ec823/base64-0.10.1/src/write/encoder.rs:
+/Users/Adebas/.cargo/registry/src/github.com-1ecc6299db9ec823/base64-0.10.1/src/encode.rs:
+/Users/Adebas/.cargo/registry/src/github.com-1ecc6299db9ec823/base64-0.10.1/src/decode.rs:
