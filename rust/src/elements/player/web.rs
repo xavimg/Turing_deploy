@@ -5,17 +5,8 @@ use chrono::serde::ts_seconds;
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum PlayerToken {
-    Loged(PlayerTokenLoged),
+    Loged(String),
     Unloged(u64)
-}
-
-impl PlayerToken {
-    pub const fn get_id (&self) -> u64 {
-        match self {
-            Self::Loged(x) => x.id,
-            Self::Unloged(x) => *x
-        }
-    }
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]

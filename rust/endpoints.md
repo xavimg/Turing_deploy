@@ -3,7 +3,6 @@
 ## /signout
 
 # Player
-
 ## GET /player
 ```json
 {

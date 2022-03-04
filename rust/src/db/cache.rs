@@ -5,11 +5,9 @@ use mongodb::{Collection, error::Error, results::{InsertOneResult, UpdateResult}
 use serde::{Serialize, de::DeserializeOwned};
 use tokio::{sync::RwLock, task::JoinError, join};
 use crate::{Streamx, Either, try_spawn, CURRENT_LOGGER, Logger};
-
 pub trait MongoDoc {
     fn get_id (&self) -> ObjectId;
 }
-
 pub struct CollectionCache<T> {
     collection: Collection<T>,
     set: RwLock<HashSet<Arc<T>>>
@@ -21,11 +19,6 @@ impl<T: Hash + Eq> CollectionCache<T> {
             collection,
             set: RwLock::new(HashSet::with_capacity(capacity))
         }
-    }
-
-    /// Resync cache data with database data
-    pub async fn resync (&self) {
-        todo!()
     }
 
     pub async fn insert_one (&self, doc: T) -> Result<(Arc<T>, InsertOneResult), Error> where T: Serialize {

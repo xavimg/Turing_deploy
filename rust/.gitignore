@@ -5,3 +5,6 @@ Cargo.lock
 
 /lib/*/Cargo.lock
 /lib/*/target
+
+/wsclient/Cargo.lock
+/wsclient/target

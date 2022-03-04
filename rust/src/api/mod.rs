@@ -1,11 +1,12 @@
 use std::{lazy::Lazy, fmt::Display};
-use actix_web::{HttpRequest, http::header::AUTHORIZATION};
+use actix_web::{HttpRequest, http::header::AUTHORIZATION, ResponseError};
 use chrono::{DateTime, Utc};
 use jsonwebtoken::{DecodingKey, decode, Validation, TokenData, encode, EncodingKey, Header};
 use crate::PlayerTokenLoged;
 
 pub mod route;
 pub mod game;
+pub mod ws;
 
 const JWT_SECRET : Lazy<String> = Lazy::new(|| get_env!("JWT_SECRET"));
 const JWT_KEY : Lazy<DecodingKey> = Lazy::new(|| DecodingKey::from_secret(JWT_SECRET.as_ref()));
@@ -16,6 +17,7 @@ pub(super) fn test_token (id: u64) -> (PlayerTokenLoged, String) {
     (body, token)
 } 
 
+#[inline]
 pub fn is_loopback (req: &HttpRequest) -> bool {
     if let Some(ip) = req.peer_addr() {
         return ip.ip().is_loopback()
@@ -36,9 +38,9 @@ pub fn get_auth_token (req: &HttpRequest) -> Option<&str> {
     None
 }
 
-pub fn decode_token (req: &HttpRequest) -> Result<TokenData<PlayerTokenLoged>, TokenError> {
-    if let Some(token) = get_auth_token(req) {
-        let token = decode::<PlayerTokenLoged>(token, &JWT_KEY, &Validation::default()).map_err(|e| TokenError::JWT(e))?;
+pub fn decode_token (req: &HttpRequest) -> Result<(&str, TokenData<PlayerTokenLoged>), TokenError> {
+    if let Some(string) = get_auth_token(req) {
+        let token = decode::<PlayerTokenLoged>(&string, &JWT_KEY, &Validation::default()).map_err(|e| TokenError::JWT(e))?;
         let now = Utc::now();
 
         if token.claims.issued_at >= token.claims.expiration_date {
@@ -49,7 +51,7 @@ pub fn decode_token (req: &HttpRequest) -> Result<TokenData<PlayerTokenLoged>, T
             return Err(TokenError::TokenExpired(token.claims.expiration_date))
         }
 
-        return Ok(token)
+        return Ok((string, token))
     }
 
     Err(TokenError::TokenNotFound)
@@ -63,6 +65,9 @@ pub enum TokenError {
     TokenExpired(DateTime<Utc>),
     TokenNotFound
 }
+
+impl std::error::Error for TokenError {}
+impl ResponseError for TokenError {}
 
 impl Display for TokenError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

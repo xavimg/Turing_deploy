@@ -63,9 +63,8 @@ pub async fn user_login (_: HttpRequest, body: web::Json<String>) -> impl Respon
     let json = match decode::<PlayerTokenLoged>(body.as_str(), &key, &Validation::default()) {
         Err(e) => { tokio::spawn(CURRENT_LOGGER.log_error(e)); json!({ "valid": false }) },
         Ok(token) => {
-            let body = token.claims;
-            let query = bson::to_document(&PlayerToken::Unloged(body.id)).unwrap();
-            let update = bson::to_document(&PlayerToken::Loged(body)).unwrap();
+            let query = bson::to_document(&PlayerToken::Unloged(token.claims.id)).unwrap();
+            let update = bson::to_document(&PlayerToken::Loged(body.0)).unwrap();
         
             let valid = match PLAYERS.update_one(doc! { "token": query }, doc! { "$set": { "token": update } }).await {
                 Ok(_) => true,

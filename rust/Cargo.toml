@@ -10,6 +10,8 @@ tokio = { version = "1.16", features = ["fs", "rt-multi-thread"] }
 futures = "0.3"
 dotenv = "0.15.0"
 actix-web = { version = "4.0.0-beta.10" }
+actix = "0.12"
+actix-web-actors = { path = "./lib/actix-web/actix-web-actors" }
 rand = "0.8.4"
 rayon = "1.5"
 llml = { version = "0.2.3", features = ["llml_serde", "llml_rand"] }
@@ -19,7 +21,7 @@ mongodb = "2.1.0"
 async_once = "0.2.6"
 lazy_static = "1.4.0"
 bson = { verison = "2.1.0", features = ["serde_with"] }
-strum = { version = "0.23.0", features = ["derive"] }
+strum = { version = "0.24.0", features = ["derive"] }
 randerive = "1.2.0"
 jsonwebtoken = "8"
 chrono = { version = "0.4.19", features = ["serde"] }

@@ -1,6 +1,8 @@
 flat_mod!(logger, color, math, serdex, array_map, take_out, randx, durationx, streamx);
 
 use std::{ops::{Deref, DerefMut}, fmt::Display};
+
+use actix_web::ResponseError;
 pub type LeftRight<T> = Either<T,T>;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -90,6 +92,8 @@ impl<T> DerefMut for LeftRight<T> {
         }
     }
 }
+
+impl<A: ResponseError, B: ResponseError> ResponseError for Either<A,B> {}
 
 /// Upgrades reference to mutable reference.\
 /// **THIS IS SUPER-UNSAFE, USE WITH EXTREME CAUTION**
