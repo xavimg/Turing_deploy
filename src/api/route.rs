@@ -56,9 +56,10 @@ pub async fn new_user (_: HttpRequest, body: web::Json<u64>) -> impl Responder {
 }
 
 #[post("/player/signin")]
-pub async fn user_login (_: HttpRequest, body: web::Json<String>) -> HttpResponse {
-    /*if let Ok((string, token)) = decode_token(&req) {
-    }*/
+pub async fn user_login (req: HttpRequest, body: web::Json<String>) -> HttpResponse {
+    if let Ok((string, token)) = decode_token(&req) {
+        
+    }
 
     HttpResponse::BadRequest().body("No authorization key found")
     /*

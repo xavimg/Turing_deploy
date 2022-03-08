@@ -45,11 +45,32 @@
 {
     "_id": objectId,
     "minLevel": uint,
-    "users": [object],
+    "players": [object],
     "star": [{
         "mass": double,
         "rotation": double
     }],
+    "planets": [{
+        "_id": uint,
+        "name": string,
+        "color": uint,
+        "pos": {
+            "x": double,
+            "y": double
+        },
+        "vel": {
+            "x": double,
+            "y": double
+        }
+    }]
+}
+```
+
+# GET /system/update
+```json
+{
+    "_id": objectId,
+    "players": [object],
     "planets": [{
         "_id": uint,
         "name": string,

@@ -11,10 +11,10 @@ pub mod ws;
 const JWT_SECRET : Lazy<String> = Lazy::new(|| get_env!("JWT_SECRET"));
 const JWT_KEY : Lazy<DecodingKey> = Lazy::new(|| DecodingKey::from_secret(JWT_SECRET.as_ref()));
 
-pub(super) fn test_token (id: u64) -> (PlayerTokenLoged, String) {
+pub(super) fn test_token (id: u64) -> (String, PlayerTokenLoged) {
     let body = PlayerTokenLoged::default_for(id);
     let token = encode(&Header::default(), &body, &EncodingKey::from_secret(JWT_SECRET.as_ref())).unwrap();
-    (body, token)
+    (token, body)
 } 
 
 #[inline]
