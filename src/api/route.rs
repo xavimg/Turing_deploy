@@ -30,13 +30,12 @@ pub async fn status () -> impl Responder {
 
 #[get("/resources")]
 pub async fn resources () -> impl Responder {
-    let resources : Vec<Value> = Resource::iter()
+    let resources = Resource::iter()
         .map(|x: Resource| json!({
             "name": format!("{:?}", x),
             "size": x.get_size(),
             "type": x.get_type()
-        }))
-        .collect();
+        })).collect::<Vec<_>>();
 
     web::Json(json!({
         "resources": resources
@@ -45,44 +44,36 @@ pub async fn resources () -> impl Responder {
 
 // IN API
 #[post("/player/signup")]
-pub async fn new_user (_: HttpRequest, body: web::Json<u64>) -> impl Responder {
+pub async fn new_user (_: HttpRequest, body: web::Json<u64>) -> HttpResponse {
     // TODO INTERNAL IP ONLY
-    let valid = match PLAYERS.insert_one(Player::new(PlayerToken::Unloged(body.0), format!("todo"))).await {
-        Err(x) => { tokio::spawn(CURRENT_LOGGER.log_error(x)); false },
-        Ok(_) => true
-    };
-
-    web::Json(json!({ "valid": valid }))
+    match PLAYERS.insert_one(Player::new(PlayerToken::Unloged(body.0), format!("todo"))).await {
+        Ok(_) => HttpResponse::Ok().finish(),
+        Err(x) => { 
+            tokio::spawn(CURRENT_LOGGER.log_error(format!("{x}")));
+            HttpResponse::InternalServerError().body(format!("{x}"))
+        }
+    }
 }
 
 #[post("/player/signin")]
-pub async fn user_login (req: HttpRequest, body: web::Json<String>) -> HttpResponse {
-    if let Ok((string, token)) = decode_token(&req) {
-        
-    }
-
-    HttpResponse::BadRequest().body("No authorization key found")
-    /*
-    let secret = get_env!("JWT_SECRET");
-    let key = DecodingKey::from_secret(secret.as_ref());
-
-    let json = match decode::<PlayerTokenLoged>(body.as_str(), &key, &Validation::default()) {
-        Err(e) => { tokio::spawn(CURRENT_LOGGER.log_error(e)); json!({ "valid": false }) },
-        Ok(token) => {
+pub async fn user_login (req: HttpRequest) -> HttpResponse {
+    match decode_token(&req) {
+        Ok((body, token)) => {
             let query = bson::to_document(&PlayerToken::Unloged(token.claims.id)).unwrap();
-            let update = bson::to_document(&PlayerToken::Loged(body.0)).unwrap();
+            let update = bson::to_document(&PlayerToken::Loged(body)).unwrap();
         
-            let valid = match PLAYERS.update_one(doc! { "token": query }, doc! { "$set": { "token": update } }).await {
-                Ok(_) => true,
-                Err(e) => { tokio::spawn(CURRENT_LOGGER.log_error(e)); false }
-            };
+            match PLAYERS.update_one(doc! { "token": query }, doc! { "$set": { "token": update } }).await {
+                Ok(Some(_)) => HttpResponse::Ok().finish(),
+                Ok(None) => HttpResponse::BadRequest().body("No matching player found"),
+                Err(e) => { 
+                    tokio::spawn(CURRENT_LOGGER.log_error(format!("{e}"))); 
+                    return HttpResponse::InternalServerError().body(format!("{e}"))
+                }
+            }
+        },
 
-            json!({ "valid": valid })
-        }
-    };
-
-    web::Json(json)
-    */
+        Err(e) => HttpResponse::BadRequest().body(format!("{e}"))
+    }
 }
 
 #[post("/player/signout")]

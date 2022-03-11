@@ -1,9 +1,28 @@
-## /signup
-## /signin
-## /signout
+# Generic
+## GET /status
+Response:
+```json 
+{
+    "running": bool,
+    "database": bool
+}
+```
+
+## GET /resources
+Reponse:
+```json
+{
+    "resources": [{
+        "name": string,
+        "size": single,
+        "type": string?
+    }]
+}
+```
 
 # Player
 ## GET /player
+Response:
 ```json
 {
     "_id": objectId,
@@ -27,6 +46,7 @@
 ```
 
 ## GET /player/{:id}
+Response:
 ```json
 {
     "_id": objectId,
@@ -37,6 +57,11 @@
     "color": uint
 }
 ```
+
+## POST /player/signup
+Body: Frontend ID
+
+## POST /player/
 
 # Planetary System
 

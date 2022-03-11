@@ -27,35 +27,27 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WebSocket {
 
 #[get("/player/conn")]
 pub async fn start_connection (req: HttpRequest, payload: web::Payload) -> Result<HttpResponse, actix_web::Error> {
-    let actor = WebSocket { player: ObjectId::new() };
-    tokio::spawn(CURRENT_LOGGER.log_info(format!("Started WS connection with {}", req.peer_addr().unwrap())));
-    ws::start(actor, &req, payload)
-    /*let token;
     let string;
 
     match decode_token(&req) {
-        Ok((s, t)) => { token = t; string = s },
+        Ok((s, _)) => string = s,
         Err(e) => { tokio::spawn(CURRENT_LOGGER.log_error(format!("{e}"))); return Ok(HttpResponse::BadRequest().body(format!("{e}"))) }
     }
     
-    let id = token.claims.id;
     let bson = bson::to_document(&PlayerToken::Loged(string.clone())).unwrap();
-
-    return match PLAYERS.find_one(doc! { "token": bson }, move |player| {
-        if let PlayerToken::Loged(ref a) = player.token {
-            return a == &string
-        }
-
+    let query = PLAYERS.find_one(doc! { "token": bson }, move |player| {
+        if let PlayerToken::Loged(ref a) = player.token { return a == &string }
         false
-    }).await {
+    }).await;
+    
+    return match query {
         Ok(Some(player)) => {
             let actor = WebSocket { player: player.id };
             return ws::start(actor, &req, payload)
         },
-
+        Ok(None) => Ok(HttpResponse::BadRequest().body("No matching player found")),
+        
         Err(Either::Right(e)) => Ok(HttpResponse::BadRequest().body(format!("{e}"))),
-        Err(Either::Left(e)) => Ok(HttpResponse::InternalServerError().body(format!("{e}"))),
-        _ => todo!()
-    }*/
+        Err(Either::Left(e)) => Ok(HttpResponse::InternalServerError().body(format!("{e}")))
+    }
 }
-
