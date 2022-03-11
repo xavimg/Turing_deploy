@@ -61,11 +61,24 @@ Response:
 ## POST /player/signup
 Body: Frontend ID
 
-## POST /player/
+## POST /player/signin
+Header:
+```json
+{
+    "Authorization": Bearer {string}
+}
+```
+
+## POST /player/signout
+Header:
+```json
+{
+    "Authorization": Bearer {string}
+}
+```
 
 # Planetary System
-
-## GET /system
+## (TODO) GET /system
 ```json
 {
     "_id": objectId,
@@ -91,7 +104,7 @@ Body: Frontend ID
 }
 ```
 
-# GET /system/update
+# (TODO) GET /system/update
 ```json
 {
     "_id": objectId,
@@ -112,5 +125,5 @@ Body: Frontend ID
 }
 ```
 
-## GET /system/{:id}
+## (TODO) GET /system/{:id}
 Obtain system info

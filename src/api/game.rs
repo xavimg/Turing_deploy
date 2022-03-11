@@ -7,10 +7,6 @@ use crate::{PLAYERS, decode_token, CURRENT_LOGGER, PlayerToken, Logger, is_loopb
 
 #[get("/test/player/token/{id}")]
 pub async fn test_login (req: HttpRequest, id: web::Path<u64>) -> HttpResponse {
-    if !is_loopback(&req) {
-        return HttpResponse::Forbidden().finish()
-    }
-
     let (token, body) = test_token(id.into_inner());
     let query = bson::to_document(&PlayerToken::Unloged(body.id)).unwrap();
     let update = bson::to_document(&PlayerToken::Loged(token.clone())).unwrap();

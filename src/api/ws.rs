@@ -45,8 +45,8 @@ pub async fn start_connection (req: HttpRequest, payload: web::Payload) -> Resul
             let actor = WebSocket { player: player.id };
             return ws::start(actor, &req, payload)
         },
+
         Ok(None) => Ok(HttpResponse::BadRequest().body("No matching player found")),
-        
         Err(Either::Right(e)) => Ok(HttpResponse::BadRequest().body(format!("{e}"))),
         Err(Either::Left(e)) => Ok(HttpResponse::InternalServerError().body(format!("{e}")))
     }
