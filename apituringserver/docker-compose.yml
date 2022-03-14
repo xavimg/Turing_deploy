@@ -1,40 +1,29 @@
 version: "3.8"
 
 services:
-
-  db:
-    #network_mode: host
-    image: postgres:9.6
+  postgres:
+    container_name: postgres
+    image: postgres:alpine
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=v6vpxdkd
-      - POSTGRES_DB=alanturing
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: v6vpxdkd
+      # Optional: Give a name to the database, otherwise
+      # use the default value POSTGRES_USER as a database name (user in this case.)
+      POSTGRES_DB: alanturing
     ports:
-      - "5433:5432"
-    volumes:
-      - dbdata:/var/lib/postgresql/data
+      - "5432:5432"
     networks:
-      - fullstack
+      - mynet
 
   go:
-    #network_mode: host
+    container_name: go
     build: .
-    environment:
-      - DB_USERNAME=postgres
-      - DB_PASSWORD=v6vpxdkd
-      - DB_DB=alanturing
-      - DB_HOST=db
-      - DB_PORT=5432
     ports:
       - "3000:3000"
     depends_on:
-      - "db"
+      - "postgres"
     networks:
-      - fullstack
-
-volumes:
-  dbdata:
-
+      - mynet
 networks:
-  fullstack:
+  mynet:
     driver: bridge
