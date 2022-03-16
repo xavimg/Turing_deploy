@@ -4,9 +4,9 @@ import (
 	"log"
 
 	"github.com/mashingan/smapping"
-	"github.com/xavimg/Turing/apituringserver/dto"
-	"github.com/xavimg/Turing/apituringserver/entity"
-	"github.com/xavimg/Turing/apituringserver/repository"
+	"github.com/xavimg/Turing/apituringserver/internal/dto"
+	"github.com/xavimg/Turing/apituringserver/internal/entity"
+	"github.com/xavimg/Turing/apituringserver/internal/repository"
 )
 
 type AdminService interface {

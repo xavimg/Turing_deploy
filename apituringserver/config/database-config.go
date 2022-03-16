@@ -3,7 +3,7 @@ package config
 import (
 	"fmt"
 
-	"github.com/xavimg/Turing/apituringserver/entity"
+	"github.com/xavimg/Turing/apituringserver/internal/entity"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 

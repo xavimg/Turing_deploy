@@ -6,8 +6,8 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
-	"github.com/xavimg/Turing/apituringserver/helper"
-	"github.com/xavimg/Turing/apituringserver/service"
+	"github.com/xavimg/Turing/apituringserver/internal/helper"
+	"github.com/xavimg/Turing/apituringserver/internal/service"
 )
 
 // AuthorizeJWT validates the token user given, return 401 if not valid

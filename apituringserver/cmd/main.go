@@ -4,9 +4,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/xavimg/Turing/apituringserver/config"
 	"github.com/xavimg/Turing/apituringserver/controller"
-	"github.com/xavimg/Turing/apituringserver/middleware"
-	"github.com/xavimg/Turing/apituringserver/repository"
-	"github.com/xavimg/Turing/apituringserver/service"
+	"github.com/xavimg/Turing/apituringserver/internal/middleware"
+	"github.com/xavimg/Turing/apituringserver/internal/repository"
+	"github.com/xavimg/Turing/apituringserver/internal/service"
 	"gorm.io/gorm"
 )
 

@@ -11,10 +11,10 @@ import (
 	"sync"
 
 	"github.com/gin-gonic/gin"
-	"github.com/xavimg/Turing/apituringserver/dto"
-	"github.com/xavimg/Turing/apituringserver/entity"
-	"github.com/xavimg/Turing/apituringserver/helper"
-	"github.com/xavimg/Turing/apituringserver/service"
+	"github.com/xavimg/Turing/apituringserver/internal/dto"
+	"github.com/xavimg/Turing/apituringserver/internal/entity"
+	"github.com/xavimg/Turing/apituringserver/internal/helper"
+	"github.com/xavimg/Turing/apituringserver/internal/service"
 )
 
 // AuthController interface is a contract what this controller can do

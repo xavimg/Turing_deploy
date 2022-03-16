@@ -3,8 +3,8 @@ package repository
 import (
 	"log"
 
-	"github.com/xavimg/Turing/apituringserver/dto"
-	"github.com/xavimg/Turing/apituringserver/entity"
+	"github.com/xavimg/Turing/apituringserver/internal/dto"
+	"github.com/xavimg/Turing/apituringserver/internal/entity"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
