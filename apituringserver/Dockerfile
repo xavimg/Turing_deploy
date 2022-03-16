@@ -8,4 +8,4 @@ RUN go get -u github.com/lib/pq
 
 RUN go build -o main .
 
-CMD [".cmd/main"]
+CMD ["./main"]
