@@ -1,10 +1,9 @@
 #![feature(once_cell, const_fn_floating_point_arithmetic, const_mut_refs, const_for, future_join, future_poll_fn, const_maybe_uninit_zeroed, untagged_unions, fn_traits)]
 use api::{route::*, game::*, ws::start_connection};
-mod tests;
 use actix_web::dev::Service;
 
 include!("macros.rs");
-include!("tests.rs");
+//include!("tests.rs");
 flat_mod!(utils, elements, consts, api, db);
 
 //pub const CURRENT_LOGGER : NoLog = NoLog;

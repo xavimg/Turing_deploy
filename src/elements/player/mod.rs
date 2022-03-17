@@ -19,12 +19,12 @@ pub struct Player {
 }
 
 impl Player {
-    pub fn new<'a> (token: PlayerToken, name: String) -> Self {
+    pub fn new<'a> (id: u64, name: String) -> Self {
         Player {
             id: ObjectId::new(),
             location: None,
             name,
-            token,
+            token: PlayerToken::Unloged(id),
             stats: PlayerStats::default(),
             inventory: Inventory::default(),
             health: 100,

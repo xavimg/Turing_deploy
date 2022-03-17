@@ -15,7 +15,7 @@ pub(super) fn test_token (id: u64) -> (String, PlayerTokenLoged) {
     let body = PlayerTokenLoged::default_for(id);
     let token = encode(&Header::default(), &body, &EncodingKey::from_secret(JWT_SECRET.as_ref())).unwrap();
     (token, body)
-} 
+}
 
 #[inline]
 pub fn is_loopback (req: &HttpRequest) -> bool {

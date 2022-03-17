@@ -3,11 +3,17 @@ use std::str::FromStr;
 use actix_web::{get, Responder, HttpRequest, web::{Path, self}, HttpResponse};
 use bson::{oid::ObjectId, doc};
 use serde_json::json;
-use crate::{PLAYERS, decode_token, CURRENT_LOGGER, PlayerToken, Logger, is_loopback, test_token, PLANET_SYSTEMS, Either};
+use crate::{PLAYERS, decode_token, CURRENT_LOGGER, PlayerToken, Logger, test_token, PLANET_SYSTEMS, Either, Player};
 
-#[get("/test/player/token/{id}")]
+#[get("/test/player/{id}")]
 pub async fn test_login (req: HttpRequest, id: web::Path<u64>) -> HttpResponse {
-    let (token, body) = test_token(id.into_inner());
+    let id = id.into_inner();
+    let player = match PLAYERS.insert_one(Player::new(id, "testing".to_string())).await {
+        Ok((player, _)) => player,
+        Err(e) => return HttpResponse::BadRequest().body(format!("{e}"))
+    };
+
+    let (token, body) = test_token(id);
     let query = bson::to_document(&PlayerToken::Unloged(body.id)).unwrap();
     let update = bson::to_document(&PlayerToken::Loged(token.clone())).unwrap();
 

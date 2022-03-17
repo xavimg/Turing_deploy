@@ -7,3 +7,6 @@ Cargo.lock
 
 ./*/Cargo.lock
 ./*/target
+
+./demo/Cargo.lock
+./demo/target

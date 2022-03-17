@@ -1,5 +1,3 @@
-use rayon::iter::{ParallelBridge, ParallelIterator};
-
 struct LinearSpace {
     at: f64,
     to: f64,
@@ -34,10 +32,11 @@ pub async fn integral<F: Fn(f64) -> f64> (from: f64, to: f64, len: usize, f: F) 
         delta
     };
 
-    let sum : f64 = lnsp.into_iter().par_bridge()
+    /*let sum : f64 = lnsp.into_iter().par_bridge()
         .map(|x| f(x))
-        .sum();
+        .sum();*/
 
+    let sum : f64 = lnsp.into_iter().map(|x| f(x)).sum();
     sum * delta
 } 
 

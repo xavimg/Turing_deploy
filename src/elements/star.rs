@@ -1,7 +1,6 @@
 use std::{intrinsics::transmute};
 use lazy_static::lazy_static;
 use llml::{vec::{EucVecd2, EucVecd3}, mat::Matd3};
-use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use serde::{Serialize, Deserialize};
 use turing_proc::Maybee;
 use crate::{utils::Color, H, K};
@@ -47,15 +46,22 @@ impl Star {
         // from 380 to 780
         let delta : f64 = 400. / ((N + 1) as f64);
 
-        let xyz = (0..=N).into_par_iter()
+        /*let xyz = (0..=N).into_par_iter()
             .map(|i| {
                 let alpha = 380. + (i as f64) * delta;
                 let radiance = Self::spectral_radiance(alpha, temp);
                 let vec = EucVecd3::new([Self::x_func(alpha), Self::y_func(alpha), Self::z_func(alpha)]);
                 vec * radiance
             })
-            .reduce(|| EucVecd3::default(), |x, y| x + y);
+            .reduce(|| EucVecd3::default(), |x, y| x + y);*/
     
+        let xyz = (0..=N).into_iter().map(|i| {
+            let alpha = 380. + (i as f64) * delta;
+            let radiance = Self::spectral_radiance(alpha, temp);
+            let vec = EucVecd3::new([Self::x_func(alpha), Self::y_func(alpha), Self::z_func(alpha)]);
+            vec * radiance
+        }).fold(EucVecd3::default(), |x, y| x + y);
+
         xyz * delta
     }
 

@@ -1,9 +1,8 @@
 use actix_web::{Responder, web, HttpRequest, post, get, HttpResponse};
-use jsonwebtoken::{decode, DecodingKey, Validation};
 use mongodb::{bson::{doc}};
-use serde_json::{json, Value};
+use serde_json::{json};
 use strum::IntoEnumIterator;
-use crate::{DATABASE, Resource, PLAYERS, Player, PlayerToken, PlayerTokenLoged, CURRENT_LOGGER, Logger, get_auth_token, decode_token};
+use crate::{DATABASE, Resource, PLAYERS, Player, PlayerToken, CURRENT_LOGGER, Logger, decode_token};
 
 // OUT API
 #[get("/status")]
@@ -46,12 +45,9 @@ pub async fn resources () -> impl Responder {
 #[post("/player/signup")]
 pub async fn new_user (_: HttpRequest, body: web::Json<u64>) -> HttpResponse {
     // TODO INTERNAL IP ONLY
-    match PLAYERS.insert_one(Player::new(PlayerToken::Unloged(body.0), format!("todo"))).await {
+    match PLAYERS.insert_one(Player::new(body.0, format!("todo"))).await {
         Ok(_) => HttpResponse::Ok().finish(),
-        Err(x) => { 
-            tokio::spawn(CURRENT_LOGGER.log_error(format!("{x}")));
-            HttpResponse::InternalServerError().body(format!("{x}"))
-        }
+        Err(x) => HttpResponse::InternalServerError().body(format!("{x}"))
     }
 }
 
@@ -65,10 +61,7 @@ pub async fn user_login (req: HttpRequest) -> HttpResponse {
             match PLAYERS.update_one(doc! { "token": query }, doc! { "$set": { "token": update } }).await {
                 Ok(Some(_)) => HttpResponse::Ok().finish(),
                 Ok(None) => HttpResponse::BadRequest().body("No matching player found"),
-                Err(e) => { 
-                    tokio::spawn(CURRENT_LOGGER.log_error(format!("{e}"))); 
-                    return HttpResponse::InternalServerError().body(format!("{e}"))
-                }
+                Err(e) => HttpResponse::InternalServerError().body(format!("{e}"))
             }
         },
 
@@ -85,10 +78,7 @@ pub async fn user_logout (req: HttpRequest) -> HttpResponse {
         return match PLAYERS.update_one(doc! { "token": query }, doc! { "$set": { "token": update } }).await {
             Ok(Some(_)) => HttpResponse::Ok().finish(),
             Ok(None) => HttpResponse::BadRequest().body("No matching player found"),
-            Err(e) => { 
-                tokio::spawn(CURRENT_LOGGER.log_error(format!("{e}")));
-                HttpResponse::InternalServerError().body(format!("{e}"))
-            }
+            Err(e) => HttpResponse::InternalServerError().body(format!("{e}"))
         }
     }
 

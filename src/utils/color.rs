@@ -57,12 +57,6 @@ impl Color {
     }
 }
 
-impl Into<slg::generics::Color> for Color {
-    fn into(self) -> slg::generics::Color {
-        slg::generics::Color::new(self.r, self.g, self.b)
-    }
-}
-
 impl Into<u32> for Color {
     #[inline]
     fn into(self) -> u32 {
