@@ -1,29 +1,34 @@
-use std::ops::Deref;
 use std::str::FromStr;
-use actix_web::{get, Responder, HttpRequest, web::{Path, self}, HttpResponse};
+use actix_web::{get, Responder, HttpRequest, web::{Path, self}, HttpResponse, post};
 use bson::{oid::ObjectId, doc};
-use serde_json::json;
+use futures::StreamExt;
+use serde_json::{json, Value};
 use crate::{PLAYERS, decode_token, CURRENT_LOGGER, PlayerToken, Logger, test_token, PLANET_SYSTEMS, Either, Player};
 
-#[get("/test/player/{id}")]
-pub async fn test_login (req: HttpRequest, id: web::Path<u64>) -> HttpResponse {
+#[post("/test/player/{id}")]
+pub async fn test_login (_req: HttpRequest, id: web::Path<u64>) -> HttpResponse {
     let id = id.into_inner();
-    let player = match PLAYERS.insert_one(Player::new(id, "testing".to_string())).await {
-        Ok((player, _)) => player,
-        Err(e) => return HttpResponse::BadRequest().body(format!("{e}"))
-    };
+    match Player::from_foreign_id(id).await {
+        Ok(None) => match PLAYERS.insert_one(Player::new(id, "testing".to_string()).await).await {
+            Err(e) => return HttpResponse::BadRequest().body(format!("{e}")),
+            _ => {}
+        },
+        Err(Either::Left(e)) => return HttpResponse::InternalServerError().body(e.to_string()),
+        Err(Either::Right(e)) => return HttpResponse::BadRequest().body(e.to_string()),
+        _ => {}
+    }
 
-    let (token, body) = test_token(id);
-    let query = bson::to_document(&PlayerToken::Unloged(body.id)).unwrap();
+    let (token, _) = test_token(id);
+    let query = bson::to_document(&PlayerToken::Unloged(id)).unwrap();
     let update = bson::to_document(&PlayerToken::Loged(token.clone())).unwrap();
 
-    match PLAYERS.update_one(doc! { "token": query }, doc! { "$set": { "token": update } }).await {
-        Ok(Some(_)) => HttpResponse::Ok().json(token),
+    match PLAYERS.update_one(doc! { "token": query }, move |x| {
+        if let PlayerToken::Unloged(this_id) = x.token { return this_id == id };
+        false
+    }, doc! { "$set": { "token": update } }).await {
+        Ok(Some(_)) => HttpResponse::Ok().body(token),
         Ok(None) => HttpResponse::BadRequest().body("No matching player found"),
-        Err(e) => {
-            tokio::spawn(CURRENT_LOGGER.log_error(format!("{e}")));
-            HttpResponse::InternalServerError().body(format!("{e}"))
-        }
+        Err(e) => HttpResponse::InternalServerError().body(format!("{e}"))
     }
 }
 
@@ -36,48 +41,17 @@ pub async fn get_player_me (req: HttpRequest) -> HttpResponse {
             return HttpResponse::BadRequest().body(e.to_string())
         },
 
-        Ok((string, token)) => {
-            let id = token.claims.id;
+        Ok((string, _)) => {
             let bson = bson::to_document(&PlayerToken::Loged(string.clone())).unwrap();
             match PLAYERS.find_one(doc! { "token": bson }, move |player| {
-                if let PlayerToken::Loged(ref loged) = player.token {
-                    return loged == &string
-                }
-
+                if let PlayerToken::Loged(ref loged) = player.token { return loged == &string }
                 false
             }).await {
-                Ok(Some(player)) => {
-                    let location;
-
-                    if let Some(ref loc) = player.location {
-                        match PLANET_SYSTEMS.find_one_by_value(&loc.system).await {
-                            Err(Either::Left(e)) => { 
-                                tokio::spawn(CURRENT_LOGGER.log_error(format!("{e}")));
-                                return HttpResponse::InternalServerError().body(e.to_string())
-                            },
-
-                            Err(Either::Right(e)) => { 
-                                tokio::spawn(CURRENT_LOGGER.log_error(format!("{e}")));
-                                return HttpResponse::BadRequest().body(e.to_string())
-                            },
-
-                            Ok (system) => location = Some(if let Some(system) = system {
-                                json!({
-                                    "system": system.deref(),
-                                    "pos": loc.position
-                                })
-                            } else {
-                                json!({ "error": "Planetary system not found" })
-                            })
-                        }
-                    } else {
-                        location = None
-                    }
-                    
+                Ok(Some(player)) => {                    
                     let player = json!({
                         "_id": player.id,
                         "name": &player.name,
-                        "location": location,
+                        "location": player.location,
                         "hp": player.health,
                         "stats": &player.stats,
                         "inventory": &player.inventory,
@@ -88,16 +62,8 @@ pub async fn get_player_me (req: HttpRequest) -> HttpResponse {
                 }
 
                 Ok(None) => HttpResponse::BadRequest().body("No matching player found"),
-
-                Err(Either::Left(e)) => {
-                    tokio::spawn(CURRENT_LOGGER.log_error(e.to_string()));
-                    HttpResponse::InternalServerError().body(e.to_string())
-                },
-
-                Err(Either::Right(e)) => {
-                    tokio::spawn(CURRENT_LOGGER.log_warning(e.to_string()));
-                    HttpResponse::BadRequest().body(e.to_string())
-                }
+                Err(Either::Left(e)) => HttpResponse::InternalServerError().body(e.to_string()),
+                Err(Either::Right(e)) => HttpResponse::BadRequest().body(e.to_string())
             }
         }
     }
@@ -129,4 +95,33 @@ pub async fn get_player (id: Path<String>) -> impl Responder {
     };
 
     web::Json(response)
+}
+
+#[get("/system/players")]
+pub async fn system_players (req: HttpRequest) -> HttpResponse {
+    match decode_token(&req) {
+        Ok((token, _)) => match Player::from_token(token).await {
+            Ok(Some(player)) => match PLANET_SYSTEMS.find_one_by_id(player.location.system).await {
+                Ok(Some(system)) => {
+                    let col = system.get_players_json().filter_map(|result| async {
+                            match result {
+                            Ok(x) => Some(x),
+                            Err(_) => None
+                        }
+                    });
+
+                    HttpResponse::Ok().json(col.collect::<Vec<Value>>().await)
+                },
+                Ok(None) => return HttpResponse::InternalServerError().finish(),
+                Err(Either::Left(e)) => return HttpResponse::InternalServerError().body(e.to_string()),
+                Err(Either::Right(e)) => return HttpResponse::BadRequest().body(e.to_string())
+            },
+
+            Ok(None) => return HttpResponse::BadRequest().body("No matching player found"),
+            Err(Either::Left(e)) => return HttpResponse::InternalServerError().body(e.to_string()),
+            Err(Either::Right(e)) => return HttpResponse::BadRequest().body(e.to_string())
+        },
+
+        Err(e) => return HttpResponse::BadRequest().body(format!("{e}"))
+    }
 }

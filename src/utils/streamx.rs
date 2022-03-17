@@ -1,19 +1,24 @@
 use std::{pin::Pin, task::Poll};
-use async_trait::async_trait;
-use futures::{Stream, Future, FutureExt};
+use futures::{Stream, Future, FutureExt, StreamExt};
 use tokio::task::{JoinHandle, JoinError};
-
 use crate::Either;
 
-#[async_trait]
 pub trait Streamx: Stream {
     /// Async version of ```Iterator::cloned```
+    #[inline]
     fn cloned<'a, T: Clone> (self) -> StreamCloned<'a, T, Self> where Self: Stream<Item = &'a T> + Sized {
         StreamCloned(Box::pin(self))
     }
 
+    /// Merges results from two streams into one unorderedly
+    #[inline]
+    fn merge<S: Stream<Item = Self::Item>> (self, other: S) -> Merge<Self, S> where Self: Sized {
+        Merge { first: self, last: other }
+    }
+
     /// Asynchronus filter. Unlike it's ```futures``` counterpart, this stream will report itself as ```Poll::Pending```
     /// until it finds a value that mathches
+    #[inline]
     fn async_filter<F: Fn(&Self::Item) -> bool> (self, predicate: F) -> AsyncFilter<Self, F> where Self: Sized {
         AsyncFilter {
             stream: Box::pin(self),
@@ -82,5 +87,27 @@ impl<T, E> Future for TrySpawn<T,E> {
             Err(e) => Err(Either::Left(e)),
             Ok(res) => res.map_err(|e| Either::Right(e))
         })
+    }
+}
+
+/// Merge 2 streams unorderedly
+pub struct Merge<A,B> {
+    first: A,
+    last: B
+}
+
+impl<T, A: Unpin + Stream<Item = T>, B: Unpin + Stream<Item = T>> Stream for Merge<A,B> {
+    type Item = T;
+
+    #[inline]
+    fn poll_next(mut self: Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> Poll<Option<Self::Item>> {
+        match self.first.poll_next_unpin(cx) {
+            Poll::Ready(Some(x)) => Poll::Ready(Some(x)),
+            Poll::Ready(None) => self.last.poll_next_unpin(cx),
+            Poll::Pending => match self.last.poll_next_unpin(cx) {
+                Poll::Ready(Some(x)) => Poll::Ready(Some(x)),
+                _ => Poll::Pending
+            }
+        }
     }
 }

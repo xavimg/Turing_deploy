@@ -1,15 +1,17 @@
-use std::hash::Hash;
-use bson::oid::ObjectId;
+use std::{hash::Hash, sync::Arc};
+use bson::{oid::ObjectId, doc};
+use llml::vec::EucVecd2;
 use rand::random;
 use serde::{Serialize, Deserialize};
+use tokio::task::JoinError;
 use turing_proc::Maybee;
-use crate::{cache::MongoDoc, utils::Color};
+use crate::{cache::MongoDoc, utils::Color, PLANET_SYSTEMS, CURRENT_LOGGER, Logger, create_system, PLAYERS, Either};
 
 #[derive(Debug, Serialize, Deserialize, Maybee)]
 pub struct Player {
     #[serde(rename = "_id")]
     pub id: ObjectId,
-    pub location: Option<PlayerLocation>,
+    pub location: PlayerLocation,
     pub name: String,
     pub token: PlayerToken,
     pub stats: PlayerStats,
@@ -19,16 +21,55 @@ pub struct Player {
 }
 
 impl Player {
-    pub fn new<'a> (id: u64, name: String) -> Self {
+    pub async fn new (id: u64, name: String) -> Self {
         Player {
             id: ObjectId::new(),
-            location: None,
+            location: PlayerLocation { system: Self::random_system().await, position: EucVecd2::default() },
             name,
             token: PlayerToken::Unloged(id),
             stats: PlayerStats::default(),
             inventory: Inventory::default(),
             health: 100,
             color: random()
+        }
+    }
+
+    #[inline]
+    pub async fn from_foreign_id (id: u64) -> Result<Option<Arc<Self>>, Either<JoinError, mongodb::error::Error>> {
+        let bson = bson::to_bson(&PlayerToken::Unloged(id)).unwrap();
+        PLAYERS.find_one(doc! { "token": bson }, move |x| {
+            if let PlayerToken::Unloged(unlogged) = x.token { return unlogged == id }
+            false
+        }).await
+    }
+
+    #[inline]
+    pub async fn from_token (token: String) -> Result<Option<Arc<Self>>, Either<JoinError, mongodb::error::Error>> {
+        let token_clone = token.clone();
+        let bson = bson::to_bson(&PlayerToken::Loged(token)).unwrap();
+
+        PLAYERS.find_one(doc! { "token": bson }, move |x| {
+            if let PlayerToken::Loged(ref logged) = x.token { return logged == &token_clone }
+            false
+        }).await
+    }
+
+    async fn random_system () -> ObjectId {
+        match PLANET_SYSTEMS.find_any_one().await {
+            Ok(Some(system)) => system.id,
+
+            Ok(None) => match PLANET_SYSTEMS.insert_one(create_system()).await {
+                Ok((system, _)) => system.id,
+                Err(e) => {
+                    CURRENT_LOGGER.log_error(format!("{e}")).await;
+                    panic!("{e}")
+                }
+            },
+
+            Err(e) => {
+                CURRENT_LOGGER.log_error(format!("{e}")).await;
+                panic!("{e}")
+            }
         }
     }
 }

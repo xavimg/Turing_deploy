@@ -19,7 +19,7 @@ async fn main() -> std::io::Result<()> {
 
     let server = create_http!(
         status, resources, new_user, user_login, user_logout,
-        start_connection, get_player_me, get_player,
+        start_connection, get_player_me, get_player, system_players,
         test_login
     );  
 

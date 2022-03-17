@@ -33,7 +33,7 @@ impl<'de> Deserialize<'de> for WebSocketInput {
         impl<'de> Visitor<'de> for LocalVisitor {
             type Value = WebSocketInput;
 
-            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+            fn expecting(&self, _formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
                 todo!()
             }
 
@@ -79,7 +79,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WebSocket {
                     let id = self.player.clone();
                     let fut = async move { 
                         let position = bson::to_bson(&EucVecd2::new([x, y])).unwrap();
-                        match PLAYERS.update_one(doc! { "_id": id }, doc! { "$set": { "location.position": position } }).await {
+                        match PLAYERS.update_one(doc! { "_id": id }, move |x| x.id == id, doc! { "$set": { "location.position": position } }).await {
                             Ok(Some(_)) => CURRENT_LOGGER.log_info("Successfull update").await,
                             x => panic!("{x:?}")
                         }
@@ -103,7 +103,7 @@ pub async fn start_connection (req: HttpRequest, payload: web::Payload) -> Resul
 
     match decode_token(&req) {
         Ok((s, _)) => string = s,
-        Err(e) => { tokio::spawn(CURRENT_LOGGER.log_error(format!("{e}"))); return Ok(HttpResponse::BadRequest().body(format!("{e}"))) }
+        Err(e) => return Ok(HttpResponse::BadRequest().body(format!("{e}")))
     }
     
     let bson = bson::to_document(&PlayerToken::Loged(string.clone())).unwrap();

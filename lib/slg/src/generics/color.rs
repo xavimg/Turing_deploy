@@ -1,6 +1,7 @@
 use llml::vec::EucVecf3;
 use crate::Uniformable;
 
+#[derive(Debug)]
 #[repr(transparent)]
 pub struct Color([f32;3]);
 

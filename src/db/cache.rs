@@ -1,23 +1,25 @@
-use std::{hash::Hash, collections::{HashSet}, sync::{Arc}, ops::{Deref}};
-use futures::{StreamExt, Future, future::{select_ok}, pin_mut};
+use std::{hash::Hash, collections::{HashSet}, sync::{Arc}, ops::{Deref}, future::ready, pin::Pin};
+use futures::{StreamExt, Future, future::{select_ok}, FutureExt, Stream};
 use bson::{oid::ObjectId, doc, Document};
 use mongodb::{Collection, error::Error, results::{InsertOneResult, UpdateResult}, options::{UpdateModifications, FindOptions}};
 use serde::{Serialize, de::DeserializeOwned};
-use tokio::{sync::RwLock, task::JoinError, join};
+use tokio::{sync::{RwLock, RwLockReadGuard}, task::JoinError, join};
 use crate::{Streamx, Either, try_spawn, CURRENT_LOGGER, Logger};
+
 pub trait MongoDoc {
     fn get_id (&self) -> ObjectId;
 }
 pub struct CollectionCache<T> {
     collection: Collection<T>,
-    set: RwLock<HashSet<Arc<T>>>
+    set: Arc<RwLock<HashSet<Arc<T>>>>
 }
 
-impl<T: Hash + Eq> CollectionCache<T> {    
+impl<T: Hash + Eq> CollectionCache<T> {
+    #[inline]
     pub fn new (collection: Collection<T>, capacity: usize) -> Self {
         Self {
             collection,
-            set: RwLock::new(HashSet::with_capacity(capacity))
+            set: Arc::new(RwLock::new(HashSet::with_capacity(capacity)))
         }
     }
 
@@ -121,7 +123,7 @@ impl<T: Hash + Eq> CollectionCache<T> {
 
     /// Searches for the values with the specified parameters in the cache and the database simultaneously, returning the result of
     /// the first individual search to complete
-    pub async fn find_many<F: 'static + Fn(&T) -> bool> (&'static self, db: Document, cache: F, limit: Option<usize>) -> HashSet<Arc<T>> where T: Unpin + Send + Sync + DeserializeOwned {
+    pub fn find_many<F: 'static + Unpin + Fn(&T) -> bool> (&'static self, db: Document, cache: F, limit: Option<usize>) -> impl Stream<Item = mongodb::error::Result<Arc<T>>> where T: Unpin + Send + Sync + DeserializeOwned {
         let db_opts = match limit {
             None => FindOptions::default(),
             Some(len) => {
@@ -131,57 +133,68 @@ impl<T: Hash + Eq> CollectionCache<T> {
             }
         };
         
-        let lock = self.set.read().await;
-        let cache = async {
-            futures::stream::iter(lock.iter()).async_filter(|x| cache(x.deref())).cloned()
+        let set = self.set.clone();
+        let cache = self.set.read().map(|lock| {
+            let ptr : *const HashSet<Arc<T>> = lock.deref(); // ```self``` has static lifetime, so this isn't undefined behavior
+            futures::stream::iter(unsafe { &*ptr }).async_filter(move |x| cache(x.deref())).map(|x| Ok(x.clone()))
+        });
+
+        let db = async move {
+            let stream : Pin<Box<dyn Stream<Item = mongodb::error::Result<Arc<T>>>>> = match self.collection.find(db, db_opts).await {
+                Ok(cursor) => Box::pin(cursor.map(move |x| x.map(|x| {
+                    let arc = Arc::new(x);
+                    let arc_clone = arc.clone();
+
+                    tokio::spawn(async move {
+                        let mut lock = self.set.write().await;
+                        if lock.len() < lock.capacity() { lock.insert(arc); }
+                    });
+
+                    arc_clone
+                }))),
+
+                Err(e) => Box::pin(futures::stream::once(ready(Err(e))))
+            }; 
+            stream
         };
-        
-        let db = self.collection.find(db, db_opts);
-        pin_mut!(cache, db);
 
-        let mut stream = Self::many_of(cache, db);
-        let mut results;
-        let mut dbs;
+        Box::pin(db).flatten_stream().merge(Box::pin(cache).flatten_stream())
+    }
 
-        match limit {
-            Some(len) => {
-                results = HashSet::with_capacity(len);
-                dbs = Vec::with_capacity(len);
+    #[inline]
+    pub fn find_any (&'static self, limit: Option<usize>) -> impl Stream<Item = mongodb::error::Result<Arc<T>>> where T: Unpin + Send + Sync + DeserializeOwned {
+        self.find_many(doc! {}, |_| true, limit)
+    }
 
-                while results.len() < len {
-                    if let Some((x, from_db)) = stream.next().await {
-                        if from_db { dbs.push(x.clone()); }
-                        results.insert(x);
-                        continue
-                    } 
+    pub async fn update_one<F: 'static + Send + Sync + Fn(&T) -> bool> (&'static self, filter: Document, cache: F, update: impl Into<UpdateModifications>) -> Result<Option<Arc<T>>, Either<JoinError, Error>> where T: Unpin + Send + Sync + MongoDoc + DeserializeOwned {
+        match self.find_one(filter, cache).await {
+            Ok(Some(x)) => {
+                let id = doc! { "_id": x.get_id() };
+                match self.collection.update_one(id.clone(), update, None).await {
+                    Ok(_) => match self.collection.find_one(id, None).await {
+                        Ok(Some(x)) => {
+                            let arc = Arc::new(x);
+                            let mut lock = self.set.write().await;
+                            lock.replace(arc.clone());
+                            Ok(Some(arc))
+                        },
 
-                    break
+                        Ok(None) => Ok(None),
+                        Err(e) => Err(Either::Right(e))
+                    },
+
+                    Err(e) =>  Err(Either::Right(e))
                 }
             },
 
-            None => {
-                results = HashSet::new();
-                dbs = Vec::new();
-
-                while let Some((x, from_db)) = stream.next().await {
-                    if from_db { dbs.push(x.clone()); }
-                    results.insert(x);
-                }
-            }
+            Ok(None) => Ok(None),
+            Err(e) => Err(e)
         }
 
-        //drop(lock);
-        self.add_all_to_cache(dbs).await;
-        results
-    }
-
-    pub async fn find_any (&'static self, limit: Option<usize>) -> HashSet<Arc<T>> where T: Unpin + Send + Sync + DeserializeOwned {
-        self.find_many(doc! {}, |_| true, limit).await
-    }
-
-    pub async fn update_one (&self, filter: Document, update: impl Into<UpdateModifications>) -> Result<Option<Arc<T>>, Error> where T: DeserializeOwned {
-        match self.collection.find_one_and_update(filter, update, None).await {
-            Err(e) => Err(e),
+        /*match self.collection.find_one_and_update(filter, update, None).await {
+            Err(e) => {
+                Err(e)
+            },
             Ok(x) => Ok(match x {
                 None => None,
                 Some(x) => {
@@ -191,7 +204,7 @@ impl<T: Hash + Eq> CollectionCache<T> {
                     Some(x)
                 }
             })
-        }
+        }*/
     }
 
     /// Updates element in the cache and retruns a ```Future``` that promises the resolution of the action

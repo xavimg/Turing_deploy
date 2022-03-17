@@ -1,9 +1,11 @@
-use std::{time::Duration, sync::{Arc}};
-use bson::oid::ObjectId;
+use std::{time::Duration, sync::{Arc}, collections::HashSet};
+use bson::{oid::ObjectId, doc};
+use futures::{Stream, StreamExt};
 use llml::vec::EucVecd2;
 use serde::{Serialize, Deserialize};
+use serde_json::{Value, json};
 use turing_proc::Maybee;
-use crate::{Star, Planet, cache::MongoDoc};
+use crate::{Star, Planet, cache::MongoDoc, Player, PLAYERS};
 use std::hash::Hash;
 use tokio::{sync::Mutex};
 
@@ -56,21 +58,42 @@ impl PlanetSystem {
         self.planets.iter_mut()
             .for_each(|planet| { planet.accelerate_and_travel(interplanet_acc[planet.id], dt); });
     }
+
+    #[inline]
+    pub fn get_players (&self) -> impl Stream<Item = mongodb::error::Result<Arc<Player>>> {
+        let id = self.id.clone();
+        PLAYERS.find_many(doc! { "location.system": self.id }, move |x| x.location.system == id, None)
+    }
+
+    #[inline]
+    pub fn get_players_json (&self) -> impl Stream<Item = mongodb::error::Result<Value>> {
+        self.get_players().map(|result| result.map(|player| json!({
+            "_id": player.id,
+            "name": player.name,
+            "location": &player.location,
+            "hp": player.health,
+            "level": player.stats.level,
+            "color": player.color.as_u32()
+        })))
+    }
 }
 
 impl MongoDoc for PlanetSystem {
+    #[inline]
     fn get_id (&self) -> ObjectId {
         self.id
     }
 }
 
 impl PartialEq for PlanetSystem {
+    #[inline]
     fn eq(&self, other: &Self) -> bool {
         self.id == other.id
     }
 }
 
 impl Hash for PlanetSystem {
+    #[inline]
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.id.hash(state);
     }

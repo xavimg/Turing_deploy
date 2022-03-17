@@ -5,7 +5,6 @@ pub mod find_many;
 use std::lazy::SyncLazy;
 use std::mem::{size_of};
 use bson::doc;
-use mongodb::error::ErrorKind;
 use mongodb::{Database};
 use mongodb::{options::ClientOptions, Client};
 use tokio::sync::OnceCell;

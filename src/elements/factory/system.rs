@@ -7,9 +7,8 @@ const SQRT_2_HALH : f64 = std::f64::consts::SQRT_2 / 2.;
 const MIN_MASS : f64 = 1.01e-9;
 const MAX_MASS : f64 = 0.01146;
 
-
 /// Creates a planetary system
-pub async fn create_system () -> PlanetSystem {
+pub fn create_system () -> PlanetSystem {
     let mut rng = Random::with_distribution::<f64>(Gaussian::new());
     let star : Star = rng.sample();
 
@@ -22,14 +21,14 @@ pub async fn create_system () -> PlanetSystem {
         let mut accum_dist = 0.;
 
         for i in 0..count {
-            planets.push(create_planet(i, &star, &mut rng, &mut accum_dist).await);
+            planets.push(create_planet(i, &star, &mut rng, &mut accum_dist));
         }
 
         return PlanetSystem::new(star, planets)
     }
 }
 
-async fn create_planet (idx: usize, star: &Star, rng: &mut Random<Gaussian<f64>, ThreadRng>, accum_dist: &mut f64) -> Planet {
+fn create_planet (idx: usize, star: &Star, rng: &mut Random<Gaussian<f64>, ThreadRng>, accum_dist: &mut f64) -> Planet {
     let mass = loop_clamp(MIN_MASS, MAX_MASS, || rng.dist.sample_with(&mut rng.rng, 4.01265200872978, 1.81770640331076));
     let radius = mass * 4.799e-4;
     let color : Color = rand::random();

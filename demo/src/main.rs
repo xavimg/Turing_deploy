@@ -1,15 +1,16 @@
-use std::{sync::Arc, thread, time::Duration};
+use std::{sync::{Arc}, thread, time::Duration};
+use local::PlayerConnection;
 use llml::vec::EucVecf2;
-use slg::{renderer::opengl::OpenGl, Renderer, RenderInstance, generics::Color};
+use slg::{renderer::opengl::OpenGl, Renderer, generics::Color};
 
-pub mod connection;
+pub mod local;
+pub mod remote;
 
 fn main() {
     let ogl = Arc::new(OpenGl::new().unwrap());
     let window = ogl.create_instance("Websocket testing", 900u32, 900u32).unwrap();
-    
-    let mut window = window.write().unwrap();
-    let local_player = window.create_circle(EucVecf2::new([0.0, 0.0]), 0.5, Color::WHITE).unwrap();
+
+    let local_player = PlayerConnection::new(window.clone()).unwrap();
     let remote_player = window.create_circle(EucVecf2::new([0.5, -0.5]), 0.5, Color::new(128, 128, 255)).unwrap();
     drop(window);
 

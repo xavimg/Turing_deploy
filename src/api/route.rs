@@ -45,7 +45,7 @@ pub async fn resources () -> impl Responder {
 #[post("/player/signup")]
 pub async fn new_user (_: HttpRequest, body: web::Json<u64>) -> HttpResponse {
     // TODO INTERNAL IP ONLY
-    match PLAYERS.insert_one(Player::new(body.0, format!("todo"))).await {
+    match PLAYERS.insert_one(Player::new(body.0, format!("todo")).await).await {
         Ok(_) => HttpResponse::Ok().finish(),
         Err(x) => HttpResponse::InternalServerError().body(format!("{x}"))
     }
@@ -55,10 +55,14 @@ pub async fn new_user (_: HttpRequest, body: web::Json<u64>) -> HttpResponse {
 pub async fn user_login (req: HttpRequest) -> HttpResponse {
     match decode_token(&req) {
         Ok((body, token)) => {
-            let query = bson::to_document(&PlayerToken::Unloged(token.claims.id)).unwrap();
+            let id = token.claims.id;
+            let query = bson::to_document(&PlayerToken::Unloged(id)).unwrap();
             let update = bson::to_document(&PlayerToken::Loged(body)).unwrap();
         
-            match PLAYERS.update_one(doc! { "token": query }, doc! { "$set": { "token": update } }).await {
+            match PLAYERS.update_one(doc! { "token": query }, move |x| {
+                if let PlayerToken::Unloged(this_id) = x.token { return this_id == id };
+                false
+            }, doc! { "$set": { "token": update } }).await {
                 Ok(Some(_)) => HttpResponse::Ok().finish(),
                 Ok(None) => HttpResponse::BadRequest().body("No matching player found"),
                 Err(e) => HttpResponse::InternalServerError().body(format!("{e}"))
@@ -73,9 +77,12 @@ pub async fn user_login (req: HttpRequest) -> HttpResponse {
 pub async fn user_logout (req: HttpRequest) -> HttpResponse {
     if let Ok((string, token)) = decode_token(&req) {
         let update = bson::to_document(&PlayerToken::Unloged(token.claims.id)).unwrap();
-        let query = bson::to_document(&PlayerToken::Loged(string)).unwrap();
+        let query = bson::to_document(&PlayerToken::Loged(string.clone())).unwrap();
     
-        return match PLAYERS.update_one(doc! { "token": query }, doc! { "$set": { "token": update } }).await {
+        return match PLAYERS.update_one(doc! { "token": query }, move |x| {
+            if let PlayerToken::Loged(ref token) = x.token { return token == &string };
+            false
+        }, doc! { "$set": { "token": update } }).await {
             Ok(Some(_)) => HttpResponse::Ok().finish(),
             Ok(None) => HttpResponse::BadRequest().body("No matching player found"),
             Err(e) => HttpResponse::InternalServerError().body(format!("{e}"))

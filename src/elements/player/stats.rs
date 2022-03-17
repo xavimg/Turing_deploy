@@ -1,6 +1,6 @@
+use bson::oid::ObjectId;
 use llml::vec::EucVecd2;
 use serde::{Serialize, Deserialize};
-use crate::PlanetSystem;
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct PlayerStats {
@@ -11,11 +11,12 @@ pub struct PlayerStats {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct PlayerLocation {
-    pub system: PlanetSystem,
+    pub system: ObjectId,
     pub position: EucVecd2
 }
 
 impl Default for PlayerStats {
+    #[inline]
     fn default() -> Self {
         Self { level: 1, max_speed: 10., max_health: 100 }
     }
