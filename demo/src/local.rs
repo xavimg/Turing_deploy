@@ -1,32 +1,26 @@
 use std::{net::TcpStream, io::ErrorKind};
+use bson::oid::ObjectId;
 use llml::vec::{EucVecd2, EucVecf2};
 use rand::random;
-use serde::{Deserialize, Deserializer};
-use slg::{generics::{Circle, Color}, renderer::opengl::{OpenGl, GlInstance}, Threadly, RenderInstance};
-use websocket::{header::Headers, ClientBuilder, WebSocketResult, WebSocketError, sync::Client};
+use serde::{Deserialize};
+use serde_json::json;
+use slg::{generics::{Circle}, renderer::opengl::{OpenGl, GlInstance}, Threadly, RenderInstance};
+use websocket::{header::Headers, ClientBuilder, WebSocketResult, WebSocketError, sync::Client, Message};
 use reqwest::blocking::get;
 
-#[derive(Debug, Deserialize)]
-pub struct PlayerLocation {
-    system: String,
-    #[serde(alias = "pos")]
-    position: EucVecd2
-}
+use crate::{PlayerRequest, world_to_local, local_to_world};
 
-#[derive(Debug, Deserialize)]
-struct PlayerRequest {
-    _id: String,
-    name: String,
-    location: PlayerLocation,
-    #[serde(deserialize_with = "deserialize_color")]
-    color: Color
+#[derive(Debug, Clone, Deserialize)]
+pub struct PlayerLocation {
+    pub system: ObjectId,
+    pub position: EucVecd2
 }
 
 pub struct PlayerConnection {
-    client: Client<TcpStream>,
-    location: PlayerLocation,
-    token: String,
-    circle: Threadly<Circle<OpenGl>>
+    pub client: Client<TcpStream>,
+    pub location: PlayerLocation,
+    pub token: String,
+    pub circle: Threadly<Circle<OpenGl>>
 }
 
 impl PlayerConnection {
@@ -41,10 +35,29 @@ impl PlayerConnection {
         let player = Self::get_player_info(&token)?;
         let mut window = window.write().unwrap();
 
-        let circle = window.create_circle(Self::world_to_local(player.location.position), 0.01, player.color)
+        let circle = window.create_circle(world_to_local(player.location.position), 0.01, player.color)
             .map_err(|e| std::io::Error::new(ErrorKind::Other, e))?;
-
+        
         Ok(Self { client, token, circle, location: player.location })
+    }
+
+    pub fn translate (&mut self, delta: EucVecf2) {
+        let world = local_to_world(delta);
+        let mut circle = self.circle.write().unwrap();
+
+        let body = json!({
+            "id": 0x00,
+            "body": {
+                "system": self.location.system,
+                "x": 
+            }
+        });
+
+        self.client.send_message(Message::binary(body));
+
+        circle.position += delta;
+        self.location.position += world;
+
     }
 
     fn connect_with_token (token: &str) -> WebSocketResult<Client<TcpStream>> {
@@ -64,19 +77,4 @@ impl PlayerConnection {
             .send().map_err(|e| std::io::Error::new(ErrorKind::Other, e))?
             .json().map_err(|e| std::io::Error::new(ErrorKind::Other, e))
     }
-
-    #[inline]
-    fn world_to_local (pos: EucVecd2) -> EucVecf2 {
-        let (x, y) = pos.unzip();
-        EucVecf2::new([x as f32, y as f32])
-    }
-}
-
-#[inline]
-fn deserialize_color<'de, D> (deserializer: D) -> Result<Color, D::Error> where D: Deserializer<'de> {
-    let value = u32::deserialize(deserializer)?;
-    let b = (value & 0xff) as u8;
-    let g = ((value >> 8) & 0xff) as u8;
-    let r = ((value >> 16) & 0xff) as u8;
-    Ok(Color::new(r, g, b))
 }

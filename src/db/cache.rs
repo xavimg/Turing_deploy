@@ -3,8 +3,8 @@ use futures::{StreamExt, Future, future::{select_ok}, FutureExt, Stream};
 use bson::{oid::ObjectId, doc, Document};
 use mongodb::{Collection, error::Error, results::{InsertOneResult, UpdateResult}, options::{UpdateModifications, FindOptions}};
 use serde::{Serialize, de::DeserializeOwned};
-use tokio::{sync::{RwLock, RwLockReadGuard}, task::JoinError, join};
-use crate::{Streamx, Either, try_spawn, CURRENT_LOGGER, Logger};
+use tokio::{sync::{RwLock}, task::JoinError, join};
+use crate::{Streamx, Either, try_spawn};
 
 pub trait MongoDoc {
     fn get_id (&self) -> ObjectId;
@@ -23,17 +23,13 @@ impl<T: Hash + Eq> CollectionCache<T> {
         }
     }
 
-    pub async fn insert_one (&self, doc: T) -> Result<(Arc<T>, InsertOneResult), Error> where T: Serialize {
+    pub async fn insert_one (&self, doc: T) -> Result<Arc<T>, Error> where T: Serialize {
         let doc = Arc::new(doc);
         let (_, db) = join!(self.add_to_cache(doc.clone()), self.collection.insert_one(doc.clone(), None));
 
         match db {
-            Err(e) => {
-                tokio::spawn(CURRENT_LOGGER.log_error(format!("{e}")));
-                Err(e)
-            },
-
-            Ok(result) => Ok((doc, result))
+            Err(e) => Err(e),
+            Ok(_) => Ok(doc)
         }
     }
 

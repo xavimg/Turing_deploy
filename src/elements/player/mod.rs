@@ -1,6 +1,5 @@
 use std::{hash::Hash, sync::Arc};
 use bson::{oid::ObjectId, doc};
-use llml::vec::EucVecd2;
 use rand::random;
 use serde::{Serialize, Deserialize};
 use tokio::task::JoinError;
@@ -21,10 +20,25 @@ pub struct Player {
 }
 
 impl Player {
-    pub async fn new (id: u64, name: String) -> Self {
+    pub async fn new (id: u64, name: String) -> Result<Option<Self>, Either<JoinError, mongodb::error::Error>> {
+        let name2 = name.clone();
+        let bson = bson::to_bson(&PlayerToken::Unloged(id)).unwrap();
+        
+        match PLAYERS.find_one(doc! { "$or": { "name": name.clone(), "token": bson } }, move |x| {
+            if x.name == name2 { return true }
+            if let PlayerToken::Unloged(unlogged) = x.token { return unlogged == id; }
+            false
+        }).await {
+            Ok(None) => Ok(Some(Self::new_unchecked(id, name).await)),
+            Ok(Some(_)) => Ok(None),
+            Err(e) => Err(e)
+        }
+    }
+
+    pub async fn new_unchecked (id: u64, name: String) -> Self {
         Player {
             id: ObjectId::new(),
-            location: PlayerLocation { system: Self::random_system().await, position: EucVecd2::default() },
+            location: PlayerLocation { system: Self::random_system().await, position: random() },
             name,
             token: PlayerToken::Unloged(id),
             stats: PlayerStats::default(),
@@ -43,6 +57,18 @@ impl Player {
         }).await
     }
 
+    pub async fn from_foreign_id_or_new (id: u64, name: String) -> Result<Arc<Self>, Either<JoinError, mongodb::error::Error>> {
+        match Self::from_foreign_id(id).await {
+            Ok(None) => match PLAYERS.insert_one(Self::new_unchecked(id, name).await).await {
+                Ok(player) => Ok(player),
+                Err(e) => Err(Either::Right(e))
+            },
+
+            Ok(Some(x)) => Ok(x),
+            Err(e) => Err(e)
+        }
+    }
+
     #[inline]
     pub async fn from_token (token: String) -> Result<Option<Arc<Self>>, Either<JoinError, mongodb::error::Error>> {
         let token_clone = token.clone();
@@ -59,7 +85,7 @@ impl Player {
             Ok(Some(system)) => system.id,
 
             Ok(None) => match PLANET_SYSTEMS.insert_one(create_system()).await {
-                Ok((system, _)) => system.id,
+                Ok(system) => system.id,
                 Err(e) => {
                     CURRENT_LOGGER.log_error(format!("{e}")).await;
                     panic!("{e}")

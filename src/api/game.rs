@@ -2,19 +2,15 @@ use std::str::FromStr;
 use actix_web::{get, Responder, HttpRequest, web::{Path, self}, HttpResponse, post};
 use bson::{oid::ObjectId, doc};
 use futures::StreamExt;
+use rand::{distributions::{Alphanumeric, DistString}, thread_rng};
 use serde_json::{json, Value};
 use crate::{PLAYERS, decode_token, CURRENT_LOGGER, PlayerToken, Logger, test_token, PLANET_SYSTEMS, Either, Player};
 
 #[post("/test/player/{id}")]
 pub async fn test_login (_req: HttpRequest, id: web::Path<u64>) -> HttpResponse {
     let id = id.into_inner();
-    match Player::from_foreign_id(id).await {
-        Ok(None) => match PLAYERS.insert_one(Player::new(id, "testing".to_string()).await).await {
-            Err(e) => return HttpResponse::BadRequest().body(format!("{e}")),
-            _ => {}
-        },
-        Err(Either::Left(e)) => return HttpResponse::InternalServerError().body(e.to_string()),
-        Err(Either::Right(e)) => return HttpResponse::BadRequest().body(e.to_string()),
+    match Player::from_foreign_id_or_new(id, Alphanumeric.sample_string(&mut thread_rng(), 10)).await {
+        Err(e) => return HttpResponse::InternalServerError().body(e.to_string()),
         _ => {}
     }
 
@@ -62,8 +58,7 @@ pub async fn get_player_me (req: HttpRequest) -> HttpResponse {
                 }
 
                 Ok(None) => HttpResponse::BadRequest().body("No matching player found"),
-                Err(Either::Left(e)) => HttpResponse::InternalServerError().body(e.to_string()),
-                Err(Either::Right(e)) => HttpResponse::BadRequest().body(e.to_string())
+                Err(e) => HttpResponse::InternalServerError().body(e.to_string()),
             }
         }
     }

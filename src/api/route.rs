@@ -1,8 +1,9 @@
 use actix_web::{Responder, web, HttpRequest, post, get, HttpResponse};
 use mongodb::{bson::{doc}};
+use rand::{distributions::{Alphanumeric, DistString}, thread_rng};
 use serde_json::{json};
 use strum::IntoEnumIterator;
-use crate::{DATABASE, Resource, PLAYERS, Player, PlayerToken, CURRENT_LOGGER, Logger, decode_token};
+use crate::{DATABASE, Resource, PLAYERS, Player, PlayerToken, CURRENT_LOGGER, Logger, decode_token, Either};
 
 // OUT API
 #[get("/status")]
@@ -45,9 +46,14 @@ pub async fn resources () -> impl Responder {
 #[post("/player/signup")]
 pub async fn new_user (_: HttpRequest, body: web::Json<u64>) -> HttpResponse {
     // TODO INTERNAL IP ONLY
-    match PLAYERS.insert_one(Player::new(body.0, format!("todo")).await).await {
-        Ok(_) => HttpResponse::Ok().finish(),
-        Err(x) => HttpResponse::InternalServerError().body(format!("{x}"))
+    match Player::new(body.0, Alphanumeric.sample_string(&mut thread_rng(), 10)).await {
+        Ok(Some(player)) => match PLAYERS.insert_one(player).await {
+            Ok(_) => HttpResponse::Ok().finish(),
+            Err(x) => HttpResponse::InternalServerError().body(format!("{x}"))
+        },
+        Ok(None) => HttpResponse::BadRequest().body("Player with same id or name already exists"),
+        Err(Either::Left(e)) => HttpResponse::InternalServerError().body(format!("{e}")),
+        Err(Either::Right(e)) => HttpResponse::BadRequest().body(format!("{e}"))
     }
 }
 

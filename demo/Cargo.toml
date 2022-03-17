@@ -14,3 +14,4 @@ base64 = "0.13"
 websocket = "0.26"
 slg = { path = "../lib/slg" }
 llml = { version = "0", features = ["llml_serde"] }
+bson = "2"

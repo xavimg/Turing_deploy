@@ -11,8 +11,10 @@
 ```json
 {
     "system": objectId,
-    "x": double,
-    "y": double
+    "position": {
+        "x": double,
+        "y": double
+    }
 }
 ```
 
@@ -20,7 +22,9 @@
 ```json
 {
     "player": objectId,
-    "x": double,
-    "y": double
+    "position": {
+        "x": double,
+        "y": double
+    }
 }
 ```

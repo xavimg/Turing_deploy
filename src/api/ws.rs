@@ -7,7 +7,7 @@ use bson::{doc, oid::ObjectId};
 use llml::vec::EucVecd2;
 use serde::Deserialize;
 use serde::de::Visitor;
-use crate::{CURRENT_LOGGER, decode_token, PlayerToken, PLAYERS, Either, Logger, Player};
+use crate::{CURRENT_LOGGER, decode_token, PlayerToken, PLAYERS, Either, Logger, Player, PlayerLocation};
 
 /// Define HTTP actor
 struct WebSocket {
@@ -16,15 +16,7 @@ struct WebSocket {
 
 #[derive(Debug)]
 enum WebSocketInput {
-    Update(WebSocketUpdate)
-}
-
-#[derive(Debug, Deserialize)]
-struct WebSocketUpdate {
-    #[serde(skip_deserializing)] 
-    system: ObjectId,
-    x: f64,
-    y: f64
+    Update(PlayerLocation)
 }
 
 impl<'de> Deserialize<'de> for WebSocketInput {
@@ -44,7 +36,7 @@ impl<'de> Deserialize<'de> for WebSocketInput {
                     if let Some(key) = map.next_key::<String>()? {
                         if key != "body" { return Err(<A::Error as serde::de::Error>::custom("Expected field 'body'")) }
                         return match id {
-                            0x00 => Ok(WebSocketInput::Update(map.next_value::<WebSocketUpdate>()?)),
+                            0x00 => Ok(WebSocketInput::Update(map.next_value::<PlayerLocation>()?)),
                             _ => todo!()
                         }
                     }
@@ -75,7 +67,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WebSocket {
     fn handle(&mut self, msg: Result<ws::Message, ws::ProtocolError>, ctx: &mut Self::Context) {
         if let Ok(msg) = msg {
             match WebSocketInput::try_from(msg) {
-                Ok(WebSocketInput::Update(WebSocketUpdate { x, y, .. })) => {
+                Ok(WebSocketInput::Update(PlayerLocation { system, position })) => {
                     let id = self.player.clone();
                     let fut = async move { 
                         let position = bson::to_bson(&EucVecd2::new([x, y])).unwrap();
