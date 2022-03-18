@@ -3,8 +3,8 @@ use crate::{local::PlayerLocation, world_to_local};
 
 #[derive(Clone)]
 pub struct RemotePlayer {
-    location: PlayerLocation,
-    circle: Threadly<Circle<OpenGl>>
+    pub location: PlayerLocation,
+    pub circle: Threadly<Circle<OpenGl>>
 }
 
 impl RemotePlayer {

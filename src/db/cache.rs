@@ -4,7 +4,8 @@ use bson::{oid::ObjectId, doc, Document};
 use mongodb::{Collection, error::Error, results::{InsertOneResult, UpdateResult}, options::{UpdateModifications, FindOptions}};
 use serde::{Serialize, de::DeserializeOwned};
 use tokio::{sync::{RwLock}, task::JoinError, join};
-use crate::{Streamx, Either, try_spawn};
+use xstd::stream::UniqueBy;
+use crate::{Streamx, Either, try_spawn, CURRENT_LOGGER, Logger};
 
 pub trait MongoDoc {
     fn get_id (&self) -> ObjectId;
@@ -49,14 +50,17 @@ impl<T: Hash + Eq> CollectionCache<T> {
 
     /// Searches for the value with the specified id in the cahche and the database simultaneously, returning the result of
     /// the first search to complete and killing the other
+    #[inline]
     pub async fn find_any_one (&'static self) -> Result<Option<Arc<T>>, Either<JoinError, Error>> where T: Unpin + Send + Sync + DeserializeOwned {
         self.find_one(doc! {}, |_| true).await
     }
-    
+
+    #[inline]
     pub async fn find_one_by_id (&'static self, id: ObjectId) -> Result<Option<Arc<T>>, Either<JoinError, Error>> where T: MongoDoc + Unpin + Send + Sync + DeserializeOwned {
         self.find_one(doc! { "_id": id }, move |x| x.get_id() == id).await
     }
 
+    #[inline]
     pub async fn find_one_by_value (&'static self, value: &T) -> Result<Option<Arc<T>>, Either<JoinError, Error>> where T: MongoDoc + Unpin + Send + Sync + DeserializeOwned {
         self.find_one_by_id(value.get_id()).await
     }
@@ -119,7 +123,7 @@ impl<T: Hash + Eq> CollectionCache<T> {
 
     /// Searches for the values with the specified parameters in the cache and the database simultaneously, returning the result of
     /// the first individual search to complete
-    pub fn find_many<F: 'static + Unpin + Fn(&T) -> bool> (&'static self, db: Document, cache: F, limit: Option<usize>) -> impl Stream<Item = mongodb::error::Result<Arc<T>>> where T: Unpin + Send + Sync + DeserializeOwned {
+    pub fn find_many<F: 'static + Unpin + Fn(&T) -> bool> (&'static self, db: Document, cache: F, limit: Option<usize>) -> impl Stream<Item = Arc<T>> where T: Unpin + Send + Sync + Hash + Eq + DeserializeOwned {
         let db_opts = match limit {
             None => FindOptions::default(),
             Some(len) => {
@@ -129,16 +133,15 @@ impl<T: Hash + Eq> CollectionCache<T> {
             }
         };
         
-        let set = self.set.clone();
         let cache = self.set.read().map(|lock| {
             let ptr : *const HashSet<Arc<T>> = lock.deref(); // ```self``` has static lifetime, so this isn't undefined behavior
-            futures::stream::iter(unsafe { &*ptr }).async_filter(move |x| cache(x.deref())).map(|x| Ok(x.clone()))
+            futures::stream::iter(unsafe { &*ptr }).async_filter(move |x| cache(x.deref())).cloned()
         });
 
         let db = async move {
-            let stream : Pin<Box<dyn Stream<Item = mongodb::error::Result<Arc<T>>>>> = match self.collection.find(db, db_opts).await {
-                Ok(cursor) => Box::pin(cursor.map(move |x| x.map(|x| {
-                    let arc = Arc::new(x);
+            let stream : Pin<Box<dyn Stream<Item = Arc<T>>>> = match self.collection.find(db, db_opts).await {
+                Ok(cursor) => Box::pin(cursor.filter(|x| ready(x.is_ok())).map(move |x| {
+                    let arc = Arc::new(x.unwrap());
                     let arc_clone = arc.clone();
 
                     tokio::spawn(async move {
@@ -147,18 +150,23 @@ impl<T: Hash + Eq> CollectionCache<T> {
                     });
 
                     arc_clone
-                }))),
+                })),
 
-                Err(e) => Box::pin(futures::stream::once(ready(Err(e))))
+                Err(e) => {
+                    tokio::spawn(CURRENT_LOGGER.log_error(format!("{e}")));
+                    Box::pin(futures::stream::empty())
+                }
             }; 
             stream
         };
 
-        Box::pin(db).flatten_stream().merge(Box::pin(cache).flatten_stream())
+        Box::pin(db).flatten_stream()
+            .merge(Box::pin(cache).flatten_stream())
+            .unique_by(|x| x.clone())
     }
 
     #[inline]
-    pub fn find_any (&'static self, limit: Option<usize>) -> impl Stream<Item = mongodb::error::Result<Arc<T>>> where T: Unpin + Send + Sync + DeserializeOwned {
+    pub fn find_any (&'static self, limit: Option<usize>) -> impl Stream<Item = Arc<T>> where T: Unpin + Send + Sync + DeserializeOwned {
         self.find_many(doc! {}, |_| true, limit)
     }
 

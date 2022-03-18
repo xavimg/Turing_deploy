@@ -19,6 +19,7 @@
       <excludeFolder url="file://$MODULE_DIR$/rust/target/debug/incremental/rust-1hlzq1kmxvui2/s-g6cusi69gq-71zdl2-3mqlneq2ubrl8" />
       <excludeFolder url="file://$MODULE_DIR$/rust/target/debug/incremental/rust-35s4741lwmzto/s-g6cusi6rg6-9qm15y-1c9ohdqv70542" />
       <excludeFolder url="file://$MODULE_DIR$/rust/target/debug/examples" />
+      <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

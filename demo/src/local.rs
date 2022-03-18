@@ -2,15 +2,14 @@ use std::{net::TcpStream, io::ErrorKind};
 use bson::oid::ObjectId;
 use llml::vec::{EucVecd2, EucVecf2};
 use rand::random;
-use serde::{Deserialize};
+use serde::{Deserialize, Serialize};
 use serde_json::json;
 use slg::{generics::{Circle}, renderer::opengl::{OpenGl, GlInstance}, Threadly, RenderInstance};
 use websocket::{header::Headers, ClientBuilder, WebSocketResult, WebSocketError, sync::Client, Message};
 use reqwest::blocking::get;
-
 use crate::{PlayerRequest, world_to_local, local_to_world};
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PlayerLocation {
     pub system: ObjectId,
     pub position: EucVecd2
@@ -43,21 +42,17 @@ impl PlayerConnection {
 
     pub fn translate (&mut self, delta: EucVecf2) {
         let world = local_to_world(delta);
-        let mut circle = self.circle.write().unwrap();
-
-        let body = json!({
-            "id": 0x00,
-            "body": {
-                "system": self.location.system,
-                "x": 
-            }
-        });
-
-        self.client.send_message(Message::binary(body));
-
-        circle.position += delta;
         self.location.position += world;
 
+        let mut circle = self.circle.write().unwrap();
+        circle.position += delta;
+        
+        let body = json!({
+            "id": 0x00u8,
+            "body": self.location
+        });
+
+        self.client.send_message(&Message::text(serde_json::to_string(&body).unwrap())).unwrap()
     }
 
     fn connect_with_token (token: &str) -> WebSocketResult<Client<TcpStream>> {

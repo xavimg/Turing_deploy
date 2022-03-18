@@ -1,10 +1,11 @@
-use std::{sync::{Arc}, thread, time::Duration};
+use std::{sync::{Arc, Mutex}, thread, time::Duration};
 use bson::oid::ObjectId;
-use local::{PlayerConnection, PlayerLocation};
+use local::{PlayerLocation};
 use llml::vec::{EucVecf2, EucVecd2};
 use serde::{Deserialize, Deserializer};
 use session::GameSession;
-use slg::{renderer::opengl::OpenGl, Renderer, generics::Color};
+use slg::{renderer::opengl::OpenGl, Renderer, generics::{Color, KeyboardKey}, RenderInstance};
+use websocket::{OwnedMessage};
 
 pub mod local;
 pub mod remote;
@@ -13,12 +14,48 @@ pub mod session;
 fn main() {
     let ogl = Arc::new(OpenGl::new().unwrap());
     let window = ogl.create_instance("Websocket testing", 900u32, 900u32).unwrap();
-    let session = GameSession::new(window);
+    let mut session = Arc::new(Mutex::new(GameSession::new(window).unwrap()));
 
+    // WebSocket Updates
+    let update_session = session.clone();
     thread::spawn(move || {
         loop {
-            // TODO
-            thread::sleep(Duration::from_millis(17));
+            let mut lock = update_session.lock().unwrap();
+            match lock.local.client.recv_message().unwrap() {
+                OwnedMessage::Binary(bytes) => println!("{bytes:?}"),
+                _ => todo!()
+            }
+        }
+    });
+
+    // Player updates
+    thread::spawn(move || {
+        loop {
+            let mut lock = session.lock().unwrap();
+            let window = lock.window.read().unwrap();
+            let x = if window.is_pressed(KeyboardKey::D) {
+                1.0
+            } else if window.is_pressed(KeyboardKey::A) {
+                -1.0
+            } else {
+                0.0
+            };
+
+            let y = if window.is_pressed(KeyboardKey::W) {
+                1.0
+            } else if window.is_pressed(KeyboardKey::S) {
+                -1.0
+            } else {
+                0.0
+            };
+
+            drop(window);
+            if x != 0.0 || y != 0.0 {
+                let vel = 0.017 * EucVecf2::new([x, y]).unit();
+                lock.local.translate(vel)
+            }
+
+            thread::sleep(Duration::from_millis(17))
         }
     });
 

@@ -1,15 +1,25 @@
 use std::{sync::Arc};
+use std::collections::{HashMap, HashSet};
+use std::lazy::SyncLazy;
 use std::ops::Deref;
-use actix::{Actor, StreamHandler, WrapFuture, ContextFutureSpawner};
+use actix::{Actor, StreamHandler, WrapFuture, ContextFutureSpawner, Addr, Handler};
+use actix_web::web::Bytes;
 use actix_web::{web, Result, HttpRequest, HttpResponse, get};
-use actix_web_actors::ws::{self};
+use actix_web_actors::ws::{self, WsResponseBuilder};
 use bson::{doc, oid::ObjectId};
+use futures::StreamExt;
 use llml::vec::EucVecd2;
-use serde::Deserialize;
+use serde::{Serialize, Deserialize, Deserializer};
 use serde::de::Visitor;
-use crate::{CURRENT_LOGGER, decode_token, PlayerToken, PLAYERS, Either, Logger, Player, PlayerLocation};
+use tokio::sync::RwLock;
+use actix::Message;
+use serde_json::json;
+use crate::{CURRENT_LOGGER, decode_token, PlayerToken, PLAYERS, Either, Logger, Player, PlayerLocation, PlanetSystem, PLANET_SYSTEMS, Color, color_rgba};
+
+static SOCKETS : SyncLazy<RwLock<HashMap<ObjectId, Arc<Addr<WebSocket>>>>> = SyncLazy::new(|| RwLock::new(HashMap::new()));
 
 /// Define HTTP actor
+#[derive(Debug, PartialEq, Hash, Eq)]
 struct WebSocket {
     player: ObjectId
 }
@@ -67,12 +77,27 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WebSocket {
     fn handle(&mut self, msg: Result<ws::Message, ws::ProtocolError>, ctx: &mut Self::Context) {
         if let Ok(msg) = msg {
             match WebSocketInput::try_from(msg) {
-                Ok(WebSocketInput::Update(PlayerLocation { system, position })) => {
+                Ok(WebSocketInput::Update(location)) => {
                     let id = self.player.clone();
-                    let fut = async move { 
-                        let position = bson::to_bson(&EucVecd2::new([x, y])).unwrap();
-                        match PLAYERS.update_one(doc! { "_id": id }, move |x| x.id == id, doc! { "$set": { "location.position": position } }).await {
-                            Ok(Some(_)) => CURRENT_LOGGER.log_info("Successfull update").await,
+                    let fut = async move {
+                        let bson = bson::to_bson(&location).unwrap();
+                        match PLAYERS.update_one(doc! { "_id": id }, move |x| x.id == id, doc! { "$set": { "location": bson } }).await {
+                            Ok(Some(_)) => {
+                                let payload = PlayerMoved {
+                                    player: id,
+                                    position: location.position
+                                };
+
+                                let mut players = PLAYERS.find_many(doc! { "location.system": location.system }, move |x| x.location.system == location.system, None);
+                                let lock = SOCKETS.read().await;
+
+                                while let Some(player) = players.next().await {
+                                    if let Some(addr) = lock.get(&player.id) {
+                                        let addr = addr.clone();
+                                        tokio::spawn(async move { addr.send(payload); });
+                                    }
+                                }
+                            },
                             x => panic!("{x:?}")
                         }
                     };
@@ -89,14 +114,61 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WebSocket {
     }
 }
 
+/// Player displacement update
+#[derive(Clone, Copy, Message, Serialize)]
+#[rtype(result = "()")]
+pub struct PlayerMoved {
+    pub player: ObjectId,
+    pub position: EucVecd2
+}
+
+impl Handler<PlayerMoved> for WebSocket {
+    type Result = ();
+
+    #[inline]
+    fn handle(&mut self, msg: PlayerMoved, ctx: &mut Self::Context) -> Self::Result {
+        let body = json!({
+           "id": 0x10u8,
+            "body": msg
+        });
+
+        ctx.binary(serde_json::to_vec(&body).unwrap())
+    }
+}
+
+/// New player update
+#[derive(Debug, Clone, Message, Serialize)]
+#[rtype(result = "()")]
+pub struct NewPlayer {
+    #[serde(rename = "_id")]
+    pub id: ObjectId,
+    pub name: String,
+    pub location: PlayerLocation,
+    #[serde(with = "color_rgba")]
+    pub color: Color
+}
+
+impl Handler<NewPlayer> for WebSocket {
+    type Result = ();
+
+    #[inline]
+    fn handle(&mut self, msg: NewPlayer, ctx: &mut Self::Context) -> Self::Result {
+        let body = json!({
+           "id": 0x11u8,
+            "body": msg
+        });
+
+        ctx.binary(serde_json::to_vec(&body).unwrap())
+    }
+}
+
+/// Player new connection
 #[get("/player/conn")]
 pub async fn start_connection (req: HttpRequest, payload: web::Payload) -> Result<HttpResponse, actix_web::Error> {
-    let string;
-
-    match decode_token(&req) {
-        Ok((s, _)) => string = s,
+    let string= match decode_token(&req) {
+        Ok((str, _)) => str,
         Err(e) => return Ok(HttpResponse::BadRequest().body(format!("{e}")))
-    }
+    };
     
     let bson = bson::to_document(&PlayerToken::Loged(string.clone())).unwrap();
     let query = PLAYERS.find_one(doc! { "token": bson }, move |player| {
@@ -106,16 +178,40 @@ pub async fn start_connection (req: HttpRequest, payload: web::Payload) -> Resul
     
     return match query {
         Ok(Some(player)) => {
-            let actor = WebSocket { 
-                player: player.id 
-            };
+            let actor = WebSocket { player: player.id };
+            let builder = WsResponseBuilder::new(actor, &req, payload);
+            let (addr, resp) = builder.start_with_addr()?;
+            let addr = Arc::new(addr);
 
-            return ws::start(actor, &req, payload)
+            // Add address to socket map
+            let id = player.id;
+            tokio::spawn(async move {
+                let mut lock = SOCKETS.write().await;
+                lock.insert(id, addr);
+            });
+
+            // Notify players in same system about new user
+            // TODO spawn on tokio
+            PLAYERS.find_many(doc! { "location.system": player.location.system }, move |x| x.location.system == player.location.system, None).for_each_concurrent(None, |player: Arc<Player>| async move {
+                let new_player = NewPlayer {
+                    id: player.id,
+                    name: player.name.clone(),
+                    location: player.location.clone(),
+                    color: player.color.clone()
+                };
+
+                let lock = SOCKETS.read().await;
+                if let Some(addr) = lock.get(&player.id) {
+                    let addr = addr.clone();
+                    addr.send(new_player.clone());
+                }
+            }).await;
+
+            Ok(resp)
         },
 
         Ok(None) => Ok(HttpResponse::BadRequest().body("No matching player found")),
-        Err(Either::Right(e)) => Ok(HttpResponse::BadRequest().body(format!("{e}"))),
-        Err(Either::Left(e)) => Ok(HttpResponse::InternalServerError().body(format!("{e}")))
+        Err(e) => Ok(HttpResponse::InternalServerError().body(format!("{e}")))
     }
 }
 

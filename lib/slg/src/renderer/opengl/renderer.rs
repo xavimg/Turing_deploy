@@ -1,12 +1,12 @@
-use std::{sync::{Arc, RwLock}, num::NonZeroU32, mem::{size_of_val, size_of}, lazy::Lazy, ops::Deref, os::raw::c_char};
-use glutin::{event_loop::{EventLoop, ControlFlow}, window::WindowBuilder, dpi::LogicalSize, ContextBuilder, event::{Event, WindowEvent}, GlRequest, Api, platform::run_return::EventLoopExtRunReturn};
+use std::{sync::{Arc, RwLock, atomic::{AtomicBool, Ordering}}, num::NonZeroU32, mem::{size_of_val, size_of}, lazy::Lazy, ops::Deref, os::raw::c_char, intrinsics::transmute};
+use glutin::{event_loop::{EventLoop, ControlFlow}, window::WindowBuilder, dpi::LogicalSize, ContextBuilder, event::{Event, WindowEvent, ElementState}, GlRequest, Api, platform::run_return::EventLoopExtRunReturn};
 use gl33::{global_loader::{load_global_gl, glCreateShader, glShaderSource, glCompileShader, glGetShaderiv, glGetShaderInfoLog, glCreateProgram, glAttachShader, glGetProgramiv, glLinkProgram, glGetProgramInfoLog, glDetachShader, glValidateProgram, glGenVertexArrays, glBindVertexArray, glGenBuffers, glBindBuffer, glBufferData, glVertexAttribPointer, glEnableVertexAttribArray, glClear, glEnable, glBlendFunc}, GL_COMPILE_STATUS, GL_LINK_STATUS, ProgramPropertyARB, GL_VALIDATE_STATUS, GL_ARRAY_BUFFER, GL_STATIC_DRAW, GL_FLOAT, ShaderType, GL_VERTEX_SHADER, GL_FRAGMENT_SHADER, GL_DEPTH_BUFFER_BIT, GL_COLOR_BUFFER_BIT, GL_BLEND, GL_ONE};
-use crate::{Renderer, Threadly, RenderInstance};
+use crate::{Renderer, Threadly, RenderInstance, generics::KeyboardKey};
 use super::{GlInstance, GlShader, GlUniform};
 
 pub struct OpenGl {
     pub(super) el: RwLock<EventLoop<()>>,
-    insts: RwLock<Vec<Threadly<GlInstance>>>,
+    insts: RwLock<Vec<Threadly<GlInstance>>>
 }
 
 impl Renderer for OpenGl {
@@ -51,13 +51,13 @@ impl Renderer for OpenGl {
             glBlendFunc(GL_ONE, GL_ONE)
         }
 
-        let instance = Arc::new(RwLock::new(GlInstance::new(self.clone(), title, current)?));
+        let instance = Arc::new(RwLock::new(GlInstance::new(title, current)?));
         let mut lock = self.insts.write().map_err(|e| e.to_string())?;
         lock.push(instance.clone());
         Ok(instance)
     }
 
-    fn create_shader(&self, code: &str) -> Result<Arc<Self::Shader>, String> {
+    fn create_shader(code: &str) -> Result<Arc<Self::Shader>, String> {
         // PROGRAM
         let program = NonZeroU32::try_from(glCreateProgram())
             .map_err(|e| e.to_string())?;
@@ -95,6 +95,11 @@ impl Renderer for OpenGl {
 
                     match event {
                         WindowEvent::Resized(physical_size) => window.context.resize(physical_size),
+                        WindowEvent::KeyboardInput { input, .. } => if let Some(x) = input.virtual_keycode {
+                            let key = KEYBOARD_MAPPING[x as usize];
+                            window.keyboard[usize::from(key)].store(input.state == ElementState::Pressed, std::sync::atomic::Ordering::Relaxed)
+                        },
+
                         WindowEvent::CloseRequested => *cf = ControlFlow::Exit,
                         _ => (),
                     }
@@ -225,3 +230,185 @@ impl OpenGl {
         Ok(())
     }
 }
+
+const KEYBOARD_MAPPING : [KeyboardKey; 161] = [
+    KeyboardKey::ONE,
+    KeyboardKey::TWO,
+    KeyboardKey::THREE,
+    KeyboardKey::FOUR,
+    KeyboardKey::FIVE,
+    KeyboardKey::SIX,
+    KeyboardKey::SEVEN,
+    KeyboardKey::EIGHT,
+    KeyboardKey::NINE,
+    KeyboardKey::ZERO,
+
+    KeyboardKey::A,
+    KeyboardKey::B,
+    KeyboardKey::C,
+    KeyboardKey::D,
+    KeyboardKey::E,
+    KeyboardKey::F,
+    KeyboardKey::G,
+    KeyboardKey::H,
+    KeyboardKey::I,
+    KeyboardKey::J,
+    KeyboardKey::K,
+    KeyboardKey::L,
+    KeyboardKey::M,
+    KeyboardKey::N,
+    KeyboardKey::O,
+    KeyboardKey::P,
+    KeyboardKey::Q,
+    KeyboardKey::R,
+    KeyboardKey::S,
+    KeyboardKey::T,
+    KeyboardKey::U,
+    KeyboardKey::V,
+    KeyboardKey::W,
+    KeyboardKey::X,
+    KeyboardKey::Y,
+    KeyboardKey::Z,
+
+    KeyboardKey::ESCAPE,
+
+    KeyboardKey::F1,
+    KeyboardKey::F2,
+    KeyboardKey::F3,
+    KeyboardKey::F4,
+    KeyboardKey::F5,
+    KeyboardKey::F6,
+    KeyboardKey::F7,
+    KeyboardKey::F8,
+    KeyboardKey::F9,
+    KeyboardKey::F10,
+    KeyboardKey::F12,
+    KeyboardKey::F12,
+    KeyboardKey::F13,
+    KeyboardKey::F14,
+    KeyboardKey::F15,
+    KeyboardKey::F16,
+    KeyboardKey::F17,
+    KeyboardKey::F18,
+    KeyboardKey::F19,
+    KeyboardKey::F20,
+    KeyboardKey::F21,
+    KeyboardKey::F22,
+    KeyboardKey::F23,
+    KeyboardKey::F24,
+
+    KeyboardKey::PRINT_SCREEN,
+    KeyboardKey::SCROLL_LOCK,
+    KeyboardKey::PAUSE,
+
+    KeyboardKey::INSERT,
+    KeyboardKey::HOME,
+    KeyboardKey::DELETE,
+    KeyboardKey::END,
+    KeyboardKey::PAGE_DOWN,
+    KeyboardKey::PAGE_UP,
+
+    KeyboardKey::LEFT,
+    KeyboardKey::UP,
+    KeyboardKey::RIGHT,
+    KeyboardKey::DOWN,
+
+    KeyboardKey::BACKSPACE,
+    KeyboardKey::ENTER,
+    KeyboardKey::SPACE,
+    KeyboardKey::UNKNOWN,
+    KeyboardKey::UNKNOWN,
+
+    KeyboardKey::NUM_LOCK,
+    KeyboardKey::KP0,
+    KeyboardKey::KP1,
+    KeyboardKey::KP2,
+    KeyboardKey::KP3,
+    KeyboardKey::KP4,
+    KeyboardKey::KP5,
+    KeyboardKey::KP6,
+    KeyboardKey::KP7,
+    KeyboardKey::KP8,
+    KeyboardKey::KP9,
+
+    KeyboardKey::KP_ADD,
+    KeyboardKey::KP_DIVIDE,
+    KeyboardKey::KP_DECIMAL,
+    KeyboardKey::KP_DECIMAL,
+    KeyboardKey::KP_ENTER,
+    KeyboardKey::KP_EQUAL,
+    KeyboardKey::KP_MULTIPLY,
+    KeyboardKey::KP_SUBTRACT,
+
+    KeyboardKey::UNKNOWN,
+    KeyboardKey::UNKNOWN,
+    KeyboardKey::APOSTROPHE,
+    KeyboardKey::UNKNOWN,
+    KeyboardKey::UNKNOWN,
+    KeyboardKey::UNKNOWN,
+    KeyboardKey::UNKNOWN,
+    KeyboardKey::UNKNOWN,
+    
+    KeyboardKey::BACKSLASH,
+    KeyboardKey::UNKNOWN,
+    KeyboardKey::UNKNOWN,
+    KeyboardKey::COMMA,
+    KeyboardKey::UNKNOWN,
+    KeyboardKey::EQUAL,
+    KeyboardKey::GRAVE_ACCENT,
+    KeyboardKey::UNKNOWN,
+    KeyboardKey::LEFT_ALT,
+    KeyboardKey::LEFT_BRACKET,
+    KeyboardKey::LEFT_CONTROL,
+    KeyboardKey::LEFT_SHIFT,
+    KeyboardKey::UNKNOWN,
+    
+    KeyboardKey::UNKNOWN,
+    KeyboardKey::UNKNOWN,
+    KeyboardKey::UNKNOWN,
+    KeyboardKey::MINUS,
+    KeyboardKey::UNKNOWN,
+
+    KeyboardKey::UNKNOWN,
+    KeyboardKey::UNKNOWN,
+    KeyboardKey::UNKNOWN,
+    KeyboardKey::UNKNOWN,
+    KeyboardKey::UNKNOWN,
+    KeyboardKey::UNKNOWN,
+
+    KeyboardKey::PERIOD,
+    KeyboardKey::UNKNOWN, // PLAY-PAUSE
+    KeyboardKey::UNKNOWN,
+    KeyboardKey::UNKNOWN,
+    KeyboardKey::UNKNOWN,
+
+    KeyboardKey::RIGHT_ALT,
+    KeyboardKey::RIGHT_BRACKET,
+    KeyboardKey::RIGHT_CONTROL,
+    KeyboardKey::RIGHT_SHIFT,
+    KeyboardKey::UNKNOWN,
+
+    KeyboardKey::SEMICOLON,
+    KeyboardKey::SLASH,
+    KeyboardKey::UNKNOWN,
+    KeyboardKey::UNKNOWN,
+    KeyboardKey::UNKNOWN,
+
+    KeyboardKey::TAB,
+    KeyboardKey::UNKNOWN,
+    KeyboardKey::UNKNOWN,
+    KeyboardKey::UNKNOWN,
+    KeyboardKey::UNKNOWN,
+    KeyboardKey::UNKNOWN,
+    KeyboardKey::UNKNOWN,
+    KeyboardKey::UNKNOWN,
+    KeyboardKey::UNKNOWN,
+    KeyboardKey::UNKNOWN,
+    KeyboardKey::UNKNOWN,
+    KeyboardKey::UNKNOWN,
+    KeyboardKey::UNKNOWN,
+
+    KeyboardKey::UNKNOWN,
+    KeyboardKey::UNKNOWN,
+    KeyboardKey::UNKNOWN
+];

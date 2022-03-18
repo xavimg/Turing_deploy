@@ -1,6 +1,6 @@
 use std::{sync::{Arc}};
 use llml::vec::EucVecf2;
-use crate::{Uniform, Uniformable, generics::{Color, Circle, RenderElement}, Threadly};
+use crate::{Uniform, Uniformable, generics::{Color, Circle, RenderElement, KeyboardKey}, Threadly};
 
 pub trait Renderer where Self: Sized {
     type Instance: RenderInstance<Self>;
@@ -8,12 +8,13 @@ pub trait Renderer where Self: Sized {
     type Uniform: Uniform<Self>;
 
     fn new () -> Result<Self, String>;
+    fn create_shader (code: &str) -> Result<Arc<Self::Shader>, String>;
+
     fn create_instance (self: &Arc<Self>, title: impl Into<String>, width: impl Into<u32>, height: impl Into<u32>) -> Result<Threadly<Self::Instance>, String>;
-    fn create_shader (&self, code: &str) -> Result<Arc<Self::Shader>, String>;
     fn listen_events (&self) -> Result<(), String>;
 }
 
-pub trait RenderInstance<R: Renderer> {
+pub trait RenderInstance<R: Renderer>: Send + Sync {
     fn get_title (&self) -> &String;
     fn get_width (&self) -> u32;
     fn get_height (&self) -> u32;
@@ -29,6 +30,8 @@ pub trait RenderInstance<R: Renderer> {
 
     fn get_children (&self) -> &Vec<Threadly<dyn RenderElement<R>>>;
     fn create_circle (&mut self, at: EucVecf2, radius: f32, color: Color) -> Result<Threadly<Circle<R>>, String>;
+
+    fn is_pressed (&self, key: KeyboardKey) -> bool;
 }
 
 pub trait RenderShader<R: Renderer> {

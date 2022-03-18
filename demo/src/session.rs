@@ -1,11 +1,12 @@
-use std::{sync::Arc, collections::HashMap, io::ErrorKind};
+use std::{collections::HashMap, io::ErrorKind};
 use bson::oid::ObjectId;
-use slg::{Threadly, renderer::opengl::GlInstance};
+use slg::{Threadly, renderer::opengl::{GlInstance, OpenGl}, generics::Circle};
 use crate::{remote::RemotePlayer, local::PlayerConnection, PlayerRequest};
 
 pub struct GameSession {
-    local: PlayerConnection,
-    remote: HashMap<ObjectId, RemotePlayer>
+    pub window: Threadly<GlInstance>,
+    pub local: PlayerConnection,
+    pub remote: HashMap<ObjectId, RemotePlayer>
 }
 
 impl GameSession {
@@ -22,6 +23,19 @@ impl GameSession {
             remote.insert(player.id, RemotePlayer::new(player.location, player.color, window.clone()));
         }
 
-        Ok(Self { local, remote })
+        Ok(Self { window, local, remote })
+    }
+
+    #[inline]
+    pub fn circles (&self) -> impl Iterator<Item = &Threadly<Circle<OpenGl>>> {
+        let local = std::iter::once(&self.local.circle);
+        let remote = self.remote.values().map(|x| &x.circle);
+        local.chain(remote)
+    }
+
+    pub fn listen (self) {
+        loop {
+            
+        }
     }
 }

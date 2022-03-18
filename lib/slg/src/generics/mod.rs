@@ -1,1 +1,1 @@
-flat_mod!(color, element, scene);
+flat_mod!(color, element, scene, input);

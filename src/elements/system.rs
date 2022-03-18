@@ -5,7 +5,7 @@ use llml::vec::EucVecd2;
 use serde::{Serialize, Deserialize};
 use serde_json::{Value, json};
 use turing_proc::Maybee;
-use crate::{Star, Planet, cache::MongoDoc, Player, PLAYERS};
+use crate::{Star, Planet, cache::MongoDoc, Player, PLAYERS, PLANET_SYSTEMS};
 use std::hash::Hash;
 use tokio::{sync::Mutex};
 
@@ -60,21 +60,21 @@ impl PlanetSystem {
     }
 
     #[inline]
-    pub fn get_players (&self) -> impl Stream<Item = mongodb::error::Result<Arc<Player>>> {
+    pub fn get_players (&self) -> impl Stream<Item = Arc<Player>> {
         let id = self.id.clone();
         PLAYERS.find_many(doc! { "location.system": self.id }, move |x| x.location.system == id, None)
     }
 
     #[inline]
-    pub fn get_players_json (&self) -> impl Stream<Item = mongodb::error::Result<Value>> {
-        self.get_players().map(|result| result.map(|player| json!({
+    pub fn get_players_json (&self) -> impl Stream<Item = Value> {
+        self.get_players().map(|player| json!({
             "_id": player.id,
             "name": player.name,
             "location": &player.location,
             "hp": player.health,
             "level": player.stats.level,
             "color": player.color.as_u32()
-        })))
+        }))
     }
 }
 

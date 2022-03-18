@@ -1,12 +1,12 @@
 use std::str::FromStr;
-use actix_web::{get, Responder, HttpRequest, web::{Path, self}, HttpResponse, post};
+use actix_web::{get, Responder, HttpRequest, web::{Path, self}, HttpResponse};
 use bson::{oid::ObjectId, doc};
 use futures::StreamExt;
 use rand::{distributions::{Alphanumeric, DistString}, thread_rng};
 use serde_json::{json, Value};
 use crate::{PLAYERS, decode_token, CURRENT_LOGGER, PlayerToken, Logger, test_token, PLANET_SYSTEMS, Either, Player};
 
-#[post("/test/player/{id}")]
+#[get("/test/player/{id}")]
 pub async fn test_login (_req: HttpRequest, id: web::Path<u64>) -> HttpResponse {
     let id = id.into_inner();
     match Player::from_foreign_id_or_new(id, Alphanumeric.sample_string(&mut thread_rng(), 10)).await {
@@ -98,13 +98,7 @@ pub async fn system_players (req: HttpRequest) -> HttpResponse {
         Ok((token, _)) => match Player::from_token(token).await {
             Ok(Some(player)) => match PLANET_SYSTEMS.find_one_by_id(player.location.system).await {
                 Ok(Some(system)) => {
-                    let col = system.get_players_json().filter_map(|result| async {
-                            match result {
-                            Ok(x) => Some(x),
-                            Err(_) => None
-                        }
-                    });
-
+                    let col = system.get_players_json();
                     HttpResponse::Ok().json(col.collect::<Vec<Value>>().await)
                 },
                 Ok(None) => return HttpResponse::InternalServerError().finish(),
