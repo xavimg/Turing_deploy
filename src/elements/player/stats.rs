@@ -9,7 +9,7 @@ pub struct PlayerStats {
     pub max_health: u8
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct PlayerLocation {
     pub system: ObjectId,
     pub position: EucVecd2

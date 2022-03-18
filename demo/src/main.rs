@@ -1,38 +1,40 @@
-use std::{sync::{Arc, Mutex}, thread, time::Duration};
+use std::{sync::{Arc}, thread, time::Duration};
 use bson::oid::ObjectId;
+use futures::{StreamExt, join};
 use local::{PlayerLocation};
 use llml::vec::{EucVecf2, EucVecd2};
 use serde::{Deserialize, Deserializer};
 use session::GameSession;
 use slg::{renderer::opengl::OpenGl, Renderer, generics::{Color, KeyboardKey}, RenderInstance};
-use websocket::{OwnedMessage};
 
 pub mod local;
 pub mod remote;
 pub mod session;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let ogl = Arc::new(OpenGl::new().unwrap());
     let window = ogl.create_instance("Websocket testing", 900u32, 900u32).unwrap();
-    let mut session = Arc::new(Mutex::new(GameSession::new(window).unwrap()));
+
+    let session = Arc::new(GameSession::new(window).await.unwrap());
+    let player_session = session.clone();
 
     // WebSocket Updates
-    let update_session = session.clone();
-    thread::spawn(move || {
+    tokio::spawn(async move {
         loop {
-            let mut lock = update_session.lock().unwrap();
-            match lock.local.client.recv_message().unwrap() {
-                OwnedMessage::Binary(bytes) => println!("{bytes:?}"),
-                _ => todo!()
+            let mut lock = session.local.client.lock().await;
+            if let Some(Ok(msg)) = lock.next().await {
+                println!("{}", msg.to_text().unwrap())
             }
+
+            thread::sleep(Duration::from_millis(17))
         }
     });
 
     // Player updates
-    thread::spawn(move || {
+    let updates = async move {
         loop {
-            let mut lock = session.lock().unwrap();
-            let window = lock.window.read().unwrap();
+            let window = player_session.window.read().unwrap();
             let x = if window.is_pressed(KeyboardKey::D) {
                 1.0
             } else if window.is_pressed(KeyboardKey::A) {
@@ -52,14 +54,18 @@ fn main() {
             drop(window);
             if x != 0.0 || y != 0.0 {
                 let vel = 0.017 * EucVecf2::new([x, y]).unit();
-                lock.local.translate(vel)
+                player_session.local.translate(vel).await;
             }
 
             thread::sleep(Duration::from_millis(17))
         }
-    });
+    };
 
-    ogl.listen_events().unwrap()
+    let listen = async move {
+        ogl.listen_events().unwrap();
+    };
+
+    join!(updates, listen);
 }
 
 #[derive(Debug, Deserialize)]
