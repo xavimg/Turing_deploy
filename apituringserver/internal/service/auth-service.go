@@ -21,15 +21,18 @@ type AuthService interface {
 	SaveToken(user entity.User, token string)
 	DeleteToken(user entity.User, s string)
 	GetToken(UserID string) entity.User
+	VerifyCode(email string, code int) (bool, error)
 }
 
 type authService struct {
 	userRepository repository.UserRepository
+	authRepository repository.AuthRepository
 }
 
-func NewAuthService(userRepo repository.UserRepository) AuthService {
+func NewAuthService(userRepo repository.UserRepository, authRepository repository.AuthRepository) AuthService {
 	return &authService{
 		userRepository: userRepo,
+		authRepository: authRepository,
 	}
 }
 
@@ -118,4 +121,20 @@ func (service *authService) VerifyUserActive(email string) entity.User {
 
 	return service.userRepository.VerifyUserActive(email)
 
+}
+
+func (service *authService) VerifyCode(email string, code int) (bool, error) {
+
+	exist, err := service.authRepository.VerifyCodeByEmail(email, code)
+	if err != nil {
+		log.Println("Error: ", err)
+		return false, err
+	}
+
+	if !exist {
+		log.Println("Code not valid")
+		return false, err
+	}
+
+	return true, nil
 }

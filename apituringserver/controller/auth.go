@@ -22,6 +22,7 @@ type AuthController interface {
 	Register(context *gin.Context)
 	Login(context *gin.Context)
 	Logout(context *gin.Context)
+	VerifyCode(context *gin.Context)
 }
 type authController struct {
 	authService service.AuthService
@@ -40,8 +41,6 @@ func NewAuthController(authService service.AuthService, jwtService service.JWTSe
 }
 
 func (c *authController) Login(context *gin.Context) {
-
-	//fmt.Println(context.Request.Body)
 
 	var loginDTO dto.LoginDTO
 
@@ -62,15 +61,15 @@ func (c *authController) Login(context *gin.Context) {
 		}
 
 		generateToken := c.jwtService.GenerateTokenLogin(v.ID)
-		v.Token = generateToken
+		v.Token = fmt.Sprintf("Bearer %v", generateToken)
 		c.authService.SaveToken(v, generateToken)
 
-		json_data, err := json.Marshal(generateToken)
+		json_data, err := json.Marshal(fmt.Sprintf("Bearer %v", generateToken))
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		resp, err := http.Post("http://192.168.195.80:8080/internal/user/signin", "application/json", bytes.NewReader(json_data))
+		resp, err := http.Post("http://192.168.195.80:8080/player/signin", "application/json", bytes.NewReader(json_data))
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -113,10 +112,10 @@ func (c *authController) Register(context *gin.Context) {
 		createdUser := c.authService.CreateUser(registerDTO, getCode)
 
 		token := c.jwtService.GenerateTokenRegister(createdUser.ID)
-		createdUser.Token = token
+		createdUser.Token = fmt.Sprintf("Bearer %v", token)
 
 		// Action where I send to Alex ID from user, so he can knows.
-		var infoJson dto.DataAlex
+		/*var infoJson dto.DataAlex
 
 		infoJson.ID = createdUser.ID
 		infoJson.Token = createdUser.Token
@@ -125,7 +124,7 @@ func (c *authController) Register(context *gin.Context) {
 		if err != nil {
 			return
 		}
-		resp, err := http.Post("http://192.168.195.80:8080/internal/user/signup", "application/json", bytes.NewReader(json_data))
+		resp, err := http.Post("http://192.168.195.80:8080/player/signup", "application/json", bytes.NewReader(json_data))
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -136,7 +135,7 @@ func (c *authController) Register(context *gin.Context) {
 			log.Fatal(err)
 		}
 		bodyString := string(bodyBytes)
-		fmt.Println("debug", bodyString)
+		fmt.Println("debug", bodyString)*/
 		// Ending connection with Alex.
 
 		var routine sync.Mutex
@@ -161,7 +160,7 @@ func (c *authController) Logout(ctx *gin.Context) {
 
 		json_data, _ := json.Marshal(response.Token)
 
-		resp, err := http.Post("http://192.168.195.80:8080/internal/user/signout", "application/json", bytes.NewReader(json_data))
+		resp, err := http.Post("http://192.168.195.80:8080/player/signout", "application/json", bytes.NewReader(json_data))
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -183,4 +182,36 @@ func (c *authController) Logout(ctx *gin.Context) {
 		c.authService.DeleteToken(v, "")
 
 	}
+}
+
+func (c *authController) VerifyCode(ctx *gin.Context) {
+	var req dto.CodeVerifyDTO
+
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		log.Fatal("Error binding")
+		return
+	}
+
+	if req.Email == "" {
+		log.Println("email and code are required")
+		return
+	}
+	if req.Code <= 0 {
+		log.Println("email and code are required")
+		return
+	}
+
+	exist, err := c.authService.VerifyCode(req.Email, req.Code)
+	if err != nil {
+		log.Println("Error: ", err)
+		return
+	}
+
+	if !exist {
+		log.Println("Error: ", err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, "You've been verified !")
+
 }

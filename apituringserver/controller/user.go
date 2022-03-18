@@ -14,6 +14,7 @@ import (
 type UserController interface {
 	Profile(context *gin.Context)
 	Update(context *gin.Context)
+	DeleteAccount(context *gin.Context)
 }
 
 type userController struct {
@@ -76,4 +77,25 @@ func (c *userController) Update(ctx *gin.Context) {
 	res := helper.BuildResponse(true, "Update user successfully", user)
 	ctx.JSON(http.StatusOK, res)
 
+}
+
+func (c *userController) DeleteAccount(ctx *gin.Context) {
+
+	/*authHeader := ctx.GetHeader("Authorization")
+
+	token, err := c.jwtService.ValidateToken(authHeader)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	claims := token.Claims.(jwt.MapClaims)
+	userID := fmt.Sprintf("%v", claims["user_id"])*/
+
+	// Send ID to service
+	userID := ctx.Param("id")
+	user := c.userService.DeleteAccount(userID)
+
+	// response
+	res := helper.BuildResponse(true, "user deleted profile successfully", user)
+	ctx.JSON(http.StatusOK, res)
 }

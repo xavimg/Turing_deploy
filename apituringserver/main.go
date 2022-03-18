@@ -14,10 +14,11 @@ var (
 	db              *gorm.DB                   = config.SetupDatabaseConnection()
 	userRepository  repository.UserRepository  = repository.NewUserRepository(db)
 	adminRepository repository.AdminRepository = repository.NewAdminRepository(db)
+	authRepository  repository.AuthRepository  = repository.NewAuthRepository(db)
 
 	jwtService   service.JWTService   = service.NewJWTService()
 	userService  service.UserService  = service.NewUserService(userRepository)
-	authService  service.AuthService  = service.NewAuthService(userRepository)
+	authService  service.AuthService  = service.NewAuthService(userRepository, authRepository)
 	adminService service.AdminService = service.NewAdminService(adminRepository)
 
 	authController  controller.AuthController  = controller.NewAuthController(authService, jwtService)
@@ -46,6 +47,7 @@ func main() {
 		authRoutes.POST("/login", authController.Login)
 		authRoutes.POST("/register", authController.Register)
 		authRoutes.POST("/logout/:id", authController.Logout)
+		authRoutes.POST("/code", authController.VerifyCode)
 	}
 
 	// private/tokenized routes
@@ -55,14 +57,13 @@ func main() {
 		userRoutes.PUT("/update", userController.Update)
 	}
 
-	// admin Routes
 	adminRoutes := r.Group("api/admin")
 	{
+		adminRoutes.DELETE("/profile/options/:id", userController.DeleteAccount)
 		adminRoutes.PUT("/ban/:id", adminController.BanUser)
 		adminRoutes.PUT("/unban/:id", adminController.UnbanUser)
 		adminRoutes.POST("/newfeature", adminController.NewFeature)
 	}
 
 	r.Run(":3000")
-
 }

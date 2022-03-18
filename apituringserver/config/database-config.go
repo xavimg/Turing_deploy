@@ -14,7 +14,7 @@ import (
 func SetupDatabaseConnection() *gorm.DB {
 
 	postgresInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-		"postgres", 5432, "postgres", "v6vpxdkd", "alanturing")
+		"localhost", 5432, "postgres", "v6vpxdkd", "turingdb")
 
 	db, err := gorm.Open(postgres.Open(postgresInfo))
 

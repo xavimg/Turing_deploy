@@ -21,6 +21,7 @@ type UserRepository interface {
 	ProfileUser(userID string) entity.User
 	SaveToken(user entity.User, token string)
 	DeleteToken(user entity.User, token string)
+	DeleteAccount(userID string) error
 	GetToken(userID string) entity.User
 }
 
@@ -39,8 +40,8 @@ func (db *userConnection) InsertUser(user entity.User, userCode int) entity.User
 	user.Password = hashAndSalt([]byte(user.Password))
 	user.CodeVerify = userCode
 
-	db.connection.Save(&user)
-	db.connection.Preload("Characters").Find(&user)
+	db.connection.Create(&user)
+	//db.connection.Preload("Characters").Find(&user)
 
 	return user
 }
@@ -115,6 +116,17 @@ func (db *userConnection) ProfileUser(userID string) entity.User {
 	db.connection.Find(&user, userID)
 
 	return user
+}
+
+func (db *userConnection) DeleteAccount(userID string) error {
+	var user entity.User
+
+	if err := db.connection.Delete(&user, userID); err != nil {
+		log.Println("Error: ", err)
+		return err.Error
+	}
+
+	return nil
 }
 
 func (db *userConnection) FindByEmail(email string) (user entity.User, err error) {
