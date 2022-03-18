@@ -7,9 +7,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: v6vpxdkd
-      # Optional: Give a name to the database, otherwise
-      # use the default value POSTGRES_USER as a database name (user in this case.)
-      POSTGRES_DB: alanturing
+      POSTGRES_DB: turingdb
     ports:
       - "5432:5432"
     networks:

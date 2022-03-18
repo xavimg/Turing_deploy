@@ -62,18 +62,23 @@ func (c *authController) Login(context *gin.Context) {
 
 		generateToken := c.jwtService.GenerateTokenLogin(v.ID)
 		v.Token = fmt.Sprintf("Bearer %v", generateToken)
-		c.authService.SaveToken(v, generateToken)
+		c.authService.SaveToken(v, fmt.Sprintf("Bearer %v", generateToken))
 
-		json_data, err := json.Marshal(fmt.Sprintf("Bearer %v", generateToken))
+		/*json_data, err := json.Marshal(fmt.Sprintf("Bearer %v", generateToken))
+		if err != nil {
+			log.Fatal(err)
+		}*/
+
+		client := &http.Client{}
+		req, err := http.NewRequest("POST", "http://192.168.195.80:8080/player/signin", bytes.NewReader([]byte(generateToken)))
+		req.Header.Add("Authorization", fmt.Sprintf("Bearer %v", generateToken))
+		resp, err := client.Do(req)
+
+		/*resp, err := http.Post("http://192.168.195.80:8080/player/signin", "application/json", bytes.NewReader(json_data))
 		if err != nil {
 			log.Fatal(err)
 		}
-
-		resp, err := http.Post("http://192.168.195.80:8080/player/signin", "application/json", bytes.NewReader(json_data))
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer resp.Body.Close()
+		defer resp.Body.Close()*/
 
 		bodyBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
@@ -115,7 +120,7 @@ func (c *authController) Register(context *gin.Context) {
 		createdUser.Token = fmt.Sprintf("Bearer %v", token)
 
 		// Action where I send to Alex ID from user, so he can knows.
-		/*var infoJson dto.DataAlex
+		var infoJson dto.DataAlex
 
 		infoJson.ID = createdUser.ID
 		infoJson.Token = createdUser.Token
@@ -135,7 +140,7 @@ func (c *authController) Register(context *gin.Context) {
 			log.Fatal(err)
 		}
 		bodyString := string(bodyBytes)
-		fmt.Println("debug", bodyString)*/
+		fmt.Println("debug", bodyString)
 		// Ending connection with Alex.
 
 		var routine sync.Mutex
@@ -208,10 +213,9 @@ func (c *authController) VerifyCode(ctx *gin.Context) {
 	}
 
 	if !exist {
-		log.Println("Error: ", err)
+		ctx.JSON(http.StatusBadRequest, "invalid code !")
 		return
 	}
 
-	ctx.JSON(http.StatusOK, "You've been verified !")
-
+	ctx.JSON(http.StatusOK, "you've been verified !")
 }

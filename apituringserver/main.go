@@ -44,8 +44,8 @@ func main() {
 	// public routes
 	authRoutes := r.Group("api/auth")
 	{
-		authRoutes.POST("/login", authController.Login)
 		authRoutes.POST("/register", authController.Register)
+		authRoutes.POST("/login", authController.Login)
 		authRoutes.POST("/logout/:id", authController.Logout)
 		authRoutes.POST("/code", authController.VerifyCode)
 	}

@@ -28,7 +28,7 @@ type jwtService struct {
 // NewJWTService method is creates a new instance of JWTService
 func NewJWTService() JWTService {
 	return &jwtService{
-		issuer:    "turingoff",
+		issuer:    "turingoffworld",
 		secretKey: getSecretKey(),
 	}
 }
