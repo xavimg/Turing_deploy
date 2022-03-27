@@ -1,8 +1,6 @@
 package config
 
 import (
-	"fmt"
-
 	"github.com/xavimg/Turing/apituringserver/internal/entity"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -13,10 +11,9 @@ import (
 // SetupDatabaseConnection is creating a new connection to our database
 func SetupDatabaseConnection() *gorm.DB {
 
-	postgresInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-		"postgres", 5432, "postgres", "v6vpxdkd", "turingdb")
+	connectString := "host=postgres port=5432 user=postgres dbname=turingdb password=v6vpxdkd sslmode=disable"
 
-	db, err := gorm.Open(postgres.Open(postgresInfo))
+	db, err := gorm.Open(postgres.Open(connectString))
 
 	if err != nil {
 		panic("Failed to create a connection to database")

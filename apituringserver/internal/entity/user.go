@@ -13,10 +13,10 @@ type User struct {
 	Name       string `gorm:"type:varchar(255)" json:"name"`
 	Email      string `gorm:"uniqueIndex;type:varchar(255)" json:"email"`
 	Password   string `gorm:"->;<-;not null" json:"-"`
-	Token      string `gorm:"type:varchar(255)" json:"token,omitempty"`
-	Active     bool   `gorm:"default:true" json:"active,omitempty"`
-	Isvalid    bool   `gorm:"default:false" json:"is_valid"`
-	CodeVerify int    `gorm:"default:null" json:"code_verify"`
+	Token      string `gorm:"type:varchar(255)" json:"-"`
+	Active     bool   `gorm:"default:true" json:"-"`
+	Isvalid    bool   `gorm:"default:false" json:"-"`
+	CodeVerify int    `gorm:"default:null" json:"-"`
 	//CreditCard CreditCard `gorm:"type:varchar(255)" json:"credit_card"`
 }
 type CreditCard struct {

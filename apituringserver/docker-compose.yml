@@ -2,8 +2,8 @@ version: "3.8"
 
 services:
   postgres:
-    container_name: postgres
     image: postgres:alpine
+    container_name: postgres
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: v6vpxdkd
@@ -11,17 +11,31 @@ services:
     ports:
       - "5432:5432"
     networks:
-      - mynet
+      - fullstack
+    volumes:
+      - database_postgres:/var/lib/postgresql/data
 
   go:
-    container_name: go
     build: .
+    container_name: "go"
+    environment:
+      DB_USERNAME: "postgres"
+      DB_PASSWORD: "v6vpxdkd"
+      DB_DB: "turingdb"
+      DB_TABLE: "turingdb"
+      DB_HOST: "postgres"
+      DB_PORT: "5432"
+      SSL_MODE: "disable"
     ports:
       - "3000:3000"
     depends_on:
       - "postgres"
     networks:
-      - mynet
+      - fullstack
+
+volumes:
+  database_postgres:
+
 networks:
-  mynet:
+  fullstack:
     driver: bridge
