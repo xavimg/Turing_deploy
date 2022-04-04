@@ -16,7 +16,10 @@ public class Movement : MonoBehaviour {
 
         // Right click
         if (PrimaryInput) {
-            Move(dir.Value);
+            rb.rotation = Mathf.Rad2Deg * Mathf.Atan2(dir.Value.y, dir.Value.x) - 90f;
+            rb.velocity = dir.Value * speed;
+        } else {
+            rb.velocity = Vector2.zero;
         }
 
         // Left click
@@ -26,10 +29,6 @@ public class Movement : MonoBehaviour {
     }
 
     /* --- Methods --- */
-    void Move (Vector2 dir) {
-        rb.AddForce(Time.deltaTime * dir * speed);
-    }
-
     void Shoot (Vector2 dir) {
         var ray = new Ray2D(rb.position, dir);
     }
