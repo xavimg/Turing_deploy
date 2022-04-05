@@ -22,7 +22,7 @@ type AuthController interface {
 	Register(context *gin.Context)
 	Login(context *gin.Context)
 	Logout(context *gin.Context)
-	VerifyCode(context *gin.Context)
+	VerifyAccount(context *gin.Context)
 }
 type authController struct {
 	authService service.AuthService
@@ -40,6 +40,15 @@ func NewAuthController(authService service.AuthService, jwtService service.JWTSe
 	}
 }
 
+// Login godoc
+// @Title Login
+// @Description  Login to the server. Check token with backend.
+// @Param request body dto.LoginDTO true "Body to login"
+// @Tags Auth
+// @Success      200 {object} helper.Response
+// @Failure      400 body is empty or missing param
+// @Failure      500 "internal server error"
+// @Router       /api/auth/login [post]
 func (c *authController) Login(context *gin.Context) {
 
 	var loginDTO dto.LoginDTO
@@ -97,6 +106,15 @@ func (c *authController) Login(context *gin.Context) {
 
 }
 
+// Register godoc
+// @Title Register
+// @Description  Register to the server as a new user. Sends token to backend.
+// @Param request body dto.RegisterDTO true "Body to register"
+// @Tags Auth
+// @Success      200 {object} helper.Response
+// @Failure      400 body is empty or missing param
+// @Failure      500 "internal server error"
+// @Router       /api/auth/register [post]
 func (c *authController) Register(context *gin.Context) {
 	var registerDTO dto.RegisterDTO
 
@@ -154,6 +172,15 @@ func (c *authController) Register(context *gin.Context) {
 	}
 }
 
+// Logout godoc
+// @Title Logout
+// @Description  Logout to the server
+// @Param id path string true "ID from query"
+// @Tags Auth
+// @Success      200 {object} helper.Response
+// @Failure      400 body is empty or missing param
+// @Failure      500 "internal server error"
+// @Router       /api/auth/logout [post]
 func (c *authController) Logout(ctx *gin.Context) {
 
 	id := ctx.Param("id")
@@ -189,7 +216,16 @@ func (c *authController) Logout(ctx *gin.Context) {
 	}
 }
 
-func (c *authController) VerifyCode(ctx *gin.Context) {
+// verifyAccount godoc
+// @Title verifyAccount
+// @Description  Verify the account with code send to email.
+// @Param request body dto.CodeVerifyDTO true "Body to verify account"
+// @Tags Auth
+// @Success      200 {object} helper.Response
+// @Failure      400 body is empty or missing param
+// @Failure      500 "internal server error"
+// @Router       /api/auth/verifyaccount [post]
+func (c *authController) VerifyAccount(ctx *gin.Context) {
 	var req dto.CodeVerifyDTO
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {

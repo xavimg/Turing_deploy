@@ -29,6 +29,15 @@ func NewUserController(userService service.UserService, jwtService service.JWTSe
 	}
 }
 
+// Profile godoc
+// @Title Profile
+// @Description Profile of X user.
+// @Param Authorization header string true "Token acces login"
+// @Tags User
+// @Success      200 {object} helper.Response
+// @Failure      400 body is empty or missing param
+// @Failure      500 "internal server error"
+// @Router       /api/user/profile [get]
 func (c *userController) Profile(ctx *gin.Context) {
 	authHeader := ctx.GetHeader("Authorization")
 
@@ -48,6 +57,16 @@ func (c *userController) Profile(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, res)
 }
 
+// Update godoc
+// @Title Update
+// @Description Update profile.
+// @Param Authorization header string true "Token acces login"
+// @Param request body dto.UserUpdateDTO true "Update profile user"
+// @Tags User
+// @Success      200 {object} helper.Response
+// @Failure      400 body is empty or missing param
+// @Failure      500 "internal server error"
+// @Router       /api/user/update [put]
 func (c *userController) Update(ctx *gin.Context) {
 	var userUpdateDTO dto.UserUpdateDTO
 
@@ -79,20 +98,27 @@ func (c *userController) Update(ctx *gin.Context) {
 
 }
 
+// DeleteAccount godoc
+// @Title DeleteAccount
+// @Description Delete account profile.
+// @Param Authorization header string true "Token acces login"
+// @Tags User
+// @Success      200 {object} helper.Response
+// @Failure      400 body is empty or missing param
+// @Failure      500 "internal server error"
+// @Router       /api/user/deleteaccount [delete]
 func (c *userController) DeleteAccount(ctx *gin.Context) {
 
-	/*authHeader := ctx.GetHeader("Authorization")
-
+	authHeader := ctx.GetHeader("Authorization")
 	token, err := c.jwtService.ValidateToken(authHeader)
 	if err != nil {
 		panic(err.Error())
 	}
 
 	claims := token.Claims.(jwt.MapClaims)
-	userID := fmt.Sprintf("%v", claims["user_id"])*/
+	userID := fmt.Sprintf("%v", claims["user_id"])
 
 	// Send ID to service
-	userID := ctx.Param("id")
 	user := c.userService.DeleteAccount(userID)
 
 	// response

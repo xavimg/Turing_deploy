@@ -25,6 +25,15 @@ func NewAdminController(adminService service.AdminService) AdminController {
 	}
 }
 
+// BanUser godoc
+// @Title BanUser
+// @Description  Admin ban user for X time.
+// @Param id path string true "ID from query"
+// @Tags Admin
+// @Success      200 {object} helper.Response
+// @Failure      400 body is empty or missing param
+// @Failure      500 "internal server error"
+// @Router       /api/admin/ban/{id} [post]
 func (c *adminController) BanUser(ctx *gin.Context) {
 	userID := ctx.Param("id")
 
@@ -35,6 +44,15 @@ func (c *adminController) BanUser(ctx *gin.Context) {
 
 }
 
+// UnbanUser godoc
+// @Title UnbanUser
+// @Description  Admin unban user.
+// @Param id path string true "ID from query"
+// @Tags Admin
+// @Success      200 {object} helper.Response
+// @Failure      400 body is empty or missing param
+// @Failure      500 "internal server error"
+// @Router       /api/admin/unban/{id} [post]
 func (c *adminController) UnbanUser(ctx *gin.Context) {
 	userID := ctx.Param("id")
 
@@ -45,6 +63,15 @@ func (c *adminController) UnbanUser(ctx *gin.Context) {
 
 }
 
+// NewFeature godoc
+// @Title NewFeature
+// @Description  Admin add new feature to show in version of game info.
+// @Param request body dto.FeatureDTO true "Body to write new features"
+// @Tags Admin
+// @Success      200 {object} helper.Response
+// @Failure      400 body is empty or missing param
+// @Failure      500 "internal server error"
+// @Router       /api/admin/newfeature [post]
 func (c *adminController) NewFeature(ctx *gin.Context) {
 	var feature dto.FeatureDTO
 

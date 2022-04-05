@@ -8,6 +8,11 @@ import (
 	"github.com/xavimg/Turing/apituringserver/internal/repository"
 	"github.com/xavimg/Turing/apituringserver/internal/service"
 	"gorm.io/gorm"
+
+	"github.com/xavimg/Turing/apituringserver/docs"
+
+	swaggerFiles "github.com/swaggo/files"     // swagger embed files
+	ginSwagger "github.com/swaggo/gin-swagger" // gin-swagger middleware
 )
 
 var (
@@ -28,6 +33,12 @@ var (
 
 func main() {
 
+	docs.SwaggerInfo.Title = "Server Turing API"
+	docs.SwaggerInfo.Description = "API for testing every endpoint from Turing API server"
+	docs.SwaggerInfo.Version = "1.0"
+	docs.SwaggerInfo.Host = "localhost:8080"
+	docs.SwaggerInfo.Schemes = []string{"http"}
+
 	r := gin.Default()
 
 	r.MaxMultipartMemory = 8 << 20
@@ -47,7 +58,7 @@ func main() {
 		authRoutes.POST("/register", authController.Register)
 		authRoutes.POST("/login", authController.Login)
 		authRoutes.POST("/logout/:id", authController.Logout)
-		authRoutes.POST("/code", authController.VerifyCode)
+		authRoutes.POST("/verifyaccount", authController.VerifyAccount)
 	}
 
 	// private/tokenized routes
@@ -55,15 +66,17 @@ func main() {
 	{
 		userRoutes.GET("/profile", userController.Profile)
 		userRoutes.PUT("/update", userController.Update)
+		userRoutes.DELETE("/profile/:id", userController.DeleteAccount)
 	}
 
 	adminRoutes := r.Group("api/admin")
 	{
-		adminRoutes.DELETE("/profile/options/:id", userController.DeleteAccount)
 		adminRoutes.PUT("/ban/:id", adminController.BanUser)
 		adminRoutes.PUT("/unban/:id", adminController.UnbanUser)
 		adminRoutes.POST("/newfeature", adminController.NewFeature)
 	}
 
-	r.Run(":3000")
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
+	r.Run(":8080")
 }
