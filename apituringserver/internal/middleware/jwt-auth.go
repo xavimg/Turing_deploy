@@ -23,16 +23,16 @@ func AuthorizeJWT(jwtService service.JWTService) gin.HandlerFunc {
 
 		token, err := jwtService.ValidateToken(authHeader)
 
-		if token.Valid {
-			claims := token.Claims.(jwt.MapClaims)
-			log.Println("Claim[user_id]: ", claims["user_id"])
-			log.Println("Claim[issuer]: ", claims["issuer"])
-			log.Println("Claim[exp]: ", claims["exp"])
-		} else {
-			log.Println(err)
-
+		if !token.Valid {
 			response := helper.BuildErrorResponse("Token is not valid", err.Error(), nil)
 			context.AbortWithStatusJSON(http.StatusUnauthorized, response)
 		}
+
+		claims := token.Claims.(jwt.MapClaims)
+		log.Println("Claim[user_id]: ", claims["user_id"])
+		log.Println("Claim[issuer]: ", claims["issuer"])
+		log.Println("Claim[exp]: ", claims["exp"])
+
+		context.Next()
 	}
 }
