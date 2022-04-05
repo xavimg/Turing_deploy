@@ -12,8 +12,7 @@ public class Movement : MonoBehaviour {
     }
 
     void Update() {
-        var dir = new Lazy<Vector2>(GetDirection);
-
+        /*
         // Right click
         if (PrimaryInput) {
             rb.rotation = Mathf.Rad2Deg * Mathf.Atan2(dir.Value.y, dir.Value.x) - 90f;
@@ -25,7 +24,7 @@ public class Movement : MonoBehaviour {
         // Left click
         if (SecondaryInput) {
             Shoot(dir.Value);
-        }
+        }*/
     }
 
     /* --- Methods --- */
@@ -34,21 +33,17 @@ public class Movement : MonoBehaviour {
     }
 
     /* --- Utils --- */
-    bool PrimaryInput {
-        get {
-            return Input.GetMouseButton(0) || Input.touchCount > 0;
+    Vector2? getPrimaryClick() {
+        if (Input.GetMouseButton(0)) {
+            var halfScreen = new Vector2(Screen.width, Screen.height) / 2;
+            var position = new Vector2(Input.mousePosition.x, Input.mousePosition.y) - halfScreen;
+            return position.normalized;
         }
-    }
 
-    bool SecondaryInput {
-        get {
-            return Input.GetMouseButton(1);
+        if (Input.touchCount > 0) {
+
         }
-    }
 
-    Vector2 GetDirection () {
-        var halfScreen = new Vector2(Screen.width, Screen.height) / 2;
-        var position = new Vector2(Input.mousePosition.x, Input.mousePosition.y) - halfScreen;
-        return position.normalized;
+        return null;
     }
 }

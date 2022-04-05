@@ -4,13 +4,17 @@ using NativeWebSocket;
 using UnityEngine;
 
 public class RemoteManager : MonoBehaviour {
-    public string uri;
+    const string URL = "http://localhost:1234";
     public string token;
     private WebSocket ws;
 
+    private void Start() {
+        print(GameSession.token);
+    }
+
     // Start is called before the first frame update
-    async void Start() {
-        ws = new WebSocket("http://" + uri + "/player/conn", new Dictionary<string, string>() {
+    /*async void Start() {
+        ws = new WebSocket(URL + "/player/conn", new Dictionary<string, string>() {
             { "Authorization", "Bearer " + token }
         });
 
@@ -47,5 +51,5 @@ public class RemoteManager : MonoBehaviour {
 
     private async void OnApplicationQuit() {
         await ws.Close();
-    }
+    }*/
 }
