@@ -73,12 +73,16 @@ func (c *authController) Login(context *gin.Context) {
 		v.Token = fmt.Sprintf("Bearer %v", generateToken)
 		c.authService.SaveToken(v, fmt.Sprintf("Bearer %v", generateToken))
 
-		/*json_data, err := json.Marshal(fmt.Sprintf("Bearer %v", generateToken))
+		fmt.Println(v.Token)
+
+		json_data, err := json.Marshal(fmt.Sprintf("Bearer %v", generateToken))
 		if err != nil {
 			log.Fatal(err)
-		}*/
+		}
 
-		/*client := &http.Client{}
+		fmt.Println(json_data)
+
+		client := &http.Client{}
 		req, err := http.NewRequest("POST", "http://192.168.195.80:8080/player/signin", bytes.NewReader([]byte(generateToken)))
 		req.Header.Add("Authorization", fmt.Sprintf("Bearer %v", generateToken))
 		resp, err := client.Do(req)
@@ -88,13 +92,13 @@ func (c *authController) Login(context *gin.Context) {
 			log.Fatal(err)
 		}
 		defer resp.Body.Close()*/
-		/*
-			bodyBytes, err := io.ReadAll(resp.Body)
-			if err != nil {
-				log.Fatal(err)
-			}
-			bodyString := string(bodyBytes)
-			fmt.Println("debug", bodyString)*/
+
+		bodyBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			log.Fatal(err)
+		}
+		bodyString := string(bodyBytes)
+		fmt.Println("debug", bodyString)
 
 		response := helper.BuildResponseSession(true, "User login successfully", generateToken)
 		context.JSON(http.StatusOK, response)
@@ -138,7 +142,7 @@ func (c *authController) Register(context *gin.Context) {
 		createdUser.Token = fmt.Sprintf("Bearer %v", token)
 
 		// Action where I send to Alex ID from user, so he can knows.
-		/*var infoJson dto.DataAlex
+		var infoJson dto.DataAlex
 
 		infoJson.ID = createdUser.ID
 		infoJson.Token = createdUser.Token
@@ -159,7 +163,7 @@ func (c *authController) Register(context *gin.Context) {
 		}
 		bodyString := string(bodyBytes)
 		fmt.Println("debug", bodyString)
-		// Ending connection with Alex.*/
+		// Ending connection with Alex.
 
 		var routine sync.Mutex
 		routine.Lock()
