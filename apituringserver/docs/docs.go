@@ -17,12 +17,19 @@ const docTemplate = `{
     "basePath": "{{.BasePath}}",
     "paths": {
         "/api/admin/ban/{id}": {
-            "post": {
+            "put": {
                 "description": "Admin ban user for X time.",
                 "tags": [
                     "Admin"
                 ],
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Token acces admin",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "string",
                         "description": "ID from query",
@@ -58,6 +65,13 @@ const docTemplate = `{
                 ],
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Token acces admin",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "description": "Body to write new features",
                         "name": "request",
                         "in": "body",
@@ -87,12 +101,19 @@ const docTemplate = `{
             }
         },
         "/api/admin/unban/{id}": {
-            "post": {
+            "put": {
                 "description": "Admin unban user.",
                 "tags": [
                     "Admin"
                 ],
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Token acces admin",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "string",
                         "description": "ID from query",
@@ -426,8 +447,7 @@ const docTemplate = `{
             "required": [
                 "email",
                 "name",
-                "password",
-                "username"
+                "password"
             ],
             "properties": {
                 "email": {
@@ -439,9 +459,6 @@ const docTemplate = `{
                 "password": {
                     "type": "string",
                     "minLength": 6
-                },
-                "username": {
-                    "type": "string"
                 }
             }
         },

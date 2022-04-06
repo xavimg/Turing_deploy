@@ -69,7 +69,7 @@ func main() {
 		userRoutes.DELETE("/profile/:id", userController.DeleteAccount)
 	}
 
-	adminRoutes := r.Group("api/admin")
+	adminRoutes := r.Group("api/admin", middleware.CheckRole(userService))
 	{
 		adminRoutes.PUT("/ban/:id", adminController.BanUser)
 		adminRoutes.PUT("/unban/:id", adminController.UnbanUser)

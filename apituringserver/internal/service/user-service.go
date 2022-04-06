@@ -15,6 +15,7 @@ type UserService interface {
 	Update(user dto.UserUpdateDTO, userID string, newInfo dto.UserUpdateDTO) entity.User
 	DeleteAccount(userID string) error
 	VerifyAccount(email string) entity.User
+	CheckRole(id interface{}) entity.TypeUser
 }
 
 type userService struct {
@@ -58,4 +59,14 @@ func (service *userService) VerifyAccount(email string) entity.User {
 	}
 
 	return user
+}
+
+func (service *userService) CheckRole(id interface{}) entity.TypeUser {
+
+	typeUser, err := service.userRepository.CheckRole(id)
+	if err != nil {
+		log.Fatal("Error: ", err)
+	}
+
+	return typeUser
 }

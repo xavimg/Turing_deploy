@@ -23,6 +23,7 @@ type UserRepository interface {
 	DeleteToken(user entity.User, token string)
 	DeleteAccount(userID string) error
 	GetToken(userID string) entity.User
+	CheckRole(id interface{}) (entity.TypeUser, error)
 }
 
 type userConnection struct {
@@ -170,4 +171,14 @@ func (db *userConnection) VerifyUserActive(email string) entity.User {
 	db.connection.Find(&user, email)
 
 	return user
+}
+
+func (db *userConnection) CheckRole(id interface{}) (typeUser entity.TypeUser, err error) {
+
+	if err := db.connection.Raw("select type_user FROM users WHERE id = ?", id).Scan(&typeUser); err != nil {
+		return typeUser, err.Error
+	}
+
+	return typeUser, nil
+
 }

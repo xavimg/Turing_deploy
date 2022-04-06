@@ -40,13 +40,10 @@ definitions:
       password:
         minLength: 6
         type: string
-      username:
-        type: string
     required:
     - email
     - name
     - password
-    - username
     type: object
   dto.UserUpdateDTO:
     properties:
@@ -74,9 +71,14 @@ info:
   contact: {}
 paths:
   /api/admin/ban/{id}:
-    post:
+    put:
       description: Admin ban user for X time.
       parameters:
+      - description: Token acces admin
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: ID from query
         in: path
         name: id
@@ -99,6 +101,11 @@ paths:
     post:
       description: Admin add new feature to show in version of game info.
       parameters:
+      - description: Token acces admin
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Body to write new features
         in: body
         name: request
@@ -119,9 +126,14 @@ paths:
       tags:
       - Admin
   /api/admin/unban/{id}:
-    post:
+    put:
       description: Admin unban user.
       parameters:
+      - description: Token acces admin
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: ID from query
         in: path
         name: id

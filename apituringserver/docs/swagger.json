@@ -5,12 +5,19 @@
     },
     "paths": {
         "/api/admin/ban/{id}": {
-            "post": {
+            "put": {
                 "description": "Admin ban user for X time.",
                 "tags": [
                     "Admin"
                 ],
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Token acces admin",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "string",
                         "description": "ID from query",
@@ -46,6 +53,13 @@
                 ],
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Token acces admin",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "description": "Body to write new features",
                         "name": "request",
                         "in": "body",
@@ -75,12 +89,19 @@
             }
         },
         "/api/admin/unban/{id}": {
-            "post": {
+            "put": {
                 "description": "Admin unban user.",
                 "tags": [
                     "Admin"
                 ],
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Token acces admin",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "string",
                         "description": "ID from query",
@@ -414,8 +435,7 @@
             "required": [
                 "email",
                 "name",
-                "password",
-                "username"
+                "password"
             ],
             "properties": {
                 "email": {
@@ -427,9 +447,6 @@
                 "password": {
                     "type": "string",
                     "minLength": 6
-                },
-                "username": {
-                    "type": "string"
                 }
             }
         },
