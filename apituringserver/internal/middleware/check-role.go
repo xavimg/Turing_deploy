@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
@@ -25,8 +24,6 @@ func CheckRole(checkRole service.UserService) gin.HandlerFunc {
 		token, _ := jwt.Parse(authHeader, func(token *jwt.Token) (interface{}, error) {
 			return []byte("turingoffworld"), nil
 		})
-
-		fmt.Println(token)
 
 		claims := token.Claims.(jwt.MapClaims)
 
