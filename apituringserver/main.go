@@ -55,6 +55,7 @@ func main() {
 	// public routes
 	authRoutes := r.Group("api/auth")
 	{
+		authRoutes.GET("/google/login", authController.GoogleLogin)
 		authRoutes.POST("/register", authController.Register)
 		authRoutes.POST("/login", authController.Login)
 		authRoutes.POST("/logout/:id", authController.Logout)

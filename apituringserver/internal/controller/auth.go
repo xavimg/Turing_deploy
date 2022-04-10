@@ -15,6 +15,13 @@ import (
 	"github.com/xavimg/Turing/apituringserver/internal/entity"
 	"github.com/xavimg/Turing/apituringserver/internal/helper"
 	"github.com/xavimg/Turing/apituringserver/internal/service"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
+)
+
+const (
+	urlAndreba  = "192.168.195.80"
+	portAndreba = "8080"
 )
 
 // AuthController interface is a contract what this controller can do
@@ -23,6 +30,7 @@ type AuthController interface {
 	Login(context *gin.Context)
 	Logout(context *gin.Context)
 	VerifyAccount(context *gin.Context)
+	GoogleLogin(context *gin.Context)
 }
 type authController struct {
 	authService service.AuthService
@@ -69,6 +77,8 @@ func (c *authController) Login(context *gin.Context) {
 
 		}
 
+		fmt.Println(v.ID)
+
 		generateToken := c.jwtService.GenerateTokenLogin(v.ID)
 		v.Token = fmt.Sprintf("Bearer %v", generateToken)
 		c.authService.SaveToken(v, fmt.Sprintf("Bearer %v", generateToken))
@@ -83,15 +93,12 @@ func (c *authController) Login(context *gin.Context) {
 		fmt.Println(json_data)
 
 		client := &http.Client{}
-		req, err := http.NewRequest("POST", "http://192.168.195.80:8080/player/signin", bytes.NewReader([]byte(generateToken)))
+		url := fmt.Sprintf("http://%v:%v/player/signin", urlAndreba, portAndreba)
+		req, err := http.NewRequest("POST", url, nil)
 		req.Header.Add("Authorization", fmt.Sprintf("Bearer %v", generateToken))
 		resp, err := client.Do(req)
 
-		/*resp, err := http.Post("http://192.168.195.80:8080/player/signin", "application/json", bytes.NewReader(json_data))
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer resp.Body.Close()*/
+		fmt.Println(resp.Body)
 
 		bodyBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
@@ -151,11 +158,15 @@ func (c *authController) Register(context *gin.Context) {
 		if err != nil {
 			return
 		}
-		resp, err := http.Post("http://192.168.195.80:8080/player/signup", "application/json", bytes.NewReader(json_data))
+
+		url := fmt.Sprintf("http://%v:%v/player/signup", urlAndreba, portAndreba)
+		resp, err := http.Post(url, "application/json", bytes.NewReader(json_data))
 		if err != nil {
 			log.Fatal(err)
 		}
 		defer resp.Body.Close()
+
+		fmt.Println(resp.Body)
 
 		bodyBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
@@ -258,4 +269,29 @@ func (c *authController) VerifyAccount(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, "you've been verified !")
+}
+
+func SetupConfigGoogle() *oauth2.Config {
+	conf := &oauth2.Config{
+		ClientID:     "6116145082-n6bu7lpemg1cicrooa19gepmmhh9n4uu.apps.googleusercontent.com",
+		ClientSecret: "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",
+		RedirectURL:  "http://localhost:8080/hello",
+		Scopes: []string{
+			"https://www.googleapis.com/auth/userinfo.email",
+			"https://www.googleapis.com/auth/userinfo.profile",
+		},
+		Endpoint: google.Endpoint,
+	}
+	return conf
+}
+
+func (c *authController) GoogleLogin(ctx *gin.Context) {
+	googleConfig := SetupConfigGoogle()
+	url := googleConfig.AuthCodeURL("randomstate")
+
+	ctx.Redirect(303, url)
+}
+
+func (c *authController) GoogleCallback(ctx *gin.Context) {
+
 }

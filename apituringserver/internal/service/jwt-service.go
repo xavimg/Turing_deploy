@@ -2,10 +2,12 @@ package service
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/joho/godotenv"
 )
 
 // JWTService is a contract of what jwtService can do
@@ -29,21 +31,23 @@ type jwtService struct {
 func NewJWTService() JWTService {
 	return &jwtService{
 		issuer:    "turingoffworld",
-		secretKey: getSecretKey(),
+		secretKey: goDotEnvVariable("ACCESS_SECRET"),
 	}
 }
 
-func getSecretKey() string {
-	secretKey := os.Getenv("JWT_SECRET")
+func goDotEnvVariable(key string) string {
 
-	if secretKey != "" {
-		secretKey = "turingoffworld"
+	err := godotenv.Load(".env")
+
+	if err != nil {
+		log.Fatalf("Error loading .env file")
 	}
 
-	return secretKey
+	return os.Getenv(key)
 }
 
 func (j *jwtService) GenerateTokenLogin(UserID uint64) string {
+
 	claims := &jwtCustomClaim{
 		UserID,
 		jwt.StandardClaims{
@@ -57,7 +61,6 @@ func (j *jwtService) GenerateTokenLogin(UserID uint64) string {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	t, err := token.SignedString([]byte(j.secretKey))
-
 	if err != nil {
 		// panic(err)
 		panic(err.Error())
