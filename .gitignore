@@ -5,8 +5,14 @@
 Cargo.lock
 /target
 
-./*/Cargo.lock
-./*/target
+./lib/actix-web/Cargo.lock
+./lib/actix-web/target
+
+./lib/slg/Cargo.lock
+./lib/slg/target
+
+./lib/turing_proc/Cargo.lock
+./lib/turing_proc/target
 
 ./demo/Cargo.lock
 ./demo/target

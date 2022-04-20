@@ -1,3 +1,4 @@
+use std::str::FromStr;
 use std::{sync::Arc};
 use std::collections::{HashMap, HashSet};
 use std::lazy::SyncLazy;
@@ -13,7 +14,7 @@ use serde::{Serialize, Deserialize, Deserializer};
 use serde::de::Visitor;
 use tokio::sync::RwLock;
 use actix::Message;
-use serde_json::json;
+use serde_json::{json, Value};
 use crate::{CURRENT_LOGGER, decode_token, PlayerToken, PLAYERS, Either, Logger, Player, PlayerLocation, PlanetSystem, PLANET_SYSTEMS, Color, color_rgba};
 
 static SOCKETS : SyncLazy<RwLock<HashMap<ObjectId, Arc<Addr<WebSocket>>>>> = SyncLazy::new(|| RwLock::new(HashMap::new()));
@@ -26,7 +27,7 @@ struct WebSocket {
 
 #[derive(Debug)]
 enum WebSocketInput {
-    Update(PlayerLocation)
+    Update(Value)
 }
 
 impl<'de> Deserialize<'de> for WebSocketInput {
@@ -46,7 +47,7 @@ impl<'de> Deserialize<'de> for WebSocketInput {
                     if let Some(key) = map.next_key::<String>()? {
                         if key != "body" { return Err(<A::Error as serde::de::Error>::custom("Expected field 'body'")) }
                         return match id {
-                            0x00 => Ok(WebSocketInput::Update(map.next_value::<PlayerLocation>()?)),
+                            0x00 => Ok(WebSocketInput::Update(map.next_value::<Value>()?)),
                             _ => todo!()
                         }
                     }
@@ -83,18 +84,24 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WebSocket {
                         let bson = bson::to_bson(&location).unwrap();
                         match PLAYERS.update_one(doc! { "_id": id }, move |x| x.id == id, doc! { "$set": { "location": bson } }).await {
                             Ok(Some(_)) => {
+                                CURRENT_LOGGER.log_info("Successfull change").await;
+
+                                let system = ObjectId::from_str(location["system"]["$oid"].as_str().unwrap()).unwrap();
+                                let position = &location["position"];
+                                let position = EucVecd2::new([position["x"].as_f64().unwrap(), position["y"].as_f64().unwrap()]);
+
                                 let payload = PlayerMoved {
                                     player: id,
-                                    position: location.position
+                                    position
                                 };
 
-                                let mut players = PLAYERS.find_many(doc! { "location.system": location.system }, move |x| x.location.system == location.system, None);
+                                let mut players = PLAYERS.find_many(doc! { "location.system": system }, move |x| x.location.system == system, None);
                                 let lock = SOCKETS.read().await;
 
                                 while let Some(player) = players.next().await {
                                     if let Some(addr) = lock.get(&player.id) {
                                         let addr = addr.clone();
-                                        tokio::spawn(async move { addr.send(payload); });
+                                        tokio::spawn(addr.send(payload));
                                     }
                                 }
                             },
@@ -193,6 +200,7 @@ pub async fn start_connection (req: HttpRequest, payload: web::Payload) -> Resul
             // Notify players in same system about new user
             // TODO spawn on tokio
             PLAYERS.find_many(doc! { "location.system": player.location.system }, move |x| x.location.system == player.location.system, None).for_each_concurrent(None, |player: Arc<Player>| async move {
+                if player.id == id { return; }
                 let new_player = NewPlayer {
                     id: player.id,
                     name: player.name.clone(),
@@ -203,7 +211,8 @@ pub async fn start_connection (req: HttpRequest, payload: web::Payload) -> Resul
                 let lock = SOCKETS.read().await;
                 if let Some(addr) = lock.get(&player.id) {
                     let addr = addr.clone();
-                    addr.send(new_player.clone());
+                    CURRENT_LOGGER.log_info("Informing user").await;
+                    tokio::spawn(addr.send(new_player.clone()));
                 }
             }).await;
 

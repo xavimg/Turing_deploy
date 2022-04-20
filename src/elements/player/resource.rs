@@ -14,7 +14,7 @@ macro_rules! map {
     };
 }
 
-#[derive(Debug, Hash, Eq, PartialEq, Serialize, Deserialize, EnumIter)]
+#[derive(Debug, Clone, Copy, Hash, Eq, PartialEq, Serialize, Deserialize, EnumIter)]
 pub enum Resource {
     Iron, Gold, Sulfur, Potassium, Nitrogen, Oxygen, Diamond,
     Coal, Petroleum, Uranium,
@@ -80,7 +80,6 @@ impl Resource {
             Self::HealthKit => Some(ResourceType::Healer { health: 30 }),
 
             Self::Railgun => Some(ResourceType::Damager { damage: 30, require: (Resource::Bullet, 1) }),
-
             Self::Bullet => Some(ResourceType::Composite(map!{ Resource::Iron => 1 })),
             Self::Niter => Some(ResourceType::Composite(map!{ Resource::Potassium => 1, Resource::Nitrogen => 1, Resource::Oxygen => 3 })),
             Self::Gunpowder => Some(ResourceType::Composite(map!{ Resource::Sulfur => 1, Resource::Coal => 1, Resource::Niter => 1 })),

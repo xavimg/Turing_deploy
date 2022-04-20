@@ -3,7 +3,7 @@ use mongodb::{bson::{doc}};
 use rand::{distributions::{Alphanumeric, DistString}, thread_rng};
 use serde_json::{json};
 use strum::IntoEnumIterator;
-use crate::{DATABASE, Resource, PLAYERS, Player, PlayerToken, CURRENT_LOGGER, Logger, decode_token, Either};
+use crate::{DATABASE, Resource, PLAYERS, Player, PlayerToken, CURRENT_LOGGER, Logger, decode_token};
 
 // OUT API
 #[get("/status")]
@@ -52,8 +52,7 @@ pub async fn new_user (_: HttpRequest, body: web::Json<u64>) -> HttpResponse {
             Err(x) => HttpResponse::InternalServerError().body(format!("{x}"))
         },
         Ok(None) => HttpResponse::BadRequest().body("Player with same id or name already exists"),
-        Err(Either::Left(e)) => HttpResponse::InternalServerError().body(format!("{e}")),
-        Err(Either::Right(e)) => HttpResponse::BadRequest().body(format!("{e}"))
+        Err(e) => HttpResponse::InternalServerError().body(format!("{e}")),
     }
 }
 

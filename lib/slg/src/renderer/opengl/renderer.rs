@@ -5,8 +5,8 @@ use crate::{Renderer, Threadly, RenderInstance, generics::KeyboardKey};
 use super::{GlInstance, GlShader, GlUniform};
 
 pub struct OpenGl {
-    pub(super) el: RwLock<EventLoop<()>>,
-    insts: RwLock<Vec<Threadly<GlInstance>>>
+    pub el: RwLock<EventLoop<()>>,
+    pub insts: RwLock<Vec<Threadly<GlInstance>>>
 }
 
 impl Renderer for OpenGl {

@@ -23,6 +23,7 @@ macro_rules! create_http {
                             if x.status().is_success() {
                                 { tokio::spawn(CURRENT_LOGGER.log_info(format!("RESP {x:?}"))); }
                             } else {
+                                println!("{:?}", x.response().body());
                                 { tokio::spawn(CURRENT_LOGGER.log_warning(format!("ERR RESP {x:?}"))); }
                             }
                             Ok(x)

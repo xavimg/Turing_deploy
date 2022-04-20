@@ -34,7 +34,7 @@ pub trait RenderInstance<R: Renderer>: Send + Sync {
     fn is_pressed (&self, key: KeyboardKey) -> bool;
 }
 
-pub trait RenderShader<R: Renderer> {
+pub trait RenderShader<R: Renderer>: Send + Sync {
     fn set_uniform<T: Uniformable> (self: &Arc<Self>, key: impl Into<String>, value: &T) -> Result<(), String>;
     fn draw (&self) -> Result<(), String>;
 

@@ -33,6 +33,9 @@ pub struct Circle<R: Renderer> {
     pub radius: f32
 }
 
+unsafe impl<R: Renderer> Send for Circle<R> {}
+unsafe impl<R: Renderer> Sync for Circle<R> {}
+
 impl<R: Renderer> Circle<R> {
     pub fn new (shader: Arc<R::Shader>, position: EucVecf2, radius: f32, color: Color) -> Self {
         Self {

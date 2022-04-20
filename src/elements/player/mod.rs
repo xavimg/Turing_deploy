@@ -24,7 +24,7 @@ impl Player {
         let name2 = name.clone();
         let bson = bson::to_bson(&PlayerToken::Unloged(id)).unwrap();
         
-        match PLAYERS.find_one(doc! { "$or": { "name": name.clone(), "token": bson } }, move |x| {
+        match PLAYERS.find_one(doc! { "$or": [{ "name": name.clone(), "token": bson }] }, move |x| {
             if x.name == name2 { return true }
             if let PlayerToken::Unloged(unlogged) = x.token { return unlogged == id; }
             false
@@ -96,7 +96,7 @@ impl Player {
                 CURRENT_LOGGER.log_error(format!("{e}")).await;
                 panic!("{e}")
             }
-        }
+        } 
     }
 }
 

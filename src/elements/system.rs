@@ -5,7 +5,7 @@ use llml::vec::EucVecd2;
 use serde::{Serialize, Deserialize};
 use serde_json::{Value, json};
 use turing_proc::Maybee;
-use crate::{Star, Planet, cache::MongoDoc, Player, PLAYERS, PLANET_SYSTEMS};
+use crate::{Star, Planet, cache::MongoDoc, Player, PLAYERS};
 use std::hash::Hash;
 use tokio::{sync::Mutex};
 
@@ -18,6 +18,7 @@ pub struct PlanetSystem {
 }
 
 impl PlanetSystem {
+    #[inline]
     pub fn new (star: Star, planets: Vec<Planet>) -> Self {
         PlanetSystem { id: ObjectId::new(), star, planets }
     }

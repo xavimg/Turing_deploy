@@ -1,15 +1,18 @@
-use std::{sync::{Arc}, thread, time::Duration};
+use std::{sync::{Arc}, time::Duration, pin::Pin, io::ErrorKind, str::FromStr};
 use bson::oid::ObjectId;
-use futures::{StreamExt, join};
+use futures::{StreamExt, Future, SinkExt};
 use local::{PlayerLocation};
 use llml::vec::{EucVecf2, EucVecd2};
 use serde::{Deserialize, Deserializer};
+use serde_json::{json, Value};
 use session::GameSession;
 use slg::{renderer::opengl::OpenGl, Renderer, generics::{Color, KeyboardKey}, RenderInstance};
+use tokio_tungstenite::tungstenite::Message;
 
 pub mod local;
 pub mod remote;
 pub mod session;
+pub mod timeout;
 
 #[tokio::main]
 async fn main() {
@@ -22,50 +25,113 @@ async fn main() {
     // WebSocket Updates
     tokio::spawn(async move {
         loop {
-            let mut lock = session.local.client.lock().await;
+            let mut lock = session.local.read.lock().await;
             if let Some(Ok(msg)) = lock.next().await {
-                println!("{}", msg.to_text().unwrap())
-            }
+                let json = serde_json::from_slice::<Value>(&msg.into_data()).unwrap();
+                match json["id"].as_u64().unwrap() {
+                    // Player movement
+                    0x10 => {
+                        let body = &json["body"];
+                        let oid = ObjectId::from_str(body["player"]["$oid"].as_str().unwrap()).unwrap();
 
-            thread::sleep(Duration::from_millis(17))
+                        let position = &body["position"];
+                        let position = EucVecd2::new([position["x"].as_f64().unwrap(), position["y"].as_f64().unwrap()]);
+
+                        let lock = session.remote.read().await;
+                        let mut circle = lock[&oid].circle.write().unwrap();
+                        circle.position = world_to_local(position);
+                    },
+
+                    // New player
+                    0x11 => {
+                        let body = &json["body"];
+
+                        let mut lock = session.remote.write().await;
+                        let oid = ObjectId::from_str(body["_id"]["$oid"].as_str().unwrap()).unwrap();
+
+                        let location = &body["location"];
+                        let position = &location["position"];
+
+                        let position = EucVecd2::new([position["x"].as_f64().unwrap(), position["y"].as_f64().unwrap()]);
+                        let location = PlayerLocation { 
+                            system:  ObjectId::from_str(location["system"]["$oid"].as_str().unwrap()).unwrap(),
+                            position
+                        };
+                        
+                        let mut window = session.window.write().unwrap();
+                        println!("{:?}", window);
+                        let circle = window.create_circle(world_to_local(location.position), 0.01, Color::new(128, 4, 33)).unwrap();
+
+                        println!("hi1");
+                        lock.insert(oid, remote::RemotePlayer { location, circle });
+                    },
+
+                    _ => todo!()
+                }
+            }
         }
     });
 
     // Player updates
-    let updates = async move {
-        loop {
-            let window = player_session.window.read().unwrap();
-            let x = if window.is_pressed(KeyboardKey::D) {
-                1.0
-            } else if window.is_pressed(KeyboardKey::A) {
-                -1.0
-            } else {
-                0.0
-            };
+    fn updates (session: Arc<GameSession>) -> Pin<Box<dyn Send + Future<Output = ()>>> {
+        let lock = session.clone();
+        let lock = lock.window.read().unwrap();
 
-            let y = if window.is_pressed(KeyboardKey::W) {
-                1.0
-            } else if window.is_pressed(KeyboardKey::S) {
-                -1.0
-            } else {
-                0.0
-            };
+        let x = if lock.is_pressed(KeyboardKey::D) {
+            1.0
+        } else if lock.is_pressed(KeyboardKey::A) {
+            -1.0
+        } else {
+            0.0
+        };
 
-            drop(window);
+        let y = if lock.is_pressed(KeyboardKey::W) {
+            1.0
+        } else if lock.is_pressed(KeyboardKey::S) {
+            -1.0
+        } else {
+            0.0
+        };
+
+        drop(lock);
+        Box::pin(async move {
             if x != 0.0 || y != 0.0 {
-                let vel = 0.017 * EucVecf2::new([x, y]).unit();
-                player_session.local.translate(vel).await;
+                let delta = 0.017 * EucVecf2::new([x, y]).unit();
+                let world = local_to_world(delta);
+
+                let mut lock = session.local.location.lock().await;
+                lock.position += world;
+
+                let mut circle = session.local.circle.write().unwrap();
+                circle.position += delta;
+                
+                let body = json!({
+                    "id": 0x00u8,
+                    "body": lock.clone()
+                });
+
+                drop(lock);
+                let clone = session.clone();
+                tokio::spawn(async move {
+                    let mut lock = clone.local.write.lock().await;
+                    lock.send(Message::Binary(serde_json::to_vec(&body).unwrap())).await.map_err(|e| match e {
+                        tokio_tungstenite::tungstenite::Error::Io(io) => io,
+                        x => std::io::Error::new(ErrorKind::Other, x)
+                    }).unwrap();
+                });
+
+                //let write = lock.client.get_mut().write(&serde_json::to_vec(&body).unwrap());
+                //write.await.unwrap();
+                //lock.translate(vel).await;
             }
+    
+            tokio::time::sleep(Duration::from_millis(17)).await;
+            tokio::spawn(updates(session));
+        })
+    }
 
-            thread::sleep(Duration::from_millis(17))
-        }
-    };
-
-    let listen = async move {
-        ogl.listen_events().unwrap();
-    };
-
-    join!(updates, listen);
+    tokio::spawn(updates(player_session));
+    ogl.listen_events().unwrap()
 }
 
 #[derive(Debug, Deserialize)]

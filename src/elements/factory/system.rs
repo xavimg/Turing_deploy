@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::{G, Random};
 use llml::{others::Complxd};
 use rand::{prelude::{Distribution, ThreadRng}, distributions::{Uniform}};
@@ -33,14 +35,20 @@ fn create_planet (idx: usize, star: &Star, rng: &mut Random<Gaussian<f64>, Threa
     let radius = mass * 4.799e-4;
     let color : Color = rand::random();
     
+    // Resources
+    
+
+    // Distance
     let dist : f64 = rng.sample();
     let dist = *accum_dist + dist.abs();
     *accum_dist += dist + radius;
 
+    // Position
     let angle = Uniform::new_inclusive(0., std::f64::consts::TAU).sample(&mut rng.rng);
     let position_norm = Complxd::expi(angle);
     let position = dist * position_norm;
 
+    // Velocity
     let min_speed = f64::sqrt((G * star.mass) / dist);
     let max_speed = min_speed * std::f64::consts::SQRT_2;
     let avg_speed = min_speed * SQRT_2_HALH;
@@ -52,5 +60,5 @@ fn create_planet (idx: usize, star: &Star, rng: &mut Random<Gaussian<f64>, Threa
     }
 
     let velocity = speed * position_norm.conj();
-    Planet::new(idx, color, mass, radius, position.into(), velocity.into())
+    Planet::new(idx, color, mass, radius, position.into(), velocity.into(), HashMap::new()).unwrap()
 }
