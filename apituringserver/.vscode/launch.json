@@ -4,15 +4,14 @@
     // Para más información, visite: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-        
         {
-            "name": "Launch Package",
+            "name": "Attach to Process",
             "type": "go",
-            "request": "launch",
-            "mode": "auto",
-            "program": "C:/Go/src/github.com/xavimg/Turing/apituringserver",
-            
+            "request": "attach",
+            "mode": "local",
+            "processId": 0
         },
+
         
     ]
 }
