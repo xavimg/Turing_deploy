@@ -62,10 +62,8 @@ func (j *jwtService) GenerateTokenLogin(UserID uint64) string {
 
 	t, err := token.SignedString([]byte(j.secretKey))
 	if err != nil {
-		// panic(err)
-		panic(err.Error())
+		log.Println(err.Error())
 	}
-
 	return t
 }
 
@@ -80,10 +78,8 @@ func (j *jwtService) GenerateTokenRegister(UserID uint64) string {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	t, err := token.SignedString([]byte(j.secretKey))
-
 	if err != nil {
-		// panic(err)
-		panic(err.Error())
+		log.Println(err.Error())
 	}
 
 	return t

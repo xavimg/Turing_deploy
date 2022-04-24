@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	urlAndreba  = "192.168.195.80"
+	urlAndreba  = "localhost"
 	portAndreba = "8080"
 )
 
