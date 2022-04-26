@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
@@ -16,8 +15,6 @@ func AuthorizeJWT(jwtService service.JWTService) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		authHeader := context.GetHeader("Authorization")
 		googleLogin := context.Param("state")
-
-		fmt.Println("************", googleLogin)
 
 		if googleLogin == "randomstate" {
 			context.Next()

@@ -83,14 +83,10 @@ func (c *authController) Login(context *gin.Context) {
 		v.Token = fmt.Sprintf("Bearer %v", generateToken)
 		c.authService.SaveToken(v, fmt.Sprintf("Bearer %v", generateToken))
 
-		fmt.Println(v.Token)
-
-		json_data, err := json.Marshal(fmt.Sprintf("Bearer %v", generateToken))
+		_, err := json.Marshal(fmt.Sprintf("Bearer %v", generateToken))
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
-
-		fmt.Println(json_data)
 
 		client := &http.Client{}
 		url := fmt.Sprintf("http://%v:%v/player/signin", urlAndreba, portAndreba)
@@ -98,11 +94,10 @@ func (c *authController) Login(context *gin.Context) {
 		req.Header.Add("Authorization", fmt.Sprintf("Bearer %v", generateToken))
 		resp, err := client.Do(req)
 
-		fmt.Println(resp.Body)
-
 		bodyBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
+			return
 		}
 		bodyString := string(bodyBytes)
 		fmt.Println("debug", bodyString)
@@ -162,7 +157,7 @@ func (c *authController) Register(context *gin.Context) {
 		url := fmt.Sprintf("http://%v:%v/player/signup", urlAndreba, portAndreba)
 		resp, err := http.Post(url, "application/json", bytes.NewReader(json_data))
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 		defer resp.Body.Close()
 
@@ -170,7 +165,7 @@ func (c *authController) Register(context *gin.Context) {
 
 		bodyBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 		bodyString := string(bodyBytes)
 		fmt.Println("debug", bodyString)

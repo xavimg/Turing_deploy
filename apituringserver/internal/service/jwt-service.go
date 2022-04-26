@@ -64,6 +64,8 @@ func (j *jwtService) GenerateTokenLogin(UserID uint64) string {
 	if err != nil {
 		log.Println(err.Error())
 	}
+
+	fmt.Println("***", t)
 	return t
 }
 
@@ -81,6 +83,8 @@ func (j *jwtService) GenerateTokenRegister(UserID uint64) string {
 	if err != nil {
 		log.Println(err.Error())
 	}
+
+	fmt.Println("***", t)
 
 	return t
 }
