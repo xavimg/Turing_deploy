@@ -2,6 +2,7 @@ use std::{hash::Hash, sync::Arc};
 use bson::{oid::ObjectId, doc};
 use rand::random;
 use serde::{Serialize, Deserialize};
+use serde_json::Value;
 use tokio::task::JoinError;
 use turing_proc::Maybee;
 use crate::{cache::MongoDoc, utils::Color, PLANET_SYSTEMS, CURRENT_LOGGER, Logger, create_system, PLAYERS, Either};
@@ -10,6 +11,7 @@ use crate::{cache::MongoDoc, utils::Color, PLANET_SYSTEMS, CURRENT_LOGGER, Logge
 pub struct Player {
     #[serde(rename = "_id")]
     pub id: ObjectId,
+    pub points: u128,
     pub location: PlayerLocation,
     pub name: String,
     pub token: PlayerToken,
@@ -40,6 +42,7 @@ impl Player {
             id: ObjectId::new(),
             location: PlayerLocation { system: Self::random_system().await, position: random() },
             name,
+            points: 0,
             token: PlayerToken::Unloged(id),
             stats: PlayerStats::default(),
             inventory: Inventory::default(),
@@ -88,13 +91,13 @@ impl Player {
                 Ok(system) => system.id,
                 Err(e) => {
                     CURRENT_LOGGER.log_error(format!("{e}")).await;
-                    panic!("{e}")
+                    panic!("{e:?}")
                 }
             },
 
             Err(e) => {
                 CURRENT_LOGGER.log_error(format!("{e}")).await;
-                panic!("{e}")
+                panic!("{e:?}")
             }
         } 
     }

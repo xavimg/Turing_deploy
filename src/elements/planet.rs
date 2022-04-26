@@ -31,7 +31,6 @@ impl Planet {
     pub fn new (id: usize, color: Color, mass: f64, radius: f64, position: EucVecd2, velocity: EucVecd2, resources: HashMap<Resource, f64>) -> Result<Self, WeightedError> {
         let resource_weights = WeightedIndex::new(resources.values())?;
         let resources = resources.into_keys().collect::<Vec<_>>();
-
         Ok(Self { id, color, mass, position, velocity, radius, resources, resource_weights })
     }
 

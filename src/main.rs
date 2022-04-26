@@ -1,6 +1,6 @@
 #![feature(once_cell, const_fn_floating_point_arithmetic, hash_set_entry, const_mut_refs, const_for, future_join, future_poll_fn, const_maybe_uninit_zeroed, untagged_unions, fn_traits)]
 use api::{route::*, game::*, ws::start_connection};
-use actix_web::{dev::{Service, HttpServiceFactory}, App, HttpMessage};
+use actix_web::{dev::{Service}};
 
 include!("macros.rs");
 //include!("tests.rs");
@@ -19,7 +19,7 @@ async fn main() -> std::io::Result<()> {
 
     let server = create_http!(
         status, resources, new_user, user_login, user_logout,
-        start_connection, get_player_me, get_player, system_players,
+        start_connection, get_player_me, get_player, system_players, get_ranking,
         test_login
     ); 
 

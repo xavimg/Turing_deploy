@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{G, Random};
+use crate::{G, Random, Resource};
 use llml::{others::Complxd};
 use rand::{prelude::{Distribution, ThreadRng}, distributions::{Uniform}};
 use crate::{Gaussian, PlanetSystem, Star, Planet, loop_clamp, Color};
@@ -36,7 +36,8 @@ fn create_planet (idx: usize, star: &Star, rng: &mut Random<Gaussian<f64>, Threa
     let color : Color = rand::random();
     
     // Resources
-    
+    let mut resources = HashMap::new();
+    resources.insert(Resource::Gold, 1f64);
 
     // Distance
     let dist : f64 = rng.sample();
@@ -60,5 +61,5 @@ fn create_planet (idx: usize, star: &Star, rng: &mut Random<Gaussian<f64>, Threa
     }
 
     let velocity = speed * position_norm.conj();
-    Planet::new(idx, color, mass, radius, position.into(), velocity.into(), HashMap::new()).unwrap()
+    Planet::new(idx, color, mass, radius, position.into(), velocity.into(), resources).unwrap()
 }

@@ -24,6 +24,11 @@ impl<T: Hash + Eq> CollectionCache<T> {
         }
     }
 
+    #[inline(always)]
+    pub fn get_collection (&self) -> Collection<T> {
+        self.collection.clone()
+    }
+
     pub async fn insert_one (&self, doc: T) -> Result<Arc<T>, Error> where T: Serialize {
         let doc = Arc::new(doc);
         let (_, db) = join!(self.add_to_cache(doc.clone()), self.collection.insert_one(doc.clone(), None));

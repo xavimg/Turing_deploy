@@ -1,7 +1,8 @@
 use actix_web::{Responder, web, HttpRequest, post, get, HttpResponse};
-use mongodb::{bson::{doc}};
+use futures::{TryStreamExt};
+use mongodb::{bson::{doc}, options::FindOptions};
 use rand::{distributions::{Alphanumeric, DistString}, thread_rng};
-use serde_json::{json};
+use serde_json::{json, Value};
 use strum::IntoEnumIterator;
 use crate::{DATABASE, Resource, PLAYERS, Player, PlayerToken, CURRENT_LOGGER, Logger, decode_token};
 
@@ -95,4 +96,36 @@ pub async fn user_logout (req: HttpRequest) -> HttpResponse {
     }
 
     HttpResponse::BadRequest().body("No authorization key found")
+}
+
+#[get("/ranking")]
+pub async fn get_ranking () -> HttpResponse {
+    // Reasons for uncached request
+    // 1. I don't have time to implement cached version
+    // 2. No data is updated, so the cache doesn't need to be notified
+    // 3. It's not a vital operation
+    let mut opts = FindOptions::default();
+    opts.limit = Some(10);
+    opts.sort = Some(doc! { "points": -1 });
+
+    match PLAYERS.get_collection().find(doc! { "points": { "$exists": true } }, opts).await {
+        Ok(mut players) => {
+            let mut results = Vec::with_capacity(10);
+
+            loop {
+                match players.try_next().await {
+                    Ok(Some(player)) => results.push(json!({
+                        "id": player.id,
+                        "name": player.name,
+                        "points": player.points
+                    })),
+                    Ok(None) => break,
+                    Err(e) => return HttpResponse::InternalServerError().body(format!("{e}"))
+                }
+            }
+
+            HttpResponse::Ok().body(Value::Array(results).to_string())
+        },
+        Err(e) => HttpResponse::InternalServerError().body(format!("{e}"))
+    }
 }
