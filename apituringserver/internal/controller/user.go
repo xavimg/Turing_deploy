@@ -3,6 +3,7 @@ package controller
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
@@ -117,9 +118,13 @@ func (c *userController) DeleteAccount(ctx *gin.Context) {
 
 	claims := token.Claims.(jwt.MapClaims)
 	userID := fmt.Sprintf("%v", claims["user_id"])
+	number, err := strconv.ParseUint(userID, 10, 64)
+	if err != nil {
+		return
+	}
 
 	// Send ID to service
-	user := c.userService.DeleteAccount(userID)
+	user := c.userService.DeleteAccount(number)
 
 	// response
 	res := helper.BuildResponse(true, "user deleted profile successfully", user)

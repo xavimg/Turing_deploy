@@ -13,7 +13,7 @@ import (
 type UserService interface {
 	Profile(userID string) entity.User
 	Update(user dto.UserUpdateDTO, userID string, newInfo dto.UserUpdateDTO) entity.User
-	DeleteAccount(userID string) error
+	DeleteAccount(userID uint64) error
 	VerifyAccount(email string) entity.User
 	CheckRole(id interface{}) entity.TypeUser
 }
@@ -33,8 +33,11 @@ func (service *userService) Profile(userID string) entity.User {
 	return service.userRepository.ProfileUser(userID)
 }
 
-func (service *userService) DeleteAccount(userID string) error {
-	return service.userRepository.DeleteAccount(userID)
+func (service *userService) DeleteAccount(userID uint64) error {
+	if err := service.userRepository.DeleteAccount(userID); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (service *userService) Update(dataUser dto.UserUpdateDTO, userID string, newInfo dto.UserUpdateDTO) entity.User {

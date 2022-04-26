@@ -12,7 +12,8 @@ import (
 )
 
 type AuthService interface {
-	CreateUser(user dto.RegisterDTO, userCode int) entity.User
+	CreateUser(user dto.RegisterDTO) entity.User
+	DeleteUser(id uint64) error
 	VerifyCredential(email, password string) interface{}
 	VerifyUserExist(userID string) interface{}
 	VerifyUserActive(email string) entity.User
@@ -36,7 +37,7 @@ func NewAuthService(userRepo repository.UserRepository, authRepository repositor
 	}
 }
 
-func (service *authService) CreateUser(user dto.RegisterDTO, userCode int) entity.User {
+func (service *authService) CreateUser(user dto.RegisterDTO) entity.User {
 	userToCreate := entity.User{}
 
 	err := smapping.FillStruct(&userToCreate, smapping.MapFields(&user))
@@ -44,9 +45,16 @@ func (service *authService) CreateUser(user dto.RegisterDTO, userCode int) entit
 		log.Fatalf("Failed map %v", err)
 	}
 
-	res := service.userRepository.InsertUser(userToCreate, userCode)
+	res := service.userRepository.InsertUser(userToCreate)
 
 	return res
+}
+
+func (service *authService) DeleteUser(id uint64) error {
+	if err := service.userRepository.DeleteAccount(id); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (service *authService) VerifyCredential(email, password string) interface{} {

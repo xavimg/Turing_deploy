@@ -11,7 +11,7 @@ import (
 
 // UserRepository is a contract what UserRepository can do to db.
 type UserRepository interface {
-	InsertUser(user entity.User, userCode int) entity.User
+	InsertUser(user entity.User) entity.User
 	UpdateUser(user entity.User, userID string, newInfo dto.UserUpdateDTO) entity.User
 	VerifyCredential(email, password string) interface{}
 	VerifyUserExist(userID string) interface{}
@@ -21,7 +21,7 @@ type UserRepository interface {
 	ProfileUser(userID string) entity.User
 	SaveToken(user entity.User, token string)
 	DeleteToken(user entity.User, token string)
-	DeleteAccount(userID string) error
+	DeleteAccount(userID uint64) error
 	GetToken(userID string) entity.User
 	CheckRole(id interface{}) (entity.TypeUser, error)
 }
@@ -37,9 +37,8 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 	}
 }
 
-func (db *userConnection) InsertUser(user entity.User, userCode int) entity.User {
+func (db *userConnection) InsertUser(user entity.User) entity.User {
 	user.Password = hashAndSalt([]byte(user.Password))
-	user.CodeVerify = userCode
 
 	db.connection.Create(&user)
 	//db.connection.Preload("Characters").Find(&user)
@@ -119,10 +118,10 @@ func (db *userConnection) ProfileUser(userID string) entity.User {
 	return user
 }
 
-func (db *userConnection) DeleteAccount(userID string) error {
+func (db *userConnection) DeleteAccount(userID uint64) error {
 	var user entity.User
 
-	if err := db.connection.Delete(&user, userID); err != nil {
+	if err := db.connection.Delete(&user.ID, userID); err != nil {
 		log.Println("Error: ", err)
 		return err.Error
 	}

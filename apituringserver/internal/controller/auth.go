@@ -134,52 +134,39 @@ func (c *authController) Register(context *gin.Context) {
 		response := helper.BuildErrorResponse("User register failed", "Duplicate email", helper.EmptyObj{})
 		context.JSON(http.StatusConflict, response)
 		return
-	} else {
-
-		getCode := service.SendEmailCodeVerify(registerDTO.Name, registerDTO.Email)
-
-		createdUser := c.authService.CreateUser(registerDTO, getCode)
-
-		token := c.jwtService.GenerateTokenRegister(createdUser.ID)
-		createdUser.Token = fmt.Sprintf("Bearer %v", token)
-
-		// Action where I send to Alex ID from user, so he can knows.
-		var infoJson dto.DataAlex
-
-		infoJson.ID = createdUser.ID
-		infoJson.Token = createdUser.Token
-
-		json_data, err := json.Marshal(createdUser.ID)
-		if err != nil {
-			return
-		}
-
-		url := fmt.Sprintf("http://%v:%v/player/signup", urlAndreba, portAndreba)
-		resp, err := http.Post(url, "application/json", bytes.NewReader(json_data))
-		if err != nil {
-			log.Println(err)
-		}
-		defer resp.Body.Close()
-
-		fmt.Println(resp.Body)
-
-		bodyBytes, err := io.ReadAll(resp.Body)
-		if err != nil {
-			log.Println(err)
-		}
-		bodyString := string(bodyBytes)
-		fmt.Println("debug", bodyString)
-		// Ending connection with Alex.
-
-		var routine sync.Mutex
-		routine.Lock()
-		go service.SendEmail(registerDTO.Name, registerDTO.Email)
-		routine.Unlock()
-
-		response := helper.BuildResponse(true, "Check your email !", createdUser)
-
-		context.JSON(http.StatusCreated, response)
 	}
+
+	getCode := service.SendEmailCodeVerify(registerDTO.Name, registerDTO.Email)
+	registerDTO.CodeVerify = getCode
+
+	createdUser := c.authService.CreateUser(registerDTO)
+
+	token := c.jwtService.GenerateTokenRegister(createdUser.ID)
+	createdUser.Token = fmt.Sprintf("Bearer %v", token)
+
+	json_data, err := json.Marshal(createdUser.ID)
+	if err != nil {
+		return
+	}
+	url := fmt.Sprintf("http://%v:%v/player/signup", urlAndreba, portAndreba)
+
+	resp, err := http.Post(url, "application/json", bytes.NewReader(json_data))
+	if err != nil {
+		c.authService.DeleteUser(createdUser.ID)
+		log.Println(err)
+	}
+	defer resp.Body.Close()
+	// Ending connection with Alex.
+
+	var routine sync.Mutex
+	routine.Lock()
+	go service.SendEmail(registerDTO.Name, registerDTO.Email)
+	routine.Unlock()
+
+	response := helper.BuildResponse(true, "Check your email !", createdUser)
+
+	context.JSON(http.StatusCreated, response)
+
 }
 
 // Logout godoc
