@@ -207,7 +207,7 @@ func (c *authController) Logout(ctx *gin.Context) {
 
 		json_data, _ := json.Marshal(response.Token)
 
-		resp, err := http.Post("http://192.168.195.80:8080/player/signout", "application/json", bytes.NewReader(json_data))
+		resp, err := http.Post("http://%v:%v/player/signout", "application/json", bytes.NewReader(json_data))
 		if err != nil {
 			log.Fatal(err)
 		}
