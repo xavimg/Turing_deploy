@@ -11,12 +11,11 @@ import (
 	"sync"
 
 	"github.com/gin-gonic/gin"
+	"github.com/xavimg/Turing/apituringserver/internal/config"
 	"github.com/xavimg/Turing/apituringserver/internal/dto"
 	"github.com/xavimg/Turing/apituringserver/internal/entity"
 	"github.com/xavimg/Turing/apituringserver/internal/helper"
 	"github.com/xavimg/Turing/apituringserver/internal/service"
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
 )
 
 const (
@@ -244,7 +243,6 @@ func (c *authController) VerifyAccount(ctx *gin.Context) {
 		log.Println("Error: ", err)
 		return
 	}
-
 	if !exist {
 		ctx.JSON(http.StatusBadRequest, "invalid code !")
 		return
@@ -253,27 +251,9 @@ func (c *authController) VerifyAccount(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, "you've been verified !")
 }
 
-func SetupConfigGoogle() *oauth2.Config {
-	conf := &oauth2.Config{
-		ClientID:     "6116145082-n6bu7lpemg1cicrooa19gepmmhh9n4uu.apps.googleusercontent.com",
-		ClientSecret: "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",
-		RedirectURL:  "http://localhost:8080/hello",
-		Scopes: []string{
-			"https://www.googleapis.com/auth/userinfo.email",
-			"https://www.googleapis.com/auth/userinfo.profile",
-		},
-		Endpoint: google.Endpoint,
-	}
-	return conf
-}
-
 func (c *authController) GoogleLogin(ctx *gin.Context) {
-	googleConfig := SetupConfigGoogle()
+	googleConfig := config.SetupConfigGoogle()
 	url := googleConfig.AuthCodeURL("randomstate")
 
 	ctx.Redirect(303, url)
-}
-
-func (c *authController) GoogleCallback(ctx *gin.Context) {
-
 }
