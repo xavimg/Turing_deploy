@@ -10,10 +10,11 @@ use crate::{cache::MongoDoc, utils::Color, PLANET_SYSTEMS, CURRENT_LOGGER, Logge
 pub struct Player {
     #[serde(rename = "_id")]
     pub id: ObjectId,
+    pub xid: u64, // Xavi ID
+    pub token: Option<String>,
     pub points: f32,
     pub location: PlayerLocation,
     pub name: String,
-    pub token: PlayerToken,
     pub stats: PlayerStats,
     pub inventory: Inventory,
     pub health: u8,
@@ -23,13 +24,9 @@ pub struct Player {
 impl Player {
     pub async fn new (id: u64, name: String) -> Result<Option<Self>, Either<JoinError, mongodb::error::Error>> {
         let name2 = name.clone();
-        let bson = bson::to_bson(&PlayerToken::Unloged(id)).unwrap();
-        
-        match PLAYERS.find_one(doc! { "$or": [{ "name": name.clone(), "token": bson }] }, move |x| {
-            if x.name == name2 { return true }
-            if let PlayerToken::Unloged(unlogged) = x.token { return unlogged == id; }
-            false
-        }).await {
+        let xid = bson::to_bson(&id).map_err(|x| Either::Right(x.into()))?;
+
+        match PLAYERS.find_one(doc! { "$or": [{ "name": name.clone(), "xid": xid }] }, move |x| x.name == name2 || x.xid == id).await {
             Ok(None) => Ok(Some(Self::new_unchecked(id, name).await)),
             Ok(Some(_)) => Ok(None),
             Err(e) => Err(e)
@@ -39,10 +36,11 @@ impl Player {
     pub async fn new_unchecked (id: u64, name: String) -> Self {
         Player {
             id: ObjectId::new(),
+            xid: id,
+            token: None,
             location: PlayerLocation { system: Self::random_system().await, position: random() },
             name,
             points: 0f32,
-            token: PlayerToken::Unloged(id),
             stats: PlayerStats::default(),
             inventory: Inventory::default(),
             health: 100,
@@ -52,11 +50,8 @@ impl Player {
 
     #[inline]
     pub async fn from_foreign_id (id: u64) -> Result<Option<Arc<Self>>, Either<JoinError, mongodb::error::Error>> {
-        let bson = bson::to_bson(&PlayerToken::Unloged(id)).unwrap();
-        PLAYERS.find_one(doc! { "token": bson }, move |x| {
-            if let PlayerToken::Unloged(unlogged) = x.token { return unlogged == id }
-            false
-        }).await
+        let xid = bson::to_bson(&id).map_err(|x| Either::Right(x.into()))?;
+        PLAYERS.find_one(doc! { "xid": xid }, move |x| x.xid == id).await
     }
 
     pub async fn from_foreign_id_or_new (id: u64, name: String) -> Result<Arc<Self>, Either<JoinError, mongodb::error::Error>> {
@@ -74,12 +69,7 @@ impl Player {
     #[inline]
     pub async fn from_token (token: String) -> Result<Option<Arc<Self>>, Either<JoinError, mongodb::error::Error>> {
         let token_clone = token.clone();
-        let bson = bson::to_bson(&PlayerToken::Loged(token)).unwrap();
-
-        PLAYERS.find_one(doc! { "token": bson }, move |x| {
-            if let PlayerToken::Loged(ref logged) = x.token { return logged == &token_clone }
-            false
-        }).await
+        PLAYERS.find_one(doc! { "token": Some(token_clone) }, move |x| x.token == Some(token.clone())).await
     }
 
     async fn random_system () -> ObjectId {

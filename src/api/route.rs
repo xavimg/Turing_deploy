@@ -4,7 +4,7 @@ use mongodb::{bson::{doc}, options::FindOptions};
 use rand::{distributions::{Alphanumeric, DistString}, thread_rng};
 use serde_json::{json, Value};
 use strum::IntoEnumIterator;
-use crate::{DATABASE, Resource, PLAYERS, Player, PlayerToken, CURRENT_LOGGER, Logger, decode_token};
+use crate::{DATABASE, Resource, PLAYERS, Player, CURRENT_LOGGER, Logger, decode_token};
 
 // OUT API
 #[get("/status")]
@@ -61,14 +61,8 @@ pub async fn new_user (_: HttpRequest, body: web::Json<u64>) -> HttpResponse {
 pub async fn user_login (req: HttpRequest) -> HttpResponse {
     match decode_token(&req) {
         Ok((body, token)) => {
-            let id = token.claims.id;
-            let query = bson::to_document(&PlayerToken::Unloged(id)).unwrap();
-            let update = bson::to_document(&PlayerToken::Loged(body)).unwrap();
-        
-            match PLAYERS.update_one(doc! { "token": query }, move |x| {
-                if let PlayerToken::Unloged(this_id) = x.token { return this_id == id };
-                false
-            }, doc! { "$set": { "token": update } }).await {
+            let xid = bson::to_bson(&token.claims.id).unwrap();
+            match PLAYERS.update_one(doc! { "xid": xid }, move |x| x.xid == token.claims.id, doc! { "$set": { "token": body } }).await {
                 Ok(Some(_)) => HttpResponse::Ok().finish(),
                 Ok(None) => HttpResponse::BadRequest().body("No matching player found"),
                 Err(e) => HttpResponse::InternalServerError().body(format!("{e}"))
@@ -81,14 +75,9 @@ pub async fn user_login (req: HttpRequest) -> HttpResponse {
 
 #[post("/player/signout")]
 pub async fn user_logout (req: HttpRequest) -> HttpResponse {
-    if let Ok((string, token)) = decode_token(&req) {
-        let update = bson::to_document(&PlayerToken::Unloged(token.claims.id)).unwrap();
-        let query = bson::to_document(&PlayerToken::Loged(string.clone())).unwrap();
-    
-        return match PLAYERS.update_one(doc! { "token": query }, move |x| {
-            if let PlayerToken::Loged(ref token) = x.token { return token == &string };
-            false
-        }, doc! { "$set": { "token": update } }).await {
+    if let Ok((string, _)) = decode_token(&req) {    
+        let body : &str = &string;
+        return match PLAYERS.update_one(doc! { "token": body }, move |x| x.token.contains(&string), doc! { "$set": { "token": null } }).await {
             Ok(Some(_)) => HttpResponse::Ok().finish(),
             Ok(None) => HttpResponse::BadRequest().body("No matching player found"),
             Err(e) => HttpResponse::InternalServerError().body(format!("{e}"))

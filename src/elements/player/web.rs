@@ -3,11 +3,6 @@ use chrono::{DateTime, Utc, Duration};
 use serde::{Serialize, Deserialize};
 use chrono::serde::ts_seconds;
 
-#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
-pub enum PlayerToken {
-    Loged(String),
-    Unloged(u64)
-}
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct PlayerTokenLoged {

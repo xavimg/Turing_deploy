@@ -4,7 +4,7 @@ use bson::{oid::ObjectId, doc};
 use futures::StreamExt;
 use rand::{distributions::{Alphanumeric, DistString}, thread_rng};
 use serde_json::{json, Value};
-use crate::{PLAYERS, decode_token, CURRENT_LOGGER, PlayerToken, Logger, test_token, PLANET_SYSTEMS, Either, Player};
+use crate::{PLAYERS, decode_token, CURRENT_LOGGER, Logger, PLANET_SYSTEMS, Either, Player};
 
 #[get("/test/player/{id}")]
 pub async fn test_login (_req: HttpRequest, id: web::Path<u64>) -> HttpResponse {
@@ -14,8 +14,7 @@ pub async fn test_login (_req: HttpRequest, id: web::Path<u64>) -> HttpResponse 
         _ => {}
     }
 
-    let (token, _) = test_token(id);
-    let query = bson::to_document(&PlayerToken::Unloged(id)).unwrap();
+    /*let query = bson::to_document(&PlayerToken::Unloged(id)).unwrap();
     let update = bson::to_document(&PlayerToken::Loged(token.clone())).unwrap();
 
     match PLAYERS.update_one(doc! { "token": query }, move |x| {
@@ -25,7 +24,8 @@ pub async fn test_login (_req: HttpRequest, id: web::Path<u64>) -> HttpResponse 
         Ok(Some(_)) => HttpResponse::Ok().body(token),
         Ok(None) => HttpResponse::BadRequest().body("No matching player found"),
         Err(e) => HttpResponse::InternalServerError().body(format!("{e}"))
-    }
+    }*/
+    HttpResponse::Ok().finish()
 }
 
 #[get("/player")]
@@ -38,11 +38,8 @@ pub async fn get_player_me (req: HttpRequest) -> HttpResponse {
         },
 
         Ok((string, _)) => {
-            let bson = bson::to_document(&PlayerToken::Loged(string.clone())).unwrap();
-            match PLAYERS.find_one(doc! { "token": bson }, move |player| {
-                if let PlayerToken::Loged(ref loged) = player.token { return loged == &string }
-                false
-            }).await {
+            let body : &str = &string;
+            match PLAYERS.find_one(doc! { "token": body }, move |x| x.token.contains(&string)).await {
                 Ok(Some(player)) => {                    
                     let player = json!({
                         "_id": player.id,

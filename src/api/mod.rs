@@ -1,7 +1,8 @@
 use std::{lazy::Lazy, fmt::Display};
 use actix_web::{HttpRequest, http::header::AUTHORIZATION, ResponseError};
 use chrono::{DateTime, Utc};
-use jsonwebtoken::{DecodingKey, decode, Validation, TokenData, encode, EncodingKey, Header};
+use jsonwebtoken::{DecodingKey, decode, Validation, TokenData};
+
 use crate::PlayerTokenLoged;
 
 pub mod route;
@@ -10,12 +11,6 @@ pub mod ws;
 
 const JWT_SECRET : Lazy<String> = Lazy::new(|| get_env!("JWT_SECRET"));
 const JWT_KEY : Lazy<DecodingKey> = Lazy::new(|| DecodingKey::from_secret(JWT_SECRET.as_ref()));
-
-pub(super) fn test_token (id: u64) -> (String, PlayerTokenLoged) {
-    let body = PlayerTokenLoged::default_for(id);
-    let token = encode(&Header::default(), &body, &EncodingKey::from_secret(JWT_SECRET.as_ref())).unwrap();
-    (token, body)
-}
 
 #[inline]
 pub fn is_loopback (req: &HttpRequest) -> bool {

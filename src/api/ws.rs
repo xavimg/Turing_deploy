@@ -1,21 +1,20 @@
 use std::str::FromStr;
 use std::{sync::Arc};
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashMap};
 use std::lazy::SyncLazy;
 use std::ops::Deref;
 use actix::{Actor, StreamHandler, WrapFuture, ContextFutureSpawner, Addr, Handler};
-use actix_web::web::Bytes;
 use actix_web::{web, Result, HttpRequest, HttpResponse, get};
 use actix_web_actors::ws::{self, WsResponseBuilder};
 use bson::{doc, oid::ObjectId};
 use futures::StreamExt;
 use llml::vec::EucVecd2;
-use serde::{Serialize, Deserialize, Deserializer};
+use serde::{Serialize, Deserialize};
 use serde::de::Visitor;
 use tokio::sync::RwLock;
 use actix::Message;
 use serde_json::{json, Value};
-use crate::{CURRENT_LOGGER, decode_token, PlayerToken, PLAYERS, Either, Logger, Player, PlayerLocation, PlanetSystem, PLANET_SYSTEMS, Color, color_rgba};
+use crate::{CURRENT_LOGGER, decode_token, PLAYERS, Either, Logger, Player, PlayerLocation, Color, color_rgba};
 
 static SOCKETS : SyncLazy<RwLock<HashMap<ObjectId, Arc<Addr<WebSocket>>>>> = SyncLazy::new(|| RwLock::new(HashMap::new()));
 
@@ -172,16 +171,13 @@ impl Handler<NewPlayer> for WebSocket {
 /// Player new connection
 #[get("/player/conn")]
 pub async fn start_connection (req: HttpRequest, payload: web::Payload) -> Result<HttpResponse, actix_web::Error> {
-    let string= match decode_token(&req) {
+    let string = match decode_token(&req) {
         Ok((str, _)) => str,
         Err(e) => return Ok(HttpResponse::BadRequest().body(format!("{e}")))
     };
     
-    let bson = bson::to_document(&PlayerToken::Loged(string.clone())).unwrap();
-    let query = PLAYERS.find_one(doc! { "token": bson }, move |player| {
-        if let PlayerToken::Loged(ref a) = player.token { return a == &string }
-        false
-    }).await;
+    let body : &str = &string;
+    let query = PLAYERS.find_one(doc! { "token": body }, move |x| x.token.contains(&string)).await;
     
     return match query {
         Ok(Some(player)) => {

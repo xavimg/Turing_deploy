@@ -1,4 +1,4 @@
-#![feature(once_cell, const_fn_floating_point_arithmetic, hash_set_entry, const_mut_refs, const_for, future_join, future_poll_fn, const_maybe_uninit_zeroed, untagged_unions, fn_traits)]
+#![feature(once_cell, option_result_contains, const_fn_floating_point_arithmetic, hash_set_entry, const_mut_refs, const_for, future_join, future_poll_fn, const_maybe_uninit_zeroed, untagged_unions, fn_traits)]
 use api::{route::*, game::*, ws::start_connection};
 use actix_web::{dev::{Service}};
 
