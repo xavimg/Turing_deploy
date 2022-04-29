@@ -1,4 +1,8 @@
 Run Swagger:
 
-   localhost:8080/swagger/index.html
+   localhost:3000/swagger/index.html
+
+Si falla el docker-compose up, tenemos que cambiar el config de la db y cambiar el localhost por postgres. Y volver a hacer el build.
+
+
 

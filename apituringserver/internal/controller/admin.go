@@ -10,6 +10,10 @@ import (
 )
 
 type AdminController interface {
+	ListAllUsers(ctx *gin.Context)
+	ListAllUsersByActive(ctx *gin.Context)
+	ListAllUsersByTypeAdmin(ctx *gin.Context)
+	ListAllUsersByTypeUser(ctx *gin.Context)
 	BanUser(ctx *gin.Context)
 	UnbanUser(ctx *gin.Context)
 	NewFeature(ctx *gin.Context)
@@ -23,6 +27,27 @@ func NewAdminController(adminService service.AdminService) AdminController {
 	return &adminController{
 		adminService: adminService,
 	}
+}
+
+func (c *adminController) ListAllUsers(ctx *gin.Context) {
+	users := c.adminService.ListAllUsers()
+
+	ctx.JSON(http.StatusOK, users)
+}
+
+func (c *adminController) ListAllUsersByActive(ctx *gin.Context) {
+	users := c.adminService.ListAllUsersByActive()
+	ctx.JSON(http.StatusOK, users)
+}
+
+func (c *adminController) ListAllUsersByTypeAdmin(ctx *gin.Context) {
+	users := c.adminService.ListAllUsersByTypeAdmin()
+	ctx.JSON(http.StatusOK, users)
+}
+
+func (c *adminController) ListAllUsersByTypeUser(ctx *gin.Context) {
+	users := c.adminService.ListAllUsersByTypeUser()
+	ctx.JSON(http.StatusOK, users)
 }
 
 // BanUser godoc

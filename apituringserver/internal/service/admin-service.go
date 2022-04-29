@@ -10,6 +10,10 @@ import (
 )
 
 type AdminService interface {
+	ListAllUsers() []entity.User
+	ListAllUsersByActive() []entity.User
+	ListAllUsersByTypeAdmin() []entity.User
+	ListAllUsersByTypeUser() []entity.User
 	BanUser(userID string)
 	UnbanUser(userID string)
 	NewFeature(feature dto.FeatureDTO) entity.Feature
@@ -25,18 +29,35 @@ func NewAdminService(adminRepo repository.AdminRepository) AdminService {
 	}
 }
 
-func (service *adminService) BanUser(userID string) {
+func (service *adminService) ListAllUsers() []entity.User {
+	users := service.adminRepository.ListAllUsers()
+	return users
+}
 
+func (service *adminService) ListAllUsersByActive() []entity.User {
+	users := service.adminRepository.ListAllUsersByActive()
+	return users
+}
+
+func (service *adminService) ListAllUsersByTypeAdmin() []entity.User {
+	users := service.adminRepository.ListAllUsersByTypeAdmin()
+	return users
+}
+
+func (service *adminService) ListAllUsersByTypeUser() []entity.User {
+	users := service.adminRepository.ListAllUsersByTypeUser()
+	return users
+}
+
+func (service *adminService) BanUser(userID string) {
 	service.adminRepository.BanUser(userID)
 }
 
 func (service *adminService) UnbanUser(userID string) {
-
 	service.adminRepository.UnbanUser(userID)
 }
 
 func (service *adminService) NewFeature(feature dto.FeatureDTO) entity.Feature {
-
 	featureToCreate := entity.Feature{}
 
 	err := smapping.FillStruct(&featureToCreate, smapping.MapFields(&feature))

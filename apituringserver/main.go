@@ -45,11 +45,9 @@ func main() {
 	//r.Use(cors.Default())
 
 	r.GET("/hello", func(c *gin.Context) {
-
 		c.JSON(200, gin.H{
 			"message": "Hello",
 		})
-
 	})
 
 	// public routes
@@ -70,8 +68,14 @@ func main() {
 		userRoutes.DELETE("/profile/:id", userController.DeleteAccount)
 	}
 
-	adminRoutes := r.Group("api/admin", middleware.CheckRole(userService))
+	adminRoutes := r.Group("api/admin" /*, middleware.CheckRole(userService*)*/)
 	{
+		// TO-DO //
+		// LOGIN/REGISTER.
+		adminRoutes.GET("/users", adminController.ListAllUsers)
+		adminRoutes.GET("/users-by-active", adminController.ListAllUsersByActive)
+		adminRoutes.GET("/users-admin", adminController.ListAllUsersByTypeAdmin)
+		adminRoutes.GET("/users-user", adminController.ListAllUsersByTypeUser)
 		adminRoutes.PUT("/ban/:id", adminController.BanUser)
 		adminRoutes.PUT("/unban/:id", adminController.UnbanUser)
 		adminRoutes.POST("/newfeature", adminController.NewFeature)

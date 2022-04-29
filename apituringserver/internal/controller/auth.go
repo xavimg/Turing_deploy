@@ -76,8 +76,6 @@ func (c *authController) Login(context *gin.Context) {
 
 		}
 
-		fmt.Println(v.ID)
-
 		generateToken := c.jwtService.GenerateTokenLogin(v.ID)
 		v.Token = fmt.Sprintf("Bearer %v", generateToken)
 		c.authService.SaveToken(v, fmt.Sprintf("Bearer %v", generateToken))
@@ -91,15 +89,16 @@ func (c *authController) Login(context *gin.Context) {
 		url := fmt.Sprintf("http://%v:%v/player/signin", urlAndreba, portAndreba)
 		req, err := http.NewRequest("POST", url, nil)
 		req.Header.Add("Authorization", fmt.Sprintf("Bearer %v", generateToken))
-		resp, err := client.Do(req)
 
-		bodyBytes, err := io.ReadAll(resp.Body)
+		resp, err := client.Do(req)
 		if err != nil {
 			log.Println(err)
 			return
 		}
-		bodyString := string(bodyBytes)
-		fmt.Println("debug", bodyString)
+		if resp.StatusCode != 200 {
+			log.Println("Something went wrong")
+			return
+		}
 
 		response := helper.BuildResponseSession(true, "User login successfully", generateToken)
 		context.JSON(http.StatusOK, response)
@@ -142,8 +141,6 @@ func (c *authController) Register(context *gin.Context) {
 
 	token := c.jwtService.GenerateTokenRegister(createdUser.ID)
 	createdUser.Token = fmt.Sprintf("Bearer %v", token)
-
-	fmt.Println(createdUser.Token)
 
 	json_data, err := json.Marshal(createdUser.ID)
 	if err != nil {
@@ -257,5 +254,8 @@ func (c *authController) GoogleLogin(ctx *gin.Context) {
 	googleConfig := config.SetupConfigGoogle()
 	url := googleConfig.AuthCodeURL("randomstate")
 
+	// generateToken := c.jwtService.GenerateTokenLogin(v.ID)
+
+	// ctx.JSON(http.StatusOK, generateToken)
 	ctx.Redirect(303, url)
 }

@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-
 	"github.com/joho/godotenv"
 )
 
@@ -20,6 +19,7 @@ type JWTService interface {
 
 type jwtCustomClaim struct {
 	UserID uint64 `json:"user_id"`
+	// Signature string `json:"signature"`
 	jwt.StandardClaims
 }
 
@@ -32,7 +32,7 @@ type jwtService struct {
 func NewJWTService() JWTService {
 	return &jwtService{
 		issuer:    "turingoffworld",
-		secretKey: "turingoffworld",
+		secretKey: goDotEnvVariable("ACCESS_SECRET"),
 	}
 }
 
@@ -61,11 +61,10 @@ func (j *jwtService) GenerateTokenLogin(UserID uint64) string {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	t, err := token.SignedString([]byte("turingoffworld"))
+	t, err := token.SignedString([]byte(j.secretKey))
 	if err != nil {
 		log.Println(err.Error())
 	}
-
 	return t
 }
 
@@ -76,7 +75,6 @@ func (j *jwtService) GenerateTokenRegister(UserID uint64) string {
 			ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
 		},
 	}
-
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	t, err := token.SignedString([]byte("turingoffworld"))
@@ -84,15 +82,38 @@ func (j *jwtService) GenerateTokenRegister(UserID uint64) string {
 		log.Println(err.Error())
 	}
 
+	fmt.Println(t)
 	return t
 }
 
-func (j *jwtService) ValidateToken(token string) (*jwt.Token, error) {
-	return jwt.Parse(token, func(t_ *jwt.Token) (interface{}, error) {
-		if _, ok := t_.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("Unexpected signing method %v", t_.Header["alg"])
-		}
+func (j *jwtService) ValidateToken(tokenSigned string) (*jwt.Token, error) {
+	token, err := jwt.ParseWithClaims(
+		tokenSigned,
+		&jwtCustomClaim{},
+		func(token *jwt.Token) (interface{}, error) {
+			return []byte("turingoffworld"), nil
+		},
+	)
+	if err != nil {
+		return nil, nil
+	}
 
-		return []byte(j.secretKey), nil
-	})
+	claims, ok := token.Claims.(jwtCustomClaim)
+	if !ok {
+		log.Println("couldnt't parse claims")
+		return nil, nil
+	}
+	if claims.ExpiresAt < time.Now().Local().Unix() {
+		log.Println("token expired")
+		return nil, nil
+	}
+	return nil, nil
+
+	// return jwt.Parse(tokenSigned, func(t_ *jwt.Token) (interface{}, error) {
+	// 	if _, ok := t_.Method.(*jwt.SigningMethodHMAC); !ok {
+	// 		return nil, fmt.Errorf("Unexpected signing method %v", t_.Header["alg"])
+	// 	}
+
+	// 	return []byte(j.secretKey), nil
+	// })
 }
