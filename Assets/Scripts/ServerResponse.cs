@@ -9,8 +9,8 @@ namespace ServerUtils {
     public class ServerResponse<T> {
         public bool status;
         public string message;
-        public string[] errors;
-        public T data;
+        public string[]? errors;
+        public T? data;
     }
 
     [Serializable]
