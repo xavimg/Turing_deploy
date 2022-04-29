@@ -20,6 +20,21 @@ Reponse:
 }
 ```
 
+## GET /ranking
+Returns top 10 players
+Response
+```json
+{
+    [
+        {
+            "id": string,
+            "name": string,
+            "points": number
+        }
+    ]
+}
+```
+
 # Player
 ## GET /player
 Response:
