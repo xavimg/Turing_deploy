@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+
 	"github.com/joho/godotenv"
 )
 
@@ -31,7 +32,7 @@ type jwtService struct {
 func NewJWTService() JWTService {
 	return &jwtService{
 		issuer:    "turingoffworld",
-		secretKey: goDotEnvVariable("ACCESS_SECRET"),
+		secretKey: "turingoffworld",
 	}
 }
 
@@ -60,12 +61,11 @@ func (j *jwtService) GenerateTokenLogin(UserID uint64) string {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	t, err := token.SignedString([]byte(j.secretKey))
+	t, err := token.SignedString([]byte("turingoffworld"))
 	if err != nil {
 		log.Println(err.Error())
 	}
 
-	fmt.Println("***", t)
 	return t
 }
 
@@ -79,12 +79,10 @@ func (j *jwtService) GenerateTokenRegister(UserID uint64) string {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	t, err := token.SignedString([]byte(j.secretKey))
+	t, err := token.SignedString([]byte("turingoffworld"))
 	if err != nil {
 		log.Println(err.Error())
 	}
-
-	fmt.Println("***", t)
 
 	return t
 }

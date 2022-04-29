@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	urlAndreba  = "localhost"
+	urlAndreba  = "192.168.192.32"
 	portAndreba = "8080"
 )
 
@@ -142,6 +142,8 @@ func (c *authController) Register(context *gin.Context) {
 
 	token := c.jwtService.GenerateTokenRegister(createdUser.ID)
 	createdUser.Token = fmt.Sprintf("Bearer %v", token)
+
+	fmt.Println(createdUser.Token)
 
 	json_data, err := json.Marshal(createdUser.ID)
 	if err != nil {
