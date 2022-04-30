@@ -28,7 +28,7 @@ var (
 
 	authController  controller.AuthController  = controller.NewAuthController(authService, jwtService)
 	userController  controller.UserController  = controller.NewUserController(userService, jwtService)
-	adminController controller.AdminController = controller.NewAdminController(adminService)
+	adminController controller.AdminController = controller.NewAdminController(adminService, authService, jwtService)
 )
 
 func main() {
@@ -71,11 +71,9 @@ func main() {
 	adminRoutes := r.Group("api/admin" /*, middleware.CheckRole(userService*)*/)
 	{
 		// TO-DO //
-		// LOGIN/REGISTER.
-		adminRoutes.GET("/users", adminController.ListAllUsers)
-		adminRoutes.GET("/users-by-active", adminController.ListAllUsersByActive)
-		adminRoutes.GET("/users-admin", adminController.ListAllUsersByTypeAdmin)
-		adminRoutes.GET("/users-user", adminController.ListAllUsersByTypeUser)
+		// REGISTER.
+		adminRoutes.POST("/login", adminController.AdminLogin)
+		adminRoutes.GET("/users/:typeUser", adminController.ListAllUsersByParameter)
 		adminRoutes.PUT("/ban/:id", adminController.BanUser)
 		adminRoutes.PUT("/unban/:id", adminController.UnbanUser)
 		adminRoutes.POST("/newfeature", adminController.NewFeature)

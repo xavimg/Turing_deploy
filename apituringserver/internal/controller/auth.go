@@ -207,7 +207,6 @@ func (c *authController) Logout(ctx *gin.Context) {
 		}
 
 		c.authService.DeleteToken(v, "")
-
 	}
 }
 

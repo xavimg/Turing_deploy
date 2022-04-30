@@ -1,19 +1,19 @@
 package controller
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/xavimg/Turing/apituringserver/internal/dto"
+	"github.com/xavimg/Turing/apituringserver/internal/entity"
 	"github.com/xavimg/Turing/apituringserver/internal/helper"
 	"github.com/xavimg/Turing/apituringserver/internal/service"
 )
 
 type AdminController interface {
-	ListAllUsers(ctx *gin.Context)
-	ListAllUsersByActive(ctx *gin.Context)
-	ListAllUsersByTypeAdmin(ctx *gin.Context)
-	ListAllUsersByTypeUser(ctx *gin.Context)
+	AdminLogin(ctx *gin.Context)
+	ListAllUsersByParameter(ctx *gin.Context)
 	BanUser(ctx *gin.Context)
 	UnbanUser(ctx *gin.Context)
 	NewFeature(ctx *gin.Context)
@@ -21,32 +21,64 @@ type AdminController interface {
 
 type adminController struct {
 	adminService service.AdminService
+	authService  service.AuthService
+	jwtService   service.JWTService
 }
 
-func NewAdminController(adminService service.AdminService) AdminController {
+func NewAdminController(adminService service.AdminService, authService service.AuthService, jwtService service.JWTService) AdminController {
 	return &adminController{
 		adminService: adminService,
+		authService:  authService,
+		jwtService:   jwtService,
 	}
 }
 
-func (c *adminController) ListAllUsers(ctx *gin.Context) {
-	users := c.adminService.ListAllUsers()
+func (c *adminController) AdminLogin(context *gin.Context) {
+	var loginDTO dto.LoginDTO
+	if errDTO := context.ShouldBindJSON(&loginDTO); errDTO != nil {
+		response := helper.BuildErrorResponse("admin login failed", errDTO.Error(), helper.EmptyObj{})
+		context.AbortWithStatusJSON(http.StatusBadRequest, response.Message)
+		return
+	}
 
-	ctx.JSON(http.StatusOK, users)
+	authResult := c.authService.VerifyCredential(loginDTO.Email, loginDTO.Password)
+	if v, ok := authResult.(entity.User); ok {
+		if v.TypeUser != "admin" {
+			context.JSON(http.StatusBadRequest, "admin doesn't exists")
+			return
+		}
+
+		generateToken := c.jwtService.GenerateTokenLogin(v.ID)
+		v.Token = fmt.Sprintf("Bearer %v", generateToken)
+		c.authService.SaveToken(v, fmt.Sprintf("Bearer %v", generateToken))
+
+		response := helper.BuildResponseSession(true, "admin login successfully", generateToken)
+		context.JSON(http.StatusOK, response)
+		return
+	}
+
+	response := helper.BuildErrorResponse("admin login failed", "Invalid credential", helper.EmptyObj{})
+	context.AbortWithStatusJSON(http.StatusUnauthorized, response)
+
 }
 
-func (c *adminController) ListAllUsersByActive(ctx *gin.Context) {
-	users := c.adminService.ListAllUsersByActive()
-	ctx.JSON(http.StatusOK, users)
-}
+func (c *adminController) ListAllUsersByParameter(ctx *gin.Context) {
+	tUser := ctx.Param("typeUser")
+	var users []entity.User
 
-func (c *adminController) ListAllUsersByTypeAdmin(ctx *gin.Context) {
-	users := c.adminService.ListAllUsersByTypeAdmin()
-	ctx.JSON(http.StatusOK, users)
-}
+	switch tUser {
+	case "all":
+		users = c.adminService.ListAllUsers()
+	case "ban":
+		users = c.adminService.ListAllUsersByActive()
+	case "admin":
+		users = c.adminService.ListAllUsersByTypeAdmin()
+	case "user":
+		users = c.adminService.ListAllUsersByTypeUser()
+	default:
+		ctx.JSON(http.StatusBadRequest, nil)
+	}
 
-func (c *adminController) ListAllUsersByTypeUser(ctx *gin.Context) {
-	users := c.adminService.ListAllUsersByTypeUser()
 	ctx.JSON(http.StatusOK, users)
 }
 

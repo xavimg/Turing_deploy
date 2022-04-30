@@ -26,13 +26,12 @@ func CheckRole(checkRole service.UserService) gin.HandlerFunc {
 		})
 
 		claims := token.Claims.(jwt.MapClaims)
-
 		id := claims["user_id"]
 
 		typeUser := checkRole.CheckRole(id)
-
-		if typeUser != "admin" {
-			log.Fatal("Can't let you acces to admin zone")
+		if typeUser != "super-admin" {
+			log.Println("not allowed")
+			return
 		}
 
 		context.Next()
