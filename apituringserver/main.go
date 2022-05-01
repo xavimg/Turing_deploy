@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/xavimg/Turing/apituringserver/internal/config"
 	"github.com/xavimg/Turing/apituringserver/internal/controller"
@@ -40,9 +41,7 @@ func main() {
 	docs.SwaggerInfo.Schemes = []string{"http"}
 
 	r := gin.Default()
-
-	r.MaxMultipartMemory = 8 << 20
-	//r.Use(cors.Default())
+	r.Use(cors.Default())
 
 	r.GET("/hello", func(c *gin.Context) {
 		c.JSON(200, gin.H{
@@ -68,14 +67,14 @@ func main() {
 		userRoutes.DELETE("/profile/:id", userController.DeleteAccount)
 	}
 
-	adminRoutes := r.Group("api/admin" /*, middleware.CheckRole(userService)*/)
+	adminRoutes := r.Group("api/admin")
 	{
 		adminRoutes.POST("/register", adminController.AdminRegister)
 		adminRoutes.POST("/login", adminController.AdminLogin)
-		adminRoutes.GET("/users/:typeUser", adminController.ListAllUsersByParameter)
-		adminRoutes.PUT("/ban/:id", adminController.BanUser)
-		adminRoutes.PUT("/unban/:id", adminController.UnbanUser)
-		adminRoutes.POST("/newfeature", adminController.NewFeature)
+		adminRoutes.GET("/users/:typeUser", middleware.CheckRole(userService), adminController.ListAllUsersByParameter)
+		adminRoutes.PUT("/ban/:id", middleware.CheckRole(userService), adminController.BanUser)
+		adminRoutes.PUT("/unban/:id", middleware.CheckRole(userService), adminController.UnbanUser)
+		adminRoutes.POST("/newfeature", middleware.CheckRole(userService), adminController.NewFeature)
 	}
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

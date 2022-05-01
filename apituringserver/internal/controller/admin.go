@@ -111,7 +111,6 @@ func (c *adminController) AdminLogin(context *gin.Context) {
 
 	response := helper.BuildErrorResponse("admin login failed", "Invalid credential", helper.EmptyObj{})
 	context.AbortWithStatusJSON(http.StatusUnauthorized, response)
-
 }
 
 // Listing Users by param godoc

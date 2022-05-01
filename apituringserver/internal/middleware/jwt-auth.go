@@ -1,11 +1,8 @@
 package middleware
 
 import (
-	"fmt"
-	"log"
 	"net/http"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/xavimg/Turing/apituringserver/internal/helper"
 	"github.com/xavimg/Turing/apituringserver/internal/service"
@@ -29,17 +26,10 @@ func AuthorizeJWT(jwtService service.JWTService) gin.HandlerFunc {
 
 		token, err := jwtService.ValidateToken(authHeader)
 
-		fmt.Println("validate token", token)
-
 		if !token.Valid {
 			response := helper.BuildErrorResponse("Token is not valid", err.Error(), nil)
 			context.AbortWithStatusJSON(http.StatusUnauthorized, response)
 		}
-
-		claims := token.Claims.(jwt.MapClaims)
-		log.Println("Claim[user_id]: ", claims["user_id"])
-		log.Println("Claim[issuer]: ", claims["issuer"])
-		log.Println("Claim[exp]: ", claims["exp"])
 
 		context.Next()
 	}

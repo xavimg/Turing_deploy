@@ -65,6 +65,7 @@ func (j *jwtService) GenerateTokenLogin(UserID uint64) string {
 	if err != nil {
 		log.Println(err.Error())
 	}
+
 	return t
 }
 
