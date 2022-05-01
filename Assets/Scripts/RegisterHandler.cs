@@ -1,6 +1,5 @@
 using System;
 using System.Text;
-using System.Collections;
 using TMPro;
 using ServerUtils;
 using UnityEngine;
@@ -14,10 +13,15 @@ public class RegisterHandler : MonoBehaviour {
     public TMP_InputField humanName;
     public TMP_InputField email;
     public TMP_InputField password;
+    private volatile bool done = false;
 
     private void Start() {
         btn = GetComponent<Button>();
         btn.onClick.AddListener(OnClick);
+    }
+
+    private void Update() {
+        if (done) SceneManager.LoadScene(0);
     }
 
     private void OnClick () {
@@ -35,19 +39,23 @@ public class RegisterHandler : MonoBehaviour {
         var resp = JsonUtility.FromJson<ServerResponse<RegisterResponse>>(req.downloadHandler.text);
 
         if (req.result != UnityWebRequest.Result.Success) {
-            var error = (resp.errors == null || resp.errors.Length == 0) ? "" : resp.errors[0];
-            alert.ShowAlert("Error: " + resp.message, error);
+            var error = (resp == null || resp.errors == null || resp.errors.Length == 0) ? "" : resp.errors[0];
+            var msg = resp == null ? "" : (resp.message == null ? "" : resp.message);
+            alert.ShowAlert("Error: " + msg, error == null ? "" : error);
+            req.Dispose();
             return;
         }
 
         if (!resp.status) {
             var error = (resp.errors == null || resp.errors.Length == 0) ? "" : resp.errors[0];
-            alert.ShowAlert("Error: " + resp.message, error);
+            var msg = resp == null ? "" : (resp.message == null ? "" : resp.message);
+            alert.ShowAlert("Error: " + msg, error == null ? "" : error);
+            req.Dispose();
             return;
         }
 
-        // Load game scene with obtained token
-        SceneManager.LoadScene(0);
+        req.Dispose();
+        done = true;
     }
 
     [Serializable]

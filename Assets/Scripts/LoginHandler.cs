@@ -12,10 +12,15 @@ public class LoginHandler : MonoBehaviour {
     public Alert alert;
     public TMP_InputField email;
     public TMP_InputField password;
+    private volatile bool done = false;
 
     private void Start() {
         btn = GetComponent<Button>();
         btn.onClick.AddListener(OnClick);
+    }
+
+    private void Update() {
+        if (done) SceneManager.LoadScene(3);
     }
 
     private void OnClick () {
@@ -33,19 +38,20 @@ public class LoginHandler : MonoBehaviour {
         var resp = JsonUtility.FromJson<ServerToken>(req.downloadHandler.text);
 
         if (req.responseCode != 200) {
-            alert.ShowAlert("Error: " + resp.message, resp.errors.Length > 0 ? resp.errors[0] : "");
+            alert.ShowAlert("Error: " + resp?.message ?? "", resp?.errors[0] ?? "");
+            req.Dispose();
             return;
         }
 
         if (!resp.status) {
-            alert.ShowAlert("Error: " + resp.message, resp.errors.Length > 0 ? resp.errors[0] : "");
+            alert.ShowAlert("Error: " + resp?.message ?? "", resp?.errors[0] ?? "");
+            req.Dispose();
             return;
         }
 
-        // Load game scene with obtained token
-        print(resp.token);
+        req.Dispose();
         GameSession.token = resp.token;
-        SceneManager.LoadScene(3);
+        done = true;
     }
 
     [Serializable]

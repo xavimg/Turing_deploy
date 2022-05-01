@@ -7,12 +7,15 @@ public class Movement : MonoBehaviour {
     public float speed;
     public float bulletForce;
     public GameObject bullet;
-    public Light light;
-    public Vector3 lightDelta;
+
+    private RemoteManager remote;
     private Rigidbody2D rb;
 
     void Start() {
-        rb = gameObject.GetComponent<Rigidbody2D>();
+        RenderSettings.ambientLight = Color.white;
+        RenderSettings.ambientIntensity = 100f;
+        rb = GetComponent<Rigidbody2D>();
+        remote = GetComponent<RemoteManager>();
     }
 
     void Update() {
@@ -35,7 +38,8 @@ public class Movement : MonoBehaviour {
     }
 
     void FixedUpdate() {
-        light.transform.position = gameObject.transform.position + lightDelta;
+        if (remote != null && gameObject.transform.hasChanged)
+            remote.UpdateSelf(new Vector2(gameObject.transform.position.x, gameObject.transform.position.y));
     }
 
     /* --- Utils --- */
@@ -47,7 +51,6 @@ public class Movement : MonoBehaviour {
 
     Quaternion GetRotation (float deg) {
         var rotation = Quaternion.AngleAxis(deg, Vector3.forward);
-        rotation *= Quaternion.AngleAxis(-deg, Vector3.right);
-        return rotation;
+        return rotation * Quaternion.AngleAxis(-deg, Vector3.right);
     }
 }
