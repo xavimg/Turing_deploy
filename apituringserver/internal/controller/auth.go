@@ -7,10 +7,12 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"sync"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"github.com/xavimg/Turing/apituringserver/internal/config"
 	"github.com/xavimg/Turing/apituringserver/internal/dto"
 	"github.com/xavimg/Turing/apituringserver/internal/entity"
@@ -80,24 +82,27 @@ func (c *authController) Login(context *gin.Context) {
 		v.Token = fmt.Sprintf("Bearer %v", generateToken)
 		c.authService.SaveToken(v, fmt.Sprintf("Bearer %v", generateToken))
 
-		_, err := json.Marshal(fmt.Sprintf("Bearer %v", generateToken))
-		if err != nil {
-			log.Println(err)
+		errEnv := godotenv.Load(".env")
+		if errEnv != nil {
+			log.Println("impossible get .env")
 		}
+		// Check .env file to change debug mode.
+		if os.Getenv("DEBUG_MODE") == "off" {
 
-		client := &http.Client{}
-		url := fmt.Sprintf("http://%v:%v/player/signin", urlAndreba, portAndreba)
-		req, err := http.NewRequest("POST", url, nil)
-		req.Header.Add("Authorization", fmt.Sprintf("Bearer %v", generateToken))
+			client := &http.Client{}
+			url := fmt.Sprintf("http://%v:%v/player/signin", urlAndreba, portAndreba)
+			req, err := http.NewRequest("POST", url, nil)
+			req.Header.Add("Authorization", fmt.Sprintf("Bearer %v", generateToken))
 
-		resp, err := client.Do(req)
-		if err != nil {
-			log.Println(err)
-			return
-		}
-		if resp.StatusCode != 200 {
-			log.Println("Something went wrong")
-			return
+			resp, err := client.Do(req)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			if resp.StatusCode != 200 {
+				log.Println("Something went wrong")
+				return
+			}
 		}
 
 		response := helper.BuildResponseSession(true, "User login successfully", generateToken)
@@ -146,15 +151,23 @@ func (c *authController) Register(context *gin.Context) {
 	if err != nil {
 		return
 	}
-	url := fmt.Sprintf("http://%v:%v/player/signup", urlAndreba, portAndreba)
 
-	resp, err := http.Post(url, "application/json", bytes.NewReader(json_data))
-	if err != nil {
-		c.authService.DeleteUser(createdUser.ID)
-		log.Println(err)
+	errEnv := godotenv.Load(".env")
+	if errEnv != nil {
+		log.Println("impossible get .env")
 	}
-	defer resp.Body.Close()
-	// Ending connection with Alex.
+	// Check .env file to change debug mode.
+	if os.Getenv("DEBUG_MODE") == "off" {
+
+		url := fmt.Sprintf("http://%v:%v/player/signup", urlAndreba, portAndreba)
+
+		resp, err := http.Post(url, "application/json", bytes.NewReader(json_data))
+		if err != nil {
+			c.authService.DeleteUser(createdUser.ID)
+			log.Println(err)
+		}
+		defer resp.Body.Close()
+	}
 
 	var routine sync.Mutex
 	routine.Lock()
@@ -162,9 +175,7 @@ func (c *authController) Register(context *gin.Context) {
 	routine.Unlock()
 
 	response := helper.BuildResponse(true, "Check your email !", createdUser)
-
 	context.JSON(http.StatusCreated, response)
-
 }
 
 // Logout godoc
