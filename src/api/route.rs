@@ -46,7 +46,6 @@ pub async fn resources () -> impl Responder {
 // IN API
 #[post("/player/signup")]
 pub async fn new_user (_: HttpRequest, body: web::Json<u64>) -> HttpResponse {
-    // TODO INTERNAL IP ONLY
     match Player::new(body.0, Alphanumeric.sample_string(&mut thread_rng(), 10)).await {
         Ok(Some(player)) => match PLAYERS.insert_one(player).await {
             Ok(_) => HttpResponse::Ok().finish(),

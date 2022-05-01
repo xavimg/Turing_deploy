@@ -1,4 +1,3 @@
-use std::str::FromStr;
 use std::{sync::Arc};
 use std::collections::{HashMap};
 use std::lazy::SyncLazy;
@@ -7,13 +6,14 @@ use actix::{Actor, StreamHandler, WrapFuture, ContextFutureSpawner, Addr, Handle
 use actix_web::{web, Result, HttpRequest, HttpResponse, get};
 use actix_web_actors::ws::{self, WsResponseBuilder};
 use bson::{doc, oid::ObjectId};
-use futures::StreamExt;
+use futures::{StreamExt, FutureExt};
 use llml::vec::EucVecd2;
+use serde::ser::{Error, SerializeMap};
 use serde::{Serialize, Deserialize};
 use serde::de::Visitor;
 use tokio::sync::RwLock;
 use actix::Message;
-use serde_json::{json, Value};
+use serde_json::{json};
 use crate::{CURRENT_LOGGER, decode_token, PLAYERS, Either, Logger, Player, PlayerLocation, Color, color_rgba};
 
 static SOCKETS : SyncLazy<RwLock<HashMap<ObjectId, Arc<Addr<WebSocket>>>>> = SyncLazy::new(|| RwLock::new(HashMap::new()));
@@ -26,7 +26,13 @@ struct WebSocket {
 
 #[derive(Debug)]
 enum WebSocketInput {
-    Update(Value)
+    Update(ClientPlayerUpdate)
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ClientPlayerUpdate {
+    system: Option<ObjectId>,
+    position: EucVecd2
 }
 
 impl<'de> Deserialize<'de> for WebSocketInput {
@@ -46,7 +52,7 @@ impl<'de> Deserialize<'de> for WebSocketInput {
                     if let Some(key) = map.next_key::<String>()? {
                         if key != "body" { return Err(<A::Error as serde::de::Error>::custom("Expected field 'body'")) }
                         return match id {
-                            0x00 => Ok(WebSocketInput::Update(map.next_value::<Value>()?)),
+                            0x00 => Ok(WebSocketInput::Update(map.next_value()?)),
                             _ => todo!()
                         }
                     }
@@ -67,7 +73,7 @@ impl TryFrom<ws::Message> for WebSocketInput {
         match value {
             ws::Message::Binary(bytes) => serde_json::from_reader(bytes.deref()),
             ws::Message::Text(text) => serde_json::from_str(&text),
-            _ => todo!()
+            other => Err(serde_json::Error::custom(format!("Expected binary or text message, got {:?}", other)))
         }
     }
 }
@@ -75,36 +81,58 @@ impl TryFrom<ws::Message> for WebSocketInput {
 /// Handler for ws::Message
 impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WebSocket {
     fn handle(&mut self, msg: Result<ws::Message, ws::ProtocolError>, ctx: &mut Self::Context) {
+        println!("{msg:?}");
+
         if let Ok(msg) = msg {
+            if let ws::Message::Ping(b) = msg {
+                ctx.pong(&b);
+                return;
+            }
+
+            if let ws::Message::Close(reason) = msg {
+                let id = self.player;
+                let fut = async move {
+                    let mut lock = SOCKETS.write().await;
+                    lock.remove(&id);
+                };
+
+                let actor = fut.into_actor(self);
+                actor.spawn(ctx);
+                ctx.close(reason);
+                return;
+            }
+
             match WebSocketInput::try_from(msg) {
                 Ok(WebSocketInput::Update(location)) => {
-                    let id = self.player.clone();
+                    let update = match location.system {
+                        Some(ref id) => doc! { "system": id, "position": bson::to_bson(&location.position).unwrap() },
+                        None => doc! { "position": bson::to_bson(&location.position).unwrap() }
+                    };
+
+                    let id = self.player;
                     let fut = async move {
-                        let bson = bson::to_bson(&location).unwrap();
-                        match PLAYERS.update_one(doc! { "_id": id }, move |x| x.id == id, doc! { "$set": { "location": bson } }).await {
-                            Ok(Some(_)) => {
-                                CURRENT_LOGGER.log_info("Successfull change").await;
-
-                                let system = ObjectId::from_str(location["system"]["$oid"].as_str().unwrap()).unwrap();
-                                let position = &location["position"];
-                                let position = EucVecd2::new([position["x"].as_f64().unwrap(), position["y"].as_f64().unwrap()]);
-
-                                let payload = PlayerMoved {
-                                    player: id,
-                                    position
+                        match PLAYERS.update_one(doc! { "_id": id }, move |x| x.id == id, doc! { "$set": update }).await {
+                            Ok(Some(result)) => {
+                                tokio::spawn(CURRENT_LOGGER.log_info(format!("Successfull update for player {}", id)));
+                                let player_moved = PlayerMoved {
+                                    player: result.id,
+                                    position: result.location
                                 };
 
-                                let mut players = PLAYERS.find_many(doc! { "location.system": system }, move |x| x.location.system == system, None);
-                                let lock = SOCKETS.read().await;
-
-                                while let Some(player) = players.next().await {
-                                    if let Some(addr) = lock.get(&player.id) {
-                                        let addr = addr.clone();
-                                        tokio::spawn(addr.send(payload));
-                                    }
-                                }
+                                PLAYERS
+                                    .find_many(doc! { "location.system": result.location.system, "_id": { "$ne": result.id } }, move |x| x.id != result.id && x.location.system == result.location.system, None)
+                                    .for_each_concurrent(None, |x| async move {
+                                        if let Some(addr) = SOCKETS.read().await.get(&x.id) {
+                                            match addr.send(player_moved).await {
+                                                Ok(_) => CURRENT_LOGGER.log_info(format!("Sent player moved to {}", x.id)),
+                                                Err(e) => CURRENT_LOGGER.log_error(format!("Failed to send player moved to {}: {}", x.id, e))
+                                            };
+                                        }
+                                    }).await;
                             },
-                            x => panic!("{x:?}")
+
+                            Ok(None) => CURRENT_LOGGER.log_warning(format!("Failed to find player {}", id)).await,
+                            Err(e) => CURRENT_LOGGER.log_error(format!("Error moving player: {e}")).await
                         }
                     };
 
@@ -114,18 +142,32 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WebSocket {
 
                 x => panic!("{x:?}")
             }
+            return;
         }
 
         // Nothing
+        let actor = CURRENT_LOGGER.log_warning(format!("{msg:?}")).map(|_| ()).into_actor(self);
+        actor.spawn(ctx);
     }
 }
 
 /// Player displacement update
-#[derive(Clone, Copy, Message, Serialize)]
+#[derive(Clone, Copy, Serialize, Message)]
 #[rtype(result = "()")]
 pub struct PlayerMoved {
+    #[serde(with = "crate::utils::objectid_hex")]
     pub player: ObjectId,
-    pub position: EucVecd2
+    pub position: PlayerLocation
+}
+
+#[test]
+fn test () {
+    let update = PlayerMoved {
+        player: ObjectId::default(),
+        position: PlayerLocation { system: ObjectId::default(), position: EucVecd2::default() }
+    };
+
+    panic!("{:?}", serde_json::to_string(&update));
 }
 
 impl Handler<PlayerMoved> for WebSocket {
@@ -146,7 +188,6 @@ impl Handler<PlayerMoved> for WebSocket {
 #[derive(Debug, Clone, Message, Serialize)]
 #[rtype(result = "()")]
 pub struct NewPlayer {
-    #[serde(rename = "_id")]
     pub id: ObjectId,
     pub name: String,
     pub location: PlayerLocation,
@@ -194,9 +235,7 @@ pub async fn start_connection (req: HttpRequest, payload: web::Payload) -> Resul
             });
 
             // Notify players in same system about new user
-            // TODO spawn on tokio
-            PLAYERS.find_many(doc! { "location.system": player.location.system }, move |x| x.location.system == player.location.system, None).for_each_concurrent(None, |player: Arc<Player>| async move {
-                if player.id == id { return; }
+            PLAYERS.find_many(doc! { "_id": { "$ne": id }, "location.system": player.location.system }, move |x| x.id != id && x.location.system == player.location.system, None).for_each_concurrent(None, |player| async move {
                 let new_player = NewPlayer {
                     id: player.id,
                     name: player.name.clone(),

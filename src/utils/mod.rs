@@ -1,8 +1,7 @@
 flat_mod!(logger, color, math, serdex, array_map, take_out, randx, durationx, streamx);
-
 use std::{ops::{Deref, DerefMut}, fmt::Display};
-
 use actix_web::ResponseError;
+
 pub type LeftRight<T> = Either<T,T>;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -100,4 +99,20 @@ impl<A: ResponseError, B: ResponseError> ResponseError for Either<A,B> {}
 pub unsafe fn upgrade<T> (ptr: &T) -> &mut T {
     let ptr = ptr as *const T as *mut T;
     &mut *ptr
+}
+
+pub mod objectid_hex {
+    use bson::oid::ObjectId;
+    use serde::{Serializer, Deserializer, Deserialize};
+
+    #[inline(always)]
+    pub fn serialize<S: Serializer> (value: &ObjectId, ser: S) -> Result<S::Ok, S::Error> {
+        ser.serialize_str(&value.to_hex())
+    }
+
+    #[inline(always)]
+    pub fn deserialize<'a, D: Deserializer<'a>> (deser: D) -> Result<ObjectId, D::Error> {
+        let hex = String::deserialize(deser)?;
+        ObjectId::parse_str(hex).map_err(|e| <D::Error as serde::de::Error>::custom(e))
+    }
 }

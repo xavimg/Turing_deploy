@@ -11,7 +11,7 @@
 ### Player Update (0x00)
 ```json
 {
-    "system": objectId,
+    "system": objectId?,
     "position": {
         "x": double,
         "y": double
@@ -34,7 +34,7 @@
 ### New Player (0x11)
 ```json
 {
-    "_id": objectId,
+    "id": objectId,
     "name": string,
     "location": {
         "system": ObjectId,
