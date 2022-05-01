@@ -10,6 +10,7 @@ import (
 )
 
 type AdminService interface {
+	CreateAdmin(admin dto.RegisterDTO) entity.User
 	ListAllUsers() []entity.User
 	ListAllUsersByActive() []entity.User
 	ListAllUsersByTypeAdmin() []entity.User
@@ -27,6 +28,19 @@ func NewAdminService(adminRepo repository.AdminRepository) AdminService {
 	return &adminService{
 		adminRepository: adminRepo,
 	}
+}
+
+func (service *adminService) CreateAdmin(user dto.RegisterDTO) entity.User {
+	adminToCreate := entity.User{}
+
+	err := smapping.FillStruct(&adminToCreate, smapping.MapFields(&user))
+	if err != nil {
+		log.Fatalf("Failed map %v", err)
+	}
+
+	res := service.adminRepository.InsertAdmin(adminToCreate)
+
+	return res
 }
 
 func (service *adminService) ListAllUsers() []entity.User {

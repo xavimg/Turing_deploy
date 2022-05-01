@@ -6,8 +6,7 @@ import (
 )
 
 type AdminRepository interface {
-	// RegisterAdmin(name, email, password string)
-	// LoginAdmin(email string, password string)
+	InsertAdmin(admin entity.User) entity.User
 	ListAllUsers() []entity.User
 	ListAllUsersByActive() []entity.User
 	ListAllUsersByTypeAdmin() []entity.User
@@ -24,6 +23,15 @@ type adminConnection struct {
 func NewAdminRepository(dbConn *gorm.DB) AdminRepository {
 	return &adminConnection{
 		connection: dbConn}
+}
+
+func (db *adminConnection) InsertAdmin(user entity.User) entity.User {
+	user.Password = hashAndSalt([]byte(user.Password))
+	user.TypeUser = "admin"
+
+	db.connection.Create(&user)
+
+	return user
 }
 
 func (db *adminConnection) ListAllUsers() []entity.User {

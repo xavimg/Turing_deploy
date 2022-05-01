@@ -59,7 +59,6 @@ func NewAuthController(authService service.AuthService, jwtService service.JWTSe
 // @Failure      500 "internal server error"
 // @Router       /api/auth/login [post]
 func (c *authController) Login(context *gin.Context) {
-
 	var loginDTO dto.LoginDTO
 
 	// validation from request
@@ -80,7 +79,7 @@ func (c *authController) Login(context *gin.Context) {
 
 		generateToken := c.jwtService.GenerateTokenLogin(v.ID)
 		v.Token = fmt.Sprintf("Bearer %v", generateToken)
-		c.authService.SaveToken(v, fmt.Sprintf("Bearer %v", generateToken))
+		c.authService.SaveToken(v, v.Token)
 
 		errEnv := godotenv.Load(".env")
 		if errEnv != nil {
@@ -88,7 +87,6 @@ func (c *authController) Login(context *gin.Context) {
 		}
 		// Check .env file to change debug mode.
 		if os.Getenv("DEBUG_MODE") == "off" {
-
 			client := &http.Client{}
 			url := fmt.Sprintf("http://%v:%v/player/signin", urlAndreba, portAndreba)
 			req, err := http.NewRequest("POST", url, nil)
@@ -158,7 +156,6 @@ func (c *authController) Register(context *gin.Context) {
 	}
 	// Check .env file to change debug mode.
 	if os.Getenv("DEBUG_MODE") == "off" {
-
 		url := fmt.Sprintf("http://%v:%v/player/signup", urlAndreba, portAndreba)
 
 		resp, err := http.Post(url, "application/json", bytes.NewReader(json_data))
@@ -188,7 +185,6 @@ func (c *authController) Register(context *gin.Context) {
 // @Failure      500 "internal server error"
 // @Router       /api/auth/logout [post]
 func (c *authController) Logout(ctx *gin.Context) {
-
 	id := ctx.Param("id")
 
 	authResult := c.authService.VerifyUserExist(id)

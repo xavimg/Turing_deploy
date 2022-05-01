@@ -88,6 +88,42 @@
                 }
             }
         },
+        "/api/admin/register": {
+            "post": {
+                "description": "entering system as admin.",
+                "tags": [
+                    "Admin"
+                ],
+                "parameters": [
+                    {
+                        "description": "Body to register",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.LoginDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "body"
+                        }
+                    },
+                    "500": {
+                        "description": "internal server error"
+                    }
+                }
+            }
+        },
         "/api/admin/unban/{id}": {
             "put": {
                 "description": "Admin unban user.",
@@ -106,6 +142,40 @@
                         "type": "string",
                         "description": "ID from query",
                         "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "body"
+                        }
+                    },
+                    "500": {
+                        "description": "internal server error"
+                    }
+                }
+            }
+        },
+        "/api/admin/users/:typeUser": {
+            "get": {
+                "description": "List users depending on param.",
+                "tags": [
+                    "Admin"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "typeUser from query",
+                        "name": "typeUser",
                         "in": "path",
                         "required": true
                     }
@@ -438,6 +508,9 @@
                 "password"
             ],
             "properties": {
+                "code_verify": {
+                    "type": "integer"
+                },
                 "email": {
                     "type": "string"
                 },

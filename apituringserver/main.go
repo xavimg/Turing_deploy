@@ -68,10 +68,9 @@ func main() {
 		userRoutes.DELETE("/profile/:id", userController.DeleteAccount)
 	}
 
-	adminRoutes := r.Group("api/admin" /*, middleware.CheckRole(userService*)*/)
+	adminRoutes := r.Group("api/admin" /*, middleware.CheckRole(userService)*/)
 	{
-		// TO-DO //
-		// REGISTER.
+		adminRoutes.POST("/register", adminController.AdminRegister)
 		adminRoutes.POST("/login", adminController.AdminLogin)
 		adminRoutes.GET("/users/:typeUser", adminController.ListAllUsersByParameter)
 		adminRoutes.PUT("/ban/:id", adminController.BanUser)

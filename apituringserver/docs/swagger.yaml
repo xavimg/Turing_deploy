@@ -33,6 +33,8 @@ definitions:
     type: object
   dto.RegisterDTO:
     properties:
+      code_verify:
+        type: integer
       email:
         type: string
       name:
@@ -125,6 +127,29 @@ paths:
           description: internal server error
       tags:
       - Admin
+  /api/admin/register:
+    post:
+      description: entering system as admin.
+      parameters:
+      - description: Body to register
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginDTO'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            type: body
+        "500":
+          description: internal server error
+      tags:
+      - Admin
   /api/admin/unban/{id}:
     put:
       description: Admin unban user.
@@ -137,6 +162,28 @@ paths:
       - description: ID from query
         in: path
         name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            type: body
+        "500":
+          description: internal server error
+      tags:
+      - Admin
+  /api/admin/users/:typeUser:
+    get:
+      description: List users depending on param.
+      parameters:
+      - description: typeUser from query
+        in: path
+        name: typeUser
         required: true
         type: string
       responses:

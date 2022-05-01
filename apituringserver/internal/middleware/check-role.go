@@ -29,7 +29,7 @@ func CheckRole(checkRole service.UserService) gin.HandlerFunc {
 		id := claims["user_id"]
 
 		typeUser := checkRole.CheckRole(id)
-		if typeUser != "super-admin" {
+		if typeUser != "admin" {
 			log.Println("not allowed")
 			return
 		}

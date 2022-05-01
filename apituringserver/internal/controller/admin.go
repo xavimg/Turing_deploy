@@ -3,6 +3,7 @@ package controller
 import (
 	"fmt"
 	"net/http"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 	"github.com/xavimg/Turing/apituringserver/internal/dto"
@@ -12,6 +13,7 @@ import (
 )
 
 type AdminController interface {
+	AdminRegister(ctx *gin.Context)
 	AdminLogin(ctx *gin.Context)
 	ListAllUsersByParameter(ctx *gin.Context)
 	BanUser(ctx *gin.Context)
@@ -33,6 +35,56 @@ func NewAdminController(adminService service.AdminService, authService service.A
 	}
 }
 
+// Register for admin
+// @Title AdminRegister
+// @Description  Register to the server as a new admin.
+// @Param request body dto.RegisterDTO true "Body to register"
+// @Tags Auth
+// @Success      200 {object} helper.Response
+// @Failure      400 body is empty or missing param
+// @Failure      500 "internal server error"
+// @Router       /api/admin/register [post]
+func (c *adminController) AdminRegister(context *gin.Context) {
+	var registerDTO dto.RegisterDTO
+
+	if errDTO := context.ShouldBind(&registerDTO); errDTO != nil {
+		response := helper.BuildErrorResponse("User register failed", errDTO.Error(), helper.EmptyObj{})
+		context.AbortWithStatusJSON(http.StatusBadRequest, response)
+		return
+	}
+
+	if !c.authService.IsDuplicateEmail(registerDTO.Email) {
+		response := helper.BuildErrorResponse("User register failed", "Duplicate email", helper.EmptyObj{})
+		context.JSON(http.StatusConflict, response)
+		return
+	}
+
+	getCode := service.SendEmailCodeVerify(registerDTO.Name, registerDTO.Email)
+	registerDTO.CodeVerify = getCode
+
+	createdUser := c.adminService.CreateAdmin(registerDTO)
+
+	token := c.jwtService.GenerateTokenRegister(createdUser.ID)
+	createdUser.Token = fmt.Sprintf("Bearer %v", token)
+
+	var routine sync.Mutex
+	routine.Lock()
+	go service.SendEmail(registerDTO.Name, registerDTO.Email)
+	routine.Unlock()
+
+	response := helper.BuildResponse(true, "Check your email !", createdUser)
+	context.JSON(http.StatusCreated, response)
+}
+
+// Login as admin
+// @Title AdminLogin
+// @Description entering system as admin.
+// @Param request body dto.LoginDTO true "Body to register"
+// @Tags Admin
+// @Success      200 {object} helper.Response
+// @Failure      400 body is empty or missing param
+// @Failure      500 "internal server error"
+// @Router       /api/admin/register [post]
 func (c *adminController) AdminLogin(context *gin.Context) {
 	var loginDTO dto.LoginDTO
 	if errDTO := context.ShouldBindJSON(&loginDTO); errDTO != nil {
@@ -62,6 +114,15 @@ func (c *adminController) AdminLogin(context *gin.Context) {
 
 }
 
+// Listing Users by param godoc
+// @Title Listing users
+// @Description  List users depending on param.
+// @Param typeUser path string true "typeUser from query"
+// @Tags Admin
+// @Success      200 {object} helper.Response
+// @Failure      400 body is empty or missing param
+// @Failure      500 "internal server error"
+// @Router       /api/admin/users/:typeUser [get]
 func (c *adminController) ListAllUsersByParameter(ctx *gin.Context) {
 	tUser := ctx.Param("typeUser")
 	var users []entity.User

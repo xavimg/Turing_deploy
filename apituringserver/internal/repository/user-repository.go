@@ -11,6 +11,7 @@ import (
 
 // UserRepository is a contract what UserRepository can do to db.
 type UserRepository interface {
+	InsertAdmin(admin entity.User) entity.User
 	InsertUser(user entity.User) entity.User
 	UpdateUser(user entity.User, userID string, newInfo dto.UserUpdateDTO) entity.User
 	VerifyCredential(email, password string) interface{}
@@ -37,11 +38,19 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 	}
 }
 
+func (db *userConnection) InsertAdmin(user entity.User) entity.User {
+	user.Password = hashAndSalt([]byte(user.Password))
+	user.TypeUser = "admin"
+
+	db.connection.Create(&user)
+
+	return user
+}
+
 func (db *userConnection) InsertUser(user entity.User) entity.User {
 	user.Password = hashAndSalt([]byte(user.Password))
 
 	db.connection.Create(&user)
-	//db.connection.Preload("Characters").Find(&user)
 
 	return user
 }
