@@ -39,11 +39,16 @@ public class RemoteManager : MonoBehaviour {
 
             switch (id) {
                 case 0x10: // Player update
+                    print("Player update");
                     UpdatePlayer(JsonUtility.FromJson<WebSocketBody<PlayerUpdate>>(message).body);
                     break;
 
                 case 0x11: // New player
                     AddNewPlayer(JsonUtility.FromJson<WebSocketBody<NewPlayer>>(message).body);
+                    break;
+
+                case 0x12: // Current status
+                    GetCurrentStatus(JsonUtility.FromJson<WebSocketBody<CurrentStatus>>(message).body);
                     break;
             };
         };
@@ -63,16 +68,28 @@ public class RemoteManager : MonoBehaviour {
         #endif
     }
 
+    void GetCurrentStatus (CurrentStatus body) {
+        gameObject.transform.position = new Vector3(body.position.x, body.position.y, -4);
+        foreach (NewPlayer player in body.players) {
+            AddNewPlayer(player);
+        }
+    }
+
     void AddNewPlayer (NewPlayer body) {
         var external = Instantiate(this.external, new Vector3(body.location.position.x, body.location.position.y, -4), Quaternion.identity); ;
+        external.AddComponent<ExternalManager>();
         var component = external.GetComponent<ExternalManager>();
-        lock (remotes) remotes.Add(body.id, component);
+
+        // TODO lock
+        if (!remotes.TryAdd(body.id, component)) {
+            remotes[body.id] = component;
+        }
     }
 
     void UpdatePlayer (PlayerUpdate body) {
-        ExternalManager? player;
-        lock (remotes) player = remotes[body.player];
-        player?.MoveTo(body.position);
+        ExternalManager player = remotes[body.player];
+        print(player + ": " + body.position.position);
+        player.MoveTo(body.position.position);
     }
 
     public async void UpdateSelf (Vector2 position) {
@@ -83,7 +100,6 @@ public class RemoteManager : MonoBehaviour {
     }
 
     private async void OnApplicationQuit() {
-        if (ws != null)
-            await ws.Close();
+        if (ws != null) await ws.Close();
     }
 }

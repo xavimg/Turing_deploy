@@ -57,9 +57,16 @@ namespace WebSocketUtils {
     }
 
     [Serializable]
+    public class CurrentStatus {
+        public string system;
+        public Vector2 position;
+        public NewPlayer[] players;
+    }
+
+    [Serializable]
     public class PlayerUpdate {
         public string player;
-        public Vector2 position;
+        public PlayerLocation position;
     }
 
     [Serializable]
