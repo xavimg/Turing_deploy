@@ -6,15 +6,17 @@ use actix::{Actor, StreamHandler, WrapFuture, ContextFutureSpawner, Addr, Handle
 use actix_web::{web, Result, HttpRequest, HttpResponse, get};
 use actix_web_actors::ws::{self, WsResponseBuilder};
 use bson::{doc, oid::ObjectId};
+use chrono::{DateTime, Utc};
 use futures::{StreamExt, FutureExt};
 use llml::vec::EucVecd2;
-use serde::ser::{Error, SerializeMap};
+use serde::ser::{Error};
 use serde::{Serialize, Deserialize};
 use serde::de::Visitor;
 use tokio::sync::RwLock;
 use actix::Message;
 use serde_json::{json};
-use crate::{CURRENT_LOGGER, decode_token, PLAYERS, Either, Logger, Player, PlayerLocation, Color, color_rgba, decode_token_str, TokenError};
+use crate::{CURRENT_LOGGER, decode_token, PLAYERS, Either, Logger, Player, PlayerLocation, Color, color_rgba};
+use chrono::serde::ts_milliseconds;
 
 static SOCKETS : SyncLazy<RwLock<HashMap<ObjectId, Arc<Addr<WebSocket>>>>> = SyncLazy::new(|| RwLock::new(HashMap::new()));
 
@@ -32,6 +34,9 @@ enum WebSocketInput {
 #[derive(Debug, Deserialize)]
 pub struct ClientPlayerUpdate {
     system: Option<ObjectId>,
+    dir: f32,
+    #[serde(with = "ts_milliseconds")]
+    at: DateTime<Utc>,
     position: EucVecd2
 }
 
@@ -108,12 +113,17 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WebSocket {
                     };
 
                     let id = self.player;
+                    let dir = location.dir;
+                    let at = location.at;
+
                     let fut = async move {
                         match PLAYERS.update_one(doc! { "_id": id }, move |x| x.id == id, doc! { "$set": update }).await {
                             Ok(Some(result)) => {
                                 tokio::spawn(CURRENT_LOGGER.log_info(format!("Successfull update for player {}", id)));
                                 let player_moved = PlayerMoved {
                                     player: result.id,
+                                    dir,
+                                    at,
                                     position: result.location
                                 };
 
@@ -180,6 +190,9 @@ impl Handler<CurrentStatus> for WebSocket {
 pub struct PlayerMoved {
     #[serde(with = "crate::utils::objectid_hex")]
     pub player: ObjectId,
+    pub dir: f32,
+    #[serde(with = "ts_milliseconds")]
+    pub at: DateTime<Utc>,
     pub position: PlayerLocation
 }
 
@@ -257,15 +270,9 @@ pub async fn start_connection (req: HttpRequest, payload: web::Payload) -> Resul
             // Get current planetary system info and send it to new player
             // and notify players in same system about new user
             let current = PLAYERS.find_many(doc! { "_id": { "$ne": id }, "location.system": system }, move |x| x.id != id && x.location.system == system, None).filter_map(|other| async {              
-                if let Some(ref token) = other.token {
-                    match decode_token_str(token) {
-                        Err(_) => { 
-                            let id = other.id;
-                            tokio::spawn(PLAYERS.update_one(doc! { "_id": id }, move |x| x.id == id, doc! { "token": core::option::Option::<String>::None }));
-                            return None;
-                        },
-                        _ => {}
-                    }
+                let sockets = SOCKETS.read().await;
+                if !sockets.contains_key(&other.id) {
+                    return None
                 }
                 
                 let other_player = NewPlayer {

@@ -12,6 +12,8 @@
 ```json
 {
     "system": objectId?,
+    "dir": float, // degrees
+    "at": ulong, // fimestamp
     "position": {
         "x": double,
         "y": double
