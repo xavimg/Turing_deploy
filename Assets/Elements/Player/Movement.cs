@@ -10,6 +10,7 @@ public class Movement : MonoBehaviour {
 
     private RemoteManager remote;
     private Rigidbody2D rb;
+    private float dir;
 
     void Start() {
         RenderSettings.ambientLight = Color.white;
@@ -23,7 +24,8 @@ public class Movement : MonoBehaviour {
 
         // Movement
         if (Input.GetMouseButton(0)) {
-            gameObject.transform.rotation = GetRotation(Mathf.Rad2Deg * Mathf.Atan2(dir.y, dir.x));
+            this.dir = Mathf.Rad2Deg * Mathf.Atan2(dir.y, dir.x);
+            gameObject.transform.rotation = GetRotation(this.dir);
             rb.velocity = dir * speed;
         } else {
             rb.velocity = Vector2.zero;
@@ -39,7 +41,7 @@ public class Movement : MonoBehaviour {
 
     void FixedUpdate() {
         if (remote != null && gameObject.transform.hasChanged)
-            remote.UpdateSelf(new Vector2(gameObject.transform.position.x, gameObject.transform.position.y));
+            remote.UpdateSelf(this.dir, new Vector2(gameObject.transform.position.x, gameObject.transform.position.y));
     }
 
     /* --- Utils --- */

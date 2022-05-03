@@ -39,7 +39,6 @@ public class RemoteManager : MonoBehaviour {
 
             switch (id) {
                 case 0x10: // Player update
-                    print("Player update");
                     UpdatePlayer(JsonUtility.FromJson<WebSocketBody<PlayerUpdate>>(message).body);
                     break;
 
@@ -88,13 +87,14 @@ public class RemoteManager : MonoBehaviour {
 
     void UpdatePlayer (PlayerUpdate body) {
         ExternalManager player = remotes[body.player];
-        print(player + ": " + body.position.position);
-        player.MoveTo(body.position.position);
+        lock (player) {
+            player.MoveTo(body);
+        }
     }
 
-    public async void UpdateSelf (Vector2 position) {
+    public async void UpdateSelf (float dir, Vector2 position) {
         if (ws.State == WebSocketState.Open) {
-            var body = new WebSocketBody<SendUpdate>(0x00, new SendUpdate(position));
+            var body = new WebSocketBody<SendUpdate>(0x00, new SendUpdate(dir, position));
             await ws.SendText(JsonUtility.ToJson(body));
         }
     }

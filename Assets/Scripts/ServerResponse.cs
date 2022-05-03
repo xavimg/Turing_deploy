@@ -49,10 +49,16 @@ namespace WebSocketUtils {
 
     [Serializable]
     public class SendUpdate {
+        public float dir; // degrees
+        public long at; // milliseconds
         public Vector2 position;
 
-        public SendUpdate (Vector2 position) {
+        public SendUpdate (float dir, Vector2 position) {
+            this.dir = dir;
             this.position = position;
+
+            var now = (DateTimeOffset)DateTime.Now;
+            at = now.ToUnixTimeMilliseconds();
         }
     }
 
@@ -66,6 +72,8 @@ namespace WebSocketUtils {
     [Serializable]
     public class PlayerUpdate {
         public string player;
+        public float dir; // degrees
+        public long at; // milliseconds
         public PlayerLocation position;
     }
 
