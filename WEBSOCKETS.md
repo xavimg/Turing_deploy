@@ -46,3 +46,28 @@
     "color": uint
 }
 ```
+
+### Current status (0x12)
+```json
+{
+    "system": objectId,
+    "position": {
+        "x": double,
+        "y": double
+    },
+    "players": [
+        {
+            "id": objectId,
+            "name": string,
+            "location": {
+                "system": ObjectId,
+                "position": {
+                    "x": double,
+                    "y": double
+                }
+            },
+            "color": uint
+        }
+    ]
+}
+```

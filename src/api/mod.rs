@@ -52,6 +52,21 @@ pub fn decode_token (req: &HttpRequest) -> Result<(String, TokenData<PlayerToken
     Err(TokenError::TokenNotFound)
 }
 
+pub fn decode_token_str (str: &str) -> Result<TokenData<PlayerTokenLoged>, TokenError> {
+    let token = decode::<PlayerTokenLoged>(str, &JWT_KEY, &Validation::default()).map_err(|e| TokenError::JWT(e))?;
+    let now = Utc::now();
+
+    if token.claims.issued_at >= token.claims.expiration_date {
+        return Err(TokenError::TokenExpiredBeforeIssued { issued: token.claims.issued_at, expired: token.claims.expiration_date })
+    } else if token.claims.issued_at > now {
+        return Err(TokenError::TokenInFuture(token.claims.issued_at))
+    } else if token.claims.expiration_date <= now {
+        return Err(TokenError::TokenExpired(token.claims.expiration_date))
+    }
+
+    Ok(token)
+}
+
 #[derive(Debug, PartialEq, Eq)]
 pub enum TokenError {
     JWT(jsonwebtoken::errors::Error),

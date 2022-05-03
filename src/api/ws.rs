@@ -14,7 +14,7 @@ use serde::de::Visitor;
 use tokio::sync::RwLock;
 use actix::Message;
 use serde_json::{json};
-use crate::{CURRENT_LOGGER, decode_token, PLAYERS, Either, Logger, Player, PlayerLocation, Color, color_rgba};
+use crate::{CURRENT_LOGGER, decode_token, PLAYERS, Either, Logger, Player, PlayerLocation, Color, color_rgba, decode_token_str, TokenError};
 
 static SOCKETS : SyncLazy<RwLock<HashMap<ObjectId, Arc<Addr<WebSocket>>>>> = SyncLazy::new(|| RwLock::new(HashMap::new()));
 
@@ -81,8 +81,6 @@ impl TryFrom<ws::Message> for WebSocketInput {
 /// Handler for ws::Message
 impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WebSocket {
     fn handle(&mut self, msg: Result<ws::Message, ws::ProtocolError>, ctx: &mut Self::Context) {
-        println!("{msg:?}");
-
         if let Ok(msg) = msg {
             if let ws::Message::Ping(b) = msg {
                 ctx.pong(&b);
@@ -105,8 +103,8 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WebSocket {
             match WebSocketInput::try_from(msg) {
                 Ok(WebSocketInput::Update(location)) => {
                     let update = match location.system {
-                        Some(ref id) => doc! { "system": id, "position": bson::to_bson(&location.position).unwrap() },
-                        None => doc! { "position": bson::to_bson(&location.position).unwrap() }
+                        Some(ref id) => doc! { "location.system": id, "location.position": bson::to_bson(&location.position).unwrap() },
+                        None => doc! { "location.position": bson::to_bson(&location.position).unwrap() }
                     };
 
                     let id = self.player;
@@ -123,16 +121,17 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WebSocket {
                                     .find_many(doc! { "location.system": result.location.system, "_id": { "$ne": result.id } }, move |x| x.id != result.id && x.location.system == result.location.system, None)
                                     .for_each_concurrent(None, |x| async move {
                                         if let Some(addr) = SOCKETS.read().await.get(&x.id) {
-                                            match addr.send(player_moved).await {
+                                            tokio::spawn(addr.send(player_moved));
+                                            /*match addr.send(player_moved).await {
                                                 Ok(_) => CURRENT_LOGGER.log_info(format!("Sent player moved to {}", x.id)),
                                                 Err(e) => CURRENT_LOGGER.log_error(format!("Failed to send player moved to {}: {}", x.id, e))
-                                            };
+                                            };*/
                                         }
                                     }).await;
                             },
 
-                            Ok(None) => CURRENT_LOGGER.log_warning(format!("Failed to find player {}", id)).await,
-                            Err(e) => CURRENT_LOGGER.log_error(format!("Error moving player: {e}")).await
+                            Ok(None) => { CURRENT_LOGGER.log_warning(format!("Failed to find player {}", id)).await; },
+                            Err(e) => { CURRENT_LOGGER.log_error(format!("Error moving player: {e}")).await; }
                         }
                     };
 
@@ -151,6 +150,30 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WebSocket {
     }
 }
 
+/// Status information for newly connected player
+#[derive(Clone, Serialize, Message)]
+#[rtype(result = "()")]
+pub struct CurrentStatus {
+    #[serde(with = "crate::utils::objectid_hex")]
+    pub system: ObjectId,
+    pub position: EucVecd2,
+    pub players: Vec<NewPlayer>
+}
+
+impl Handler<CurrentStatus> for WebSocket {
+    type Result = ();
+
+    #[inline]
+    fn handle(&mut self, msg: CurrentStatus, ctx: &mut Self::Context) -> Self::Result {
+        let body = json!({
+            "id": 0x12u8,
+             "body": msg
+         });
+
+        ctx.binary(serde_json::to_vec(&body).unwrap())
+    }
+}
+
 /// Player displacement update
 #[derive(Clone, Copy, Serialize, Message)]
 #[rtype(result = "()")]
@@ -158,16 +181,6 @@ pub struct PlayerMoved {
     #[serde(with = "crate::utils::objectid_hex")]
     pub player: ObjectId,
     pub position: PlayerLocation
-}
-
-#[test]
-fn test () {
-    let update = PlayerMoved {
-        player: ObjectId::default(),
-        position: PlayerLocation { system: ObjectId::default(), position: EucVecd2::default() }
-    };
-
-    panic!("{:?}", serde_json::to_string(&update));
 }
 
 impl Handler<PlayerMoved> for WebSocket {
@@ -188,6 +201,7 @@ impl Handler<PlayerMoved> for WebSocket {
 #[derive(Debug, Clone, Message, Serialize)]
 #[rtype(result = "()")]
 pub struct NewPlayer {
+    #[serde(with = "crate::utils::objectid_hex")]
     pub id: ObjectId,
     pub name: String,
     pub location: PlayerLocation,
@@ -224,8 +238,10 @@ pub async fn start_connection (req: HttpRequest, payload: web::Payload) -> Resul
         Ok(Some(player)) => {
             let actor = WebSocket { player: player.id };
             let builder = WsResponseBuilder::new(actor, &req, payload);
+
             let (addr, resp) = builder.start_with_addr()?;
             let addr = Arc::new(addr);
+            let addr2 = addr.clone();
 
             // Add address to socket map
             let id = player.id;
@@ -234,23 +250,58 @@ pub async fn start_connection (req: HttpRequest, payload: web::Payload) -> Resul
                 lock.insert(id, addr);
             });
 
-            // Notify players in same system about new user
-            PLAYERS.find_many(doc! { "_id": { "$ne": id }, "location.system": player.location.system }, move |x| x.id != id && x.location.system == player.location.system, None).for_each_concurrent(None, |player| async move {
-                let new_player = NewPlayer {
+            let id = player.id;
+            let system = player.location.system;
+            let player2 = player.clone();
+
+            // Get current planetary system info and send it to new player
+            // and notify players in same system about new user
+            let current = PLAYERS.find_many(doc! { "_id": { "$ne": id }, "location.system": system }, move |x| x.id != id && x.location.system == system, None).filter_map(|other| async {              
+                if let Some(ref token) = other.token {
+                    match decode_token_str(token) {
+                        Err(_) => { 
+                            let id = other.id;
+                            tokio::spawn(PLAYERS.update_one(doc! { "_id": id }, move |x| x.id == id, doc! { "token": core::option::Option::<String>::None }));
+                            return None;
+                        },
+                        _ => {}
+                    }
+                }
+                
+                let other_player = NewPlayer {
+                    id: other.id,
+                    name: other.name.to_string(),
+                    location: other.location,
+                    color: Color::clone(&other.color)
+                };
+                
+                let player_info = NewPlayer {
                     id: player.id,
                     name: player.name.clone(),
                     location: player.location.clone(),
                     color: player.color.clone()
                 };
 
-                let lock = SOCKETS.read().await;
-                if let Some(addr) = lock.get(&player.id) {
-                    let addr = addr.clone();
-                    CURRENT_LOGGER.log_info("Informing user").await;
-                    tokio::spawn(addr.send(new_player.clone()));
-                }
-            }).await;
+                // Inform about new player
+                tokio::spawn(async move {
+                    let lock = SOCKETS.read().await;
+                    if let Some(addr) = lock.get(&other.id) {
+                        let addr = addr.clone();
+                        CURRENT_LOGGER.log_info("Informing user").await;
+                        addr.send(player_info).await;
+                    }
+                });
 
+                Some(other_player)
+            }).collect::<Vec<_>>().await;
+
+            let current = CurrentStatus {
+                position: player2.location.position,
+                system: player2.location.system,
+                players: current
+            };
+
+            tokio::spawn(addr2.send(current));
             Ok(resp)
         },
 
