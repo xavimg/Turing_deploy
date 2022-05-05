@@ -4,10 +4,13 @@ using System;
 using UnityEngine;
 
 public class Movement : MonoBehaviour {
+    public float timeout = 1f / 24f;
     public float speed;
     public float bulletForce;
     public GameObject bullet;
 
+    private float updateTimeout;
+    private AudioSource audio;
     private RemoteManager remote;
     private Rigidbody2D rb;
     private float dir;
@@ -15,8 +18,11 @@ public class Movement : MonoBehaviour {
     void Start() {
         RenderSettings.ambientLight = Color.white;
         RenderSettings.ambientIntensity = 100f;
+
+        updateTimeout = timeout;
         rb = GetComponent<Rigidbody2D>();
         remote = GetComponent<RemoteManager>();
+        audio = GetComponent<AudioSource>();
     }
 
     void Update() {
@@ -26,6 +32,7 @@ public class Movement : MonoBehaviour {
         if (Input.GetMouseButton(0)) {
             this.dir = Mathf.Rad2Deg * Mathf.Atan2(dir.y, dir.x);
             gameObject.transform.rotation = GetRotation(this.dir);
+            if (!audio.isPlaying) audio.Play();
             rb.velocity = dir * speed;
         } else {
             rb.velocity = Vector2.zero;
@@ -40,8 +47,11 @@ public class Movement : MonoBehaviour {
     }
 
     void FixedUpdate() {
-        if (remote != null && gameObject.transform.hasChanged)
-            remote.UpdateSelf(this.dir, new Vector2(gameObject.transform.position.x, gameObject.transform.position.y));
+        updateTimeout = Mathf.Max(0f, updateTimeout - Time.deltaTime);
+        if (updateTimeout == 0 && remote != null && gameObject.transform.hasChanged) {
+            remote.UpdateSelf(dir, new Vector2(gameObject.transform.position.x, gameObject.transform.position.y));
+            updateTimeout = timeout;
+        }
     }
 
     /* --- Utils --- */

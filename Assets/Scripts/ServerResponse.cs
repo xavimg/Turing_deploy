@@ -70,11 +70,20 @@ namespace WebSocketUtils {
     }
 
     [Serializable]
-    public class PlayerUpdate {
+    public class PlayerUpdate: IComparable<PlayerUpdate> {
         public string player;
         public float dir; // degrees
         public long at; // milliseconds
-        public PlayerLocation position;
+        public Vector2 position;
+
+        public int CompareTo(PlayerUpdate other) {
+            return at.CompareTo(other.at);
+        }
+    }
+
+    [Serializable]
+    public class PlayerExit {
+        public string player;
     }
 
     [Serializable]

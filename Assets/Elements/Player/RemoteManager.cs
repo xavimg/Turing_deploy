@@ -11,6 +11,7 @@ using WebSocketUtils;
 public class RemoteManager : MonoBehaviour {
     public GameObject external;
     private WebSocket ws;
+    private bool initialStatus = false;
     private Dictionary<string, ExternalManager> remotes = new Dictionary<string, ExternalManager>();
 
     // Start is called before the first frame update
@@ -49,6 +50,10 @@ public class RemoteManager : MonoBehaviour {
                 case 0x12: // Current status
                     GetCurrentStatus(JsonUtility.FromJson<WebSocketBody<CurrentStatus>>(message).body);
                     break;
+
+                case 0x13: // Player exit
+                    DestroyPlayer(JsonUtility.FromJson<WebSocketBody<PlayerExit>>(message).body);
+                    break;
             };
         };
 
@@ -68,10 +73,13 @@ public class RemoteManager : MonoBehaviour {
     }
 
     void GetCurrentStatus (CurrentStatus body) {
+        if (initialStatus) return;
         gameObject.transform.position = new Vector3(body.position.x, body.position.y, -4);
         foreach (NewPlayer player in body.players) {
             AddNewPlayer(player);
         }
+
+        initialStatus = true;
     }
 
     void AddNewPlayer (NewPlayer body) {
@@ -79,17 +87,29 @@ public class RemoteManager : MonoBehaviour {
         external.AddComponent<ExternalManager>();
         var component = external.GetComponent<ExternalManager>();
 
-        // TODO lock
-        if (!remotes.TryAdd(body.id, component)) {
-            remotes[body.id] = component;
+        lock (remotes) {
+            if (!remotes.TryAdd(body.id, component)) {
+                remotes[body.id] = component;
+            }
         }
     }
 
     void UpdatePlayer (PlayerUpdate body) {
-        ExternalManager player = remotes[body.player];
-        lock (player) {
-            player.MoveTo(body);
+        lock (remotes) {
+            ExternalManager player;
+            if (!remotes.TryGetValue(body.player, out player)) return;
+            lock (player) player.MoveTo(body);
         }
+    }
+
+    void DestroyPlayer (PlayerExit body) {
+        ExternalManager player;
+        lock (remotes) {
+            if (!remotes.TryGetValue(body.player, out player)) return;
+            remotes.Remove(body.player);
+        }
+
+        player.DestroySelf();
     }
 
     public async void UpdateSelf (float dir, Vector2 position) {
