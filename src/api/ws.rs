@@ -97,6 +97,12 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WebSocket {
                 let fut = async move {
                     let mut lock = SOCKETS.write().await;
                     lock.remove(&id);
+                        
+                    let lock = lock.downgrade();
+                    for value in lock.values() {
+                        let msg = PlayerExit { player: id };
+                        tokio::spawn(value.send(msg));
+                    }
                 };
 
                 let actor = fut.into_actor(self);
@@ -124,7 +130,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WebSocket {
                                     player: result.id,
                                     dir,
                                     at,
-                                    position: result.location
+                                    position: result.location.position
                                 };
 
                                 PLAYERS
@@ -193,7 +199,7 @@ pub struct PlayerMoved {
     pub dir: f32,
     #[serde(with = "ts_milliseconds")]
     pub at: DateTime<Utc>,
-    pub position: PlayerLocation
+    pub position: EucVecd2
 }
 
 impl Handler<PlayerMoved> for WebSocket {
@@ -229,6 +235,28 @@ impl Handler<NewPlayer> for WebSocket {
     fn handle(&mut self, msg: NewPlayer, ctx: &mut Self::Context) -> Self::Result {
         let body = json!({
            "id": 0x11u8,
+            "body": msg
+        });
+
+        ctx.binary(serde_json::to_vec(&body).unwrap())
+    }
+}
+
+/// Player displacement update
+#[derive(Clone, Copy, Serialize, Message)]
+#[rtype(result = "()")]
+pub struct PlayerExit {
+    #[serde(with = "crate::utils::objectid_hex")]
+    pub player: ObjectId
+}
+
+impl Handler<PlayerExit> for WebSocket {
+    type Result = ();
+
+    #[inline]
+    fn handle(&mut self, msg: PlayerExit, ctx: &mut Self::Context) -> Self::Result {
+        let body = json!({
+           "id": 0x13u8,
             "body": msg
         });
 

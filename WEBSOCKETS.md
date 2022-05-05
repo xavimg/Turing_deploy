@@ -13,7 +13,7 @@
 {
     "system": objectId?,
     "dir": float, // degrees
-    "at": ulong, // fimestamp
+    "at": long, // fimestamp
     "position": {
         "x": double,
         "y": double
@@ -26,6 +26,8 @@
 ```json
 {
     "player": objectId,
+    "dir": float, // degrees
+    "at": long, // fimestamp
     "position": {
         "x": double,
         "y": double
@@ -71,5 +73,12 @@
             "color": uint
         }
     ]
+}
+```
+
+### Player exit (0x13)
+```json
+{
+    "id": objectIds
 }
 ```
