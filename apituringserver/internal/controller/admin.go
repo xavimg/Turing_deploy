@@ -84,7 +84,7 @@ func (c *adminController) AdminRegister(context *gin.Context) {
 // @Success      200 {object} helper.Response
 // @Failure      400 body is empty or missing param
 // @Failure      500 "internal server error"
-// @Router       /api/admin/register [post]
+// @Router       /api/admin/login [post]
 func (c *adminController) AdminLogin(context *gin.Context) {
 	var loginDTO dto.LoginDTO
 	if errDTO := context.ShouldBindJSON(&loginDTO); errDTO != nil {

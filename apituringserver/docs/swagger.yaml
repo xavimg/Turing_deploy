@@ -99,6 +99,29 @@ paths:
           description: internal server error
       tags:
       - Admin
+  /api/admin/login:
+    post:
+      description: entering system as admin.
+      parameters:
+      - description: Body to register
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginDTO'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            type: body
+        "500":
+          description: internal server error
+      tags:
+      - Admin
   /api/admin/newfeature:
     post:
       description: Admin add new feature to show in version of game info.
@@ -129,14 +152,14 @@ paths:
       - Admin
   /api/admin/register:
     post:
-      description: entering system as admin.
+      description: Register to the server as a new admin.
       parameters:
       - description: Body to register
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/dto.LoginDTO'
+          $ref: '#/definitions/dto.RegisterDTO'
       responses:
         "200":
           description: OK
@@ -149,7 +172,7 @@ paths:
         "500":
           description: internal server error
       tags:
-      - Admin
+      - Auth
   /api/admin/unban/{id}:
     put:
       description: Admin unban user.

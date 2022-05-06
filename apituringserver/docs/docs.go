@@ -57,6 +57,42 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/admin/login": {
+            "post": {
+                "description": "entering system as admin.",
+                "tags": [
+                    "Admin"
+                ],
+                "parameters": [
+                    {
+                        "description": "Body to register",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.LoginDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "body"
+                        }
+                    },
+                    "500": {
+                        "description": "internal server error"
+                    }
+                }
+            }
+        },
         "/api/admin/newfeature": {
             "post": {
                 "description": "Admin add new feature to show in version of game info.",
@@ -102,9 +138,9 @@ const docTemplate = `{
         },
         "/api/admin/register": {
             "post": {
-                "description": "entering system as admin.",
+                "description": "Register to the server as a new admin.",
                 "tags": [
-                    "Admin"
+                    "Auth"
                 ],
                 "parameters": [
                     {
@@ -113,7 +149,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.LoginDTO"
+                            "$ref": "#/definitions/dto.RegisterDTO"
                         }
                     }
                 ],
