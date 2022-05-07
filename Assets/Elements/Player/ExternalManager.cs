@@ -4,11 +4,17 @@ using UnityEngine;
 using WebSocketUtils;
 
 public class ExternalManager : MonoBehaviour {
+    public UnityEngine.Color color;
     private long lastTimestamp = -1;
     private volatile float updateTimeout;
 
     private PlayerUpdate? nextUpdate = null;
     private SortedSet<PlayerUpdate> buffer = new SortedSet<PlayerUpdate>();
+
+    private void Start() {
+        var renderer = gameObject.GetComponent<Renderer>();
+        renderer.material.color = color;
+    }
 
     private void FixedUpdate () {
         if (nextUpdate != null) {

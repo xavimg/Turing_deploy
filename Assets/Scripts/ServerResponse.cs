@@ -1,7 +1,4 @@
 using System;
-using System.Runtime.Serialization;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace ServerUtils {
@@ -44,18 +41,26 @@ namespace WebSocketUtils {
         public string id;
         public string name;
         public PlayerLocation location;
-        public uint color;
+        public Color color;
     }
 
     [Serializable]
     public class SendUpdate {
         public float dir; // degrees
         public long at; // milliseconds
-        public Vector2 position;
+        public Vector2Double position;
 
         public SendUpdate (float dir, Vector2 position) {
             this.dir = dir;
-            this.position = position;
+            this.position = new Vector2Double(position);
+
+            var now = (DateTimeOffset)DateTime.Now;
+            at = now.ToUnixTimeMilliseconds();
+        }
+
+        public SendUpdate(float dir, double x, double y) {
+            this.dir = dir;
+            this.position = new Vector2Double(x, y);
 
             var now = (DateTimeOffset)DateTime.Now;
             at = now.ToUnixTimeMilliseconds();
@@ -64,7 +69,8 @@ namespace WebSocketUtils {
 
     [Serializable]
     public class CurrentStatus {
-        public string system;
+        public PlanetarySystem system;
+        public Color color;
         public Vector2 position;
         public NewPlayer[] players;
     }
@@ -84,6 +90,59 @@ namespace WebSocketUtils {
     [Serializable]
     public class PlayerExit {
         public string player;
+    }
+
+    // Others
+    [Serializable]
+    public class PlanetarySystem {
+        public string id;
+        public Star star;
+        public Planet[] planets;
+    }
+
+    [Serializable]
+    public class Star {
+        public Color color;
+        public float temperature; // Kelvin
+        public float mass; // Jupiter masses
+    }
+
+    [Serializable]
+    public class Planet {
+        public uint _id;
+        public Color color;
+        public float mass; // Jupiter masses
+        public float radius; // Astronomical units
+        public Vector2 position; // Astronomical units
+        public Vector2 velocity;
+        // TODO resources
+    }
+
+    [Serializable]
+    public class Vector2Double {
+        public double x;
+        public double y;
+
+        public Vector2Double (double x, double y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        public Vector2Double (Vector2 vector) {
+            this.x = vector.x;
+            this.y = vector.y;
+        }
+    }
+
+    [Serializable]
+    public class Color {
+        public byte r;
+        public byte g;
+        public byte b;
+
+        public UnityEngine.Color Unity {
+            get { return new UnityEngine.Color(r / 255.0f, g / 255.0f, b / 255.0f); }
+        }
     }
 
     [Serializable]
