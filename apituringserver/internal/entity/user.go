@@ -25,6 +25,7 @@ type User struct {
 	TypeUser   TypeUser `gorm:"default:user" json:"-"`
 	//CreditCard CreditCard `gorm:"type:varchar(255)" json:"credit_card"`
 }
+
 type CreditCard struct {
 	ISBN string   `gorm:"type:varchar(255)" json:"isbn"`
 	Type TypeCard `gorm:"type:varchar(255)" json:"type_card"`
